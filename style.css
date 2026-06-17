@@ -1,0 +1,942 @@
+/* ==========================================================================
+   RIBAS KARPATY — PREMIUM CINEMATIC STYLE SHEET
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. DESIGN SYSTEM & CUSTOM PROPERTIES
+   -------------------------------------------------------------------------- */
+:root {
+    /* Color Palette */
+    --gold: #D7B06A;
+    --white: #FFFFFF;
+    --black: #0A0A0A;
+    --overlay: rgba(0, 0, 0, 0.45);
+    
+    /* Fonts */
+    --font-heading: 'Playfair Display', serif;
+    --font-accent: 'Montserrat', sans-serif;
+    --font-body: 'Jost', sans-serif;
+    
+    /* Layout Layer Indexes */
+    --z-video: 1;
+    --z-gradient: 2;
+    --z-text: 10;
+    --z-ui: 50;
+    --z-menu: 200;
+    --z-loader: 9999;
+    --z-cursor: 10000;
+}
+
+/* Reset & Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: var(--black);
+    color: var(--white);
+    font-family: var(--font-body);
+    font-weight: 400;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Pinned Main Container */
+#main-scroll-container {
+    position: relative;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    z-index: 5;
+    background-color: var(--black);
+    transform: translateZ(0);
+    will-change: transform;
+}
+
+/* --------------------------------------------------------------------------
+   2. LAYER 1: VIDEO LAYER
+   -------------------------------------------------------------------------- */
+.video-layer-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: var(--z-video);
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.video-viewport {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    transform: translateZ(0);
+    will-change: transform, opacity;
+}
+
+/* Hero remains on top of Scroll video initially */
+#hero-video {
+    z-index: 2;
+    opacity: 1;
+}
+
+#scroll-video {
+    z-index: 1;
+    opacity: 1; /* Keep at 1, Hero video fades to reveal it */
+}
+
+/* --------------------------------------------------------------------------
+   3. LAYER 2: GRADIENT OVERLAYS
+   -------------------------------------------------------------------------- */
+.gradient-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Luxury left gradient for readability */
+    background: linear-gradient(
+        90deg,
+        rgba(0, 0, 0, 0.75) 0%,
+        rgba(0, 0, 0, 0.45) 30%,
+        rgba(0, 0, 0, 0) 70%
+    );
+    z-index: var(--z-gradient);
+    pointer-events: none;
+    will-change: opacity;
+    opacity: 0.75;
+    transition: opacity 800ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.vignette-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Vignette gradient to darken top and bottom edges */
+    background: linear-gradient(
+        180deg,
+        rgba(0, 0, 0, 0.6) 0%,
+        rgba(0, 0, 0, 0) 25%,
+        rgba(0, 0, 0, 0) 75%,
+        rgba(0, 0, 0, 0.6) 100%
+    );
+    z-index: var(--z-gradient);
+    pointer-events: none;
+}
+
+.vignette-radial {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Radial vignette to frame video and enhance focus */
+    background: radial-gradient(
+        circle,
+        rgba(0, 0, 0, 0.2) 0%,
+        rgba(0, 0, 0, 0.55) 60%,
+        rgba(0, 0, 0, 0.96) 100%
+    );
+    z-index: var(--z-gradient);
+    pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   4. LAYER 3: FIXED UI OVERLAYS
+   -------------------------------------------------------------------------- */
+
+/* Header & Logo */
+.fixed-header {
+    position: fixed;
+    top: 40px;
+    left: 50px;
+    right: 50px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: var(--z-ui);
+    pointer-events: none;
+}
+
+.logo-link {
+    pointer-events: auto;
+}
+
+.logo {
+    width: 144px;
+    height: auto;
+    display: block;
+    user-select: none;
+}
+
+/* Menu Button */
+.menu-trigger {
+    background: none;
+    border: none;
+    color: var(--white);
+    font-family: var(--font-body);
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    pointer-events: auto;
+    z-index: var(--z-ui);
+    transition: color 300ms cubic-bezier(0.16, 1, 0.3, 1), transform 300ms;
+}
+
+.menu-trigger:hover {
+    color: var(--gold);
+    transform: scale(1.05);
+}
+
+/* Fullscreen Menu Overlay */
+.menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    height: 100dvh;
+    background-color: rgba(10, 10, 10, 0.96);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    display: none; /* Controlled by GSAP */
+    justify-content: center;
+    align-items: center;
+    z-index: var(--z-menu);
+    opacity: 0;
+}
+
+.menu-close {
+    position: absolute;
+    top: 40px;
+    right: 50px;
+    background: none;
+    border: none;
+    color: var(--white);
+    font-size: 24px;
+    cursor: pointer;
+    transition: color 300ms, transform 300ms;
+}
+
+.menu-close:hover {
+    color: var(--gold);
+    transform: rotate(90deg);
+}
+
+.menu-nav {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+    text-align: center;
+}
+
+.menu-link {
+    font-family: var(--font-heading);
+    font-size: clamp(36px, 6vw, 64px);
+    font-weight: 500;
+    color: var(--white);
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: color 300ms, transform 300ms;
+    will-change: transform, color;
+}
+
+.menu-link:hover {
+    color: var(--gold);
+    transform: translateY(-5px) scale(1.02);
+}
+
+/* Contacts Overlay */
+.contacts-overlay {
+    position: fixed;
+    bottom: 60px;
+    right: 60px;
+    text-align: right;
+    z-index: var(--z-ui);
+    font-family: var(--font-body);
+    font-size: 18px;
+    line-height: 1.8;
+    pointer-events: auto;
+    will-change: opacity;
+}
+
+.contact-item {
+    margin: 6px 0;
+    color: rgba(255, 255, 255, 0.8);
+    transition: color 300ms;
+}
+
+.contact-item a {
+    color: inherit;
+    text-decoration: none;
+    transition: color 300ms;
+}
+
+.contact-item a:hover {
+    color: var(--gold);
+}
+
+/* Scroll Indicator */
+.scroll-indicator {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    z-index: var(--z-ui);
+    color: rgba(255, 255, 255, 0.75);
+    font-family: var(--font-body);
+    font-size: 14px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    pointer-events: none;
+    will-change: opacity;
+    animation: floatIndicator 2s ease-in-out infinite;
+}
+
+.scroll-text {
+    font-weight: 500;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.mouse-icon {
+    width: 24px;
+    height: 40px;
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    border-radius: 12px;
+    position: relative;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.mouse-wheel {
+    width: 4px;
+    height: 8px;
+    background-color: var(--gold);
+    border-radius: 2px;
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    animation: wheelScroll 1.5s ease-in-out infinite;
+}
+
+/* Floating Animation for Indicator (Preserving translate-x centering) */
+@keyframes floatIndicator {
+    0%, 100% {
+        transform: translate(-50%, 0);
+    }
+    50% {
+        transform: translate(-50%, -6px);
+    }
+}
+
+/* Scrolling Wheel Animation */
+@keyframes wheelScroll {
+    0% {
+        transform: translate(-50%, 0);
+        opacity: 0;
+    }
+    20% {
+        opacity: 1;
+    }
+    80% {
+        transform: translate(-50%, 8px);
+        opacity: 0;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   5. BUTTON DESIGN
+   -------------------------------------------------------------------------- */
+.luxury-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 56px;
+    padding: 0 32px;
+    background-color: var(--gold);
+    color: var(--black);
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 18px;
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(215, 176, 106, 0.15);
+    transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1), 
+                background-color 300ms, 
+                box-shadow 300ms;
+    pointer-events: auto;
+    will-change: transform;
+}
+
+.luxury-btn:hover {
+    transform: scale(1.03);
+    box-shadow: 0 6px 24px rgba(215, 176, 106, 0.3);
+}
+
+.luxury-btn:active {
+    transform: scale(0.98);
+}
+
+/* --------------------------------------------------------------------------
+   6. TEXT CONTENT LAYER
+   -------------------------------------------------------------------------- */
+.text-layer-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: var(--z-text);
+    pointer-events: none; /* Make container unclickable so scroll passes through */
+}
+
+.text-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 80px 10%;
+    pointer-events: none;
+}
+
+/* Alignment Configurations */
+.text-screen[data-align="left"] {
+    justify-content: center;
+    align-items: flex-start;
+    text-align: left;
+}
+
+.text-screen[data-align="center"] {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.text-screen[data-align="right"] {
+    justify-content: center;
+    align-items: flex-end;
+    text-align: right;
+}
+
+/* Screen Content */
+.screen-content {
+    max-width: 900px;
+    pointer-events: auto; /* Re-enable pointer events for buttons/links */
+}
+
+/* Typography Scale */
+h1 {
+    font-family: var(--font-heading);
+    font-size: clamp(52px, 6.5vw, 110px);
+    font-weight: 500;
+    line-height: 1.1;
+    margin-bottom: 24px;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    text-shadow: 0 4px 24px rgba(0, 0, 0, 0.75), 0 2px 6px rgba(0, 0, 0, 0.5);
+    will-change: transform, opacity, filter;
+}
+
+h2 {
+    font-family: var(--font-heading);
+    font-size: clamp(38px, 5.5vw, 90px);
+    font-weight: 500;
+    line-height: 1.15;
+    margin-bottom: 24px;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    text-shadow: 0 4px 24px rgba(0, 0, 0, 0.75), 0 2px 6px rgba(0, 0, 0, 0.5);
+    will-change: transform, opacity, filter;
+}
+
+.subtitle {
+    font-family: var(--font-body);
+    font-size: clamp(18px, 1.8vw, 26px);
+    font-weight: 300;
+    letter-spacing: 0.03em;
+    line-height: 1.5;
+    margin-bottom: 40px;
+    color: rgba(255, 255, 255, 0.85);
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.75), 0 1px 4px rgba(0, 0, 0, 0.5);
+    will-change: transform, opacity, filter;
+}
+/* Secondary Typography for potential extra description */
+.secondary-text {
+    font-size: clamp(16px, 1.5vw, 22px);
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Initial styling for non-hero buttons */
+.screen-content .luxury-btn {
+    will-change: transform, opacity, filter;
+    font-family: var(--font-accent);
+}
+
+/* --------------------------------------------------------------------------
+   7. RESPONSIVE DESIGN & MEDIA QUERIES
+   -------------------------------------------------------------------------- */
+
+/* Large screens adjust layout paddings */
+@media (max-width: 1440px) {
+    .text-screen {
+        padding: 80px 8%;
+    }
+}
+
+/* Medium screens - adjust logo and menu margins */
+@media (max-width: 1280px) {
+    .fixed-header {
+        top: 30px;
+        left: 40px;
+        right: 40px;
+    }
+    
+    .logo {
+        width: 132px;
+    }
+    
+    .menu-trigger {
+        font-size: 16px;
+    }
+    
+    .contacts-overlay {
+        bottom: 40px;
+        right: 40px;
+        font-size: 16px;
+    }
+}
+
+/* Small screens / Tablets */
+@media (max-width: 1024px) {
+    .text-screen {
+        padding: 80px 6%;
+    }
+    #progress-timeline {
+        left: 30px; /* Shift inward on smaller screens */
+    }
+}
+
+/* Mobile Screens */
+@media (max-width: 768px) {
+    .fixed-header {
+        top: 24px;
+        left: 24px;
+        right: 24px;
+    }
+    
+    .logo {
+        width: 120px;
+    }
+    
+    .menu-trigger {
+        font-size: 15px;
+    }
+    
+    /* Hide contacts completely below 768px as requested */
+    .contacts-overlay {
+        display: none !important;
+    }
+    
+    /* Hide custom cursor and progress timeline on mobile for space and performance */
+    #custom-cursor,
+    #custom-cursor-dot,
+    #progress-timeline {
+        display: none !important;
+    }
+    
+    .scroll-indicator {
+        bottom: 30px;
+    }
+    
+    .text-screen {
+        padding: 60px 24px;
+    }
+    
+    /* Ensure text alignment works well on mobile */
+    .text-screen[data-align="right"] {
+        align-items: center;
+        text-align: center;
+    }
+    .text-screen[data-align="left"] {
+        align-items: center;
+        text-align: center;
+    }
+    
+    .menu-link {
+        font-size: 32px;
+    }
+}
+
+/* Extremely Small Phones height check */
+@media (max-height: 500px) {
+    .scroll-indicator {
+        display: none !important;
+    }
+    .fixed-header {
+        top: 15px;
+    }
+    #progress-timeline {
+        display: none !important;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   8. LUXURY PRELOADER
+   -------------------------------------------------------------------------- */
+#preloader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--black);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: var(--z-loader);
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 800ms cubic-bezier(0.25, 1, 0.5, 1), 
+                visibility 800ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.preloader-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+    max-width: 250px;
+    width: 100%;
+}
+
+.preloader-logo {
+    width: 120px;
+    height: auto;
+    animation: preloaderPulse 2.5s ease-in-out infinite;
+}
+
+.preloader-progress-wrap {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.preloader-bar-bg {
+    width: 100%;
+    height: 2px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 99px;
+    overflow: hidden;
+    position: relative;
+}
+
+.preloader-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0%;
+    background-color: var(--gold);
+    transition: width 100ms ease-out;
+}
+
+.preloader-percentage {
+    font-family: var(--font-accent);
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    color: var(--gold);
+}
+
+@keyframes preloaderPulse {
+    0%, 100% { transform: scale(1); opacity: 0.75; }
+    50% { transform: scale(1.04); opacity: 1; filter: drop-shadow(0 0 8px rgba(215, 176, 106, 0.35)); }
+}
+
+/* --------------------------------------------------------------------------
+   9. VERTICAL PROGRESS TIMELINE
+   -------------------------------------------------------------------------- */
+#progress-timeline {
+    position: fixed;
+    left: 50px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: var(--z-ui);
+    pointer-events: auto;
+}
+
+.timeline-line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background-color: rgba(255, 255, 255, 0.1);
+    z-index: 1;
+}
+
+.timeline-dots {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    position: relative;
+    z-index: 2;
+}
+
+.timeline-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: transparent;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    position: relative;
+    transition: border-color 400ms, background-color 400ms, transform 400ms;
+    outline: none;
+    padding: 0;
+}
+
+.timeline-dot:hover {
+    border-color: var(--gold);
+    transform: scale(1.2);
+}
+
+.timeline-dot.active {
+    border-color: var(--gold);
+    background-color: var(--gold);
+    box-shadow: 0 0 10px rgba(215, 176, 106, 0.5);
+}
+
+.dot-num {
+    position: absolute;
+    left: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: var(--font-accent);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.4);
+    opacity: 0;
+    transition: opacity 400ms, color 400ms, transform 400ms;
+    transform: translateY(-50%) translateX(-10px);
+    pointer-events: none;
+}
+
+.timeline-dot:hover .dot-num,
+.timeline-dot.active .dot-num {
+    opacity: 1;
+    color: var(--gold);
+    transform: translateY(-50%) translateX(0);
+}
+
+/* --------------------------------------------------------------------------
+   10. LUXURY CUSTOM CURSOR
+   -------------------------------------------------------------------------- */
+#custom-cursor {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--white);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: var(--z-cursor);
+    transform: translate(-50%, -50%);
+    transition: width 300ms cubic-bezier(0.25, 1, 0.5, 1),
+                height 300ms cubic-bezier(0.25, 1, 0.5, 1),
+                background-color 300ms,
+                border-color 300ms;
+    opacity: 0;
+    will-change: transform, width, height;
+}
+
+#custom-cursor.cursor-active {
+    width: 64px;
+    height: 64px;
+    background-color: rgba(255, 255, 255, 0.08);
+    border-color: var(--white);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.15);
+}
+
+/* --------------------------------------------------------------------------
+   11. SPA SECTION TWO-COLUMN LAYOUT
+   -------------------------------------------------------------------------- */
+.spa-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 80px;
+}
+
+.spa-left-col {
+    flex: 1.2;
+    max-width: 550px;
+}
+
+.spa-right-col {
+    flex: 1;
+    max-width: 450px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    background: rgba(10, 10, 10, 0.45);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 36px 40px;
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    will-change: transform, opacity;
+}
+
+.spa-advantage-item {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    will-change: transform, opacity, filter;
+    opacity: 0;
+}
+
+.spa-advantage-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold);
+    flex-shrink: 0;
+    background-color: rgba(255, 255, 255, 0.03);
+    transition: border-color 300ms, background-color 300ms, transform 300ms;
+}
+
+.spa-advantage-item:hover .spa-advantage-icon {
+    border-color: var(--gold);
+    background-color: rgba(215, 176, 106, 0.08);
+    transform: scale(1.05);
+}
+
+.spa-advantage-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.spa-advantage-text {
+    font-family: var(--font-body);
+    font-size: clamp(16px, 1.4vw, 20px);
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* Responsive adjust for SPA columns */
+@media (max-width: 1024px) {
+    .spa-container {
+        gap: 40px;
+    }
+}
+
+@media (max-width: 768px) {
+    .spa-container {
+        flex-direction: column;
+        align-items: center;
+        gap: 36px;
+        text-align: center;
+    }
+    .spa-left-col {
+        max-width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .spa-right-col {
+        max-width: 100%;
+        width: 100%;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 24px 30px;
+    }
+    .spa-advantage-item {
+        text-align: left;
+    }
+    .rooms-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   12. ROOMS ADVANTAGES STYLING
+   -------------------------------------------------------------------------- */
+.rooms-advantages-title {
+    font-family: var(--font-accent);
+    font-size: 16px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--gold);
+    margin-bottom: 24px;
+}
+
+.rooms-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px 20px;
+}
+
+.spa-advantage-item.full-width {
+    grid-column: span 2;
+}
+
+/* --------------------------------------------------------------------------
+   13. SCREEN 7 NIGHT FINALE ADJUSTMENTS
+   -------------------------------------------------------------------------- */
+#screen-7 .screen-content {
+    max-width: 1200px;
+}
+
+@media (min-width: 769px) {
+    .nobr {
+        white-space: nowrap;
+    }
+}
