@@ -581,7 +581,7 @@ h2 {
     }
     
     .text-screen {
-        padding: 60px 24px;
+        padding: 85px 24px 30px 24px;
     }
     
     /* Ensure text alignment works well on mobile */
@@ -592,6 +592,40 @@ h2 {
     .text-screen[data-align="left"] {
         align-items: center;
         text-align: center;
+    }
+    
+    /* Mobile headings & subtitle optimization (Specifically for Screen 4 SPA to fit multi-line content) */
+    #screen-4 h2 {
+        font-size: clamp(36px, 5.5vw, 46px);
+        margin-bottom: 12px;
+        line-height: 1.2;
+    }
+    #screen-4 .subtitle {
+        font-size: clamp(13px, 1.6vw, 15px);
+        margin-bottom: 18px;
+        line-height: 1.35;
+    }
+    #screen-4 .luxury-btn {
+        height: 46px;
+        padding: 0 24px;
+        font-size: 15px;
+    }
+    
+    /* Screen 6 specifically to fit all 11 amenities */
+    #screen-6 h2 {
+        font-size: clamp(28px, 4.8vw, 36px);
+        margin-bottom: 10px;
+        line-height: 1.2;
+    }
+    #screen-6 .subtitle {
+        font-size: clamp(13px, 1.6vw, 15px);
+        margin-bottom: 16px;
+        line-height: 1.35;
+    }
+    #screen-6 .luxury-btn {
+        height: 46px;
+        padding: 0 24px;
+        font-size: 15px;
     }
     
     .menu-link {
@@ -880,7 +914,7 @@ h2 {
     .spa-container {
         flex-direction: column;
         align-items: center;
-        gap: 36px;
+        gap: 20px;
         text-align: center;
     }
     .spa-left-col {
@@ -889,19 +923,79 @@ h2 {
         flex-direction: column;
         align-items: center;
     }
-    .spa-right-col {
+    
+    /* Screen 4 & 5 right column 2-column grid on mobile */
+    #screen-4 .spa-right-col,
+    #screen-5 .spa-right-col {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px 16px;
+        padding: 16px 20px;
         max-width: 100%;
         width: 100%;
-        align-items: flex-start;
-        gap: 16px;
-        padding: 24px 30px;
     }
+    
+    /* Screen 6 right column layout on mobile */
+    #screen-6 .spa-right-col {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 12px 16px;
+        max-width: 100%;
+        width: 100%;
+        align-items: stretch;
+    }
+    
     .spa-advantage-item {
         text-align: left;
+        gap: 10px;
     }
-    .rooms-grid {
-        grid-template-columns: 1fr;
-        gap: 16px;
+    
+    .spa-advantage-icon {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .spa-advantage-icon svg {
+        width: 16px;
+        height: 16px;
+    }
+    
+    .spa-advantage-text {
+        font-size: 13px;
+        line-height: 1.3;
+    }
+    
+    /* Screen 6 overrides to fit 11 items cleanly */
+    #screen-6 .spa-advantage-item {
+        gap: 8px;
+    }
+    
+    #screen-6 .spa-advantage-icon {
+        width: 30px;
+        height: 30px;
+    }
+    
+    #screen-6 .spa-advantage-icon svg {
+        width: 14px;
+        height: 14px;
+    }
+    
+    #screen-6 .spa-advantage-text {
+        font-size: 12px;
+        line-height: 1.25;
+    }
+    
+    /* Screen 6: 2-column grid on mobile instead of 1-column */
+    #screen-6 .rooms-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px 10px;
+    }
+    
+    #screen-6 .rooms-advantages-title {
+        font-size: 13px;
+        margin-bottom: 8px;
+        text-align: center;
     }
 }
 

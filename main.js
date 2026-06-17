@@ -346,8 +346,11 @@ document.addEventListener("DOMContentLoaded", () => {
             ease: "power2.out" 
         }, 0.2);
 
+        const isMobile = window.innerWidth <= 768;
+        const targetIndicatorOpacity = (isMobile && targetIndex >= 3) ? 0 : targetConfig.indicatorOpacity;
+
         tl.to(scrollIndicator, { 
-            opacity: targetConfig.indicatorOpacity, 
+            opacity: targetIndicatorOpacity, 
             duration: 0.6, 
             ease: "power2.out" 
         }, 0.2);
