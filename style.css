@@ -997,6 +997,19 @@ h2 {
         margin-bottom: 8px;
         text-align: center;
     }
+
+    /* Disable GPU-heavy backdrop-filter blur on mobile and use slightly more opaque dark backgrounds */
+    .spa-right-col {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        background: rgba(10, 10, 10, 0.88) !important;
+    }
+
+    .menu-overlay {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        background-color: rgba(10, 10, 10, 0.98) !important;
+    }
 }
 
 /* --------------------------------------------------------------------------

@@ -94,6 +94,15 @@ document.addEventListener("DOMContentLoaded", () => {
     let activeTargetScreen = null;
     let triggerFadeInFn = null;
 
+    // Dynamically set video source based on screen width (768px threshold)
+    const isMobileDevice = window.innerWidth <= 768;
+    const selectedVideoSource = isMobileDevice ? "Scrool_video_mobile.mp4" : "Scrool_video_desktop.mp4";
+    
+    const videoSourceElement = document.createElement("source");
+    videoSourceElement.src = selectedVideoSource;
+    videoSourceElement.type = "video/mp4";
+    scrollVideo.appendChild(videoSourceElement);
+
     // Force load scroll video immediately to fetch metadata
     scrollVideo.load();
 
