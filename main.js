@@ -14,61 +14,63 @@ document.addEventListener("DOMContentLoaded", () => {
             contactsOpacity: 1,
             indicatorOpacity: 1.0,
             hasButton: true,
-            flightDuration: 1.0
+            flightDuration: 1.5,
+            flightEase: "none"
         },
         {
             id: "screen-2",
-            videoTime: 2.0, // Adjusted to 2.0s
+            videoTime: 3.25, // 03:15 at 60fps
             gradOpacity: 0.65,
             contactsOpacity: 0,
             indicatorOpacity: 0.75,
             hasButton: false,
-            flightDuration: 2.0
+            flightDuration: 1.5,
+            flightEase: "none"
         },
         {
             id: "screen-3",
-            videoTime: 4.0,
+            videoTime: 7.25, // 07:15 at 60fps = 7s + 15/60s
             gradOpacity: 0.55,
             contactsOpacity: 0,
             indicatorOpacity: 0.75,
             hasButton: false,
-            flightDuration: 2.0
+            flightEase: "none"
         },
         {
             id: "screen-4",
-            videoTime: 8.0,
+            videoTime: 11.4, // 11:24 at 60fps = 11s + 24/60s
             gradOpacity: 0.75,
             contactsOpacity: 0,
             indicatorOpacity: 0.75,
             hasButton: true,
-            flightDuration: 4.0
+            flightEase: "none"
         },
         {
             id: "screen-5",
-            videoTime: 9.5, // Adjusted to 9.5s
+            videoTime: 15.47, // 15:28 at 60fps = 15s + 28/60s
             gradOpacity: 0.85,
             contactsOpacity: 0,
             indicatorOpacity: 0.75,
             hasButton: true,
-            flightDuration: 1.5
+            flightEase: "none"
         },
         {
             id: "screen-6",
-            videoTime: 11.5, // Adjusted to 11.5s
+            videoTime: 19.47, // 19:28 at 60fps = 19s + 28/60s
             gradOpacity: 0.65,
             contactsOpacity: 0,
             indicatorOpacity: 0.75,
             hasButton: true,
-            flightDuration: 2.0
+            flightEase: "none"
         },
         {
             id: "screen-7",
-            videoTime: 15.0,
+            videoTime: 24.02, // 24:01 at 60fps = 24s + 1/60s
             gradOpacity: 0.85,
             contactsOpacity: 1,
             indicatorOpacity: 0.0,
             hasButton: true,
-            flightDuration: 3.5
+            flightEase: "none"
         }
     ];
 
@@ -93,11 +95,10 @@ document.addEventListener("DOMContentLoaded", () => {
     let activeTargetConfig = null;
     let activeTargetScreen = null;
     let triggerFadeInFn = null;
-    let isNativePlaying = false;
 
     // Dynamically set video source based on screen width (768px threshold)
     const isMobileDevice = window.innerWidth <= 768;
-    const selectedVideoSource = isMobileDevice ? "Scrool_video_mobile.mp4" : "Scrool_video_desktop.mp4";
+    const selectedVideoSource = isMobileDevice ? "Scroll_video_mobile_v2.mp4" : "Scroll_video_desktop_v2.mp4";
     
     const videoSourceElement = document.createElement("source");
     videoSourceElement.src = selectedVideoSource;
@@ -114,10 +115,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // 3. HIGH PERFORMANCE SEEK LOOP (rAF + seeked queue)
     // ----------------------------------------------------------------------
     function updateVideoFrame() {
-        if (isNativePlaying) {
-            // Native playback drives the time proxy
-            videoProxyState.time = scrollVideo.currentTime;
-        } else if (scrollVideo && scrollVideo.readyState >= 1) {
+        if (scrollVideo && scrollVideo.readyState >= 1) {
             const roundedTarget = Math.round(videoProxyState.time * 100) / 100;
             if (roundedTarget !== lastSeekedTime) {
                 lastSeekedTime = roundedTarget;
@@ -289,10 +287,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const targetSubtitle = targetScreen.querySelector(".subtitle");
         const targetBtn = targetScreen.querySelector(".luxury-btn");
 
-        // Calculate dynamic flight duration based on seek span
-        const flightDuration = Math.abs(targetConfig.videoTime - currentConfig.videoTime) > 0
-            ? targetConfig.flightDuration
-            : 0.5;
+        // Calculate dynamic flight duration based on video time delta and constant 2.5x speed factor
+        const SPEED_FACTOR = 2.5;
+        const timeDelta = Math.abs(targetConfig.videoTime - currentConfig.videoTime);
+        const flightDuration = timeDelta > 0 ? (timeDelta / SPEED_FACTOR) : 0.5;
 
         // Transition Master Timeline
         const tl = gsap.timeline();
@@ -327,53 +325,22 @@ document.addEventListener("DOMContentLoaded", () => {
                     heroVideo.pause();
                 }
             }, 0.1);
-        } else if (currentScreenIndex > 0 && targetIndex === 0) {
-            tl.call(() => {
-                heroVideo.play().catch(e => console.log(e));
-            }, null, 0.1);
-            tl.to("#hero-video", { opacity: 1, duration: 0.5, ease: "power2.out" }, 0.1);
         }
 
         // C. DRONE FLIGHT TRANSITION
-        const isForward = targetConfig.videoTime > scrollVideo.currentTime;
-
-        if (isForward && Math.abs(targetConfig.videoTime - scrollVideo.currentTime) > 0.1) {
-            // Forward movement: Use native hardware-accelerated playback at dynamic playbackRate
-            const timeDelta = targetConfig.videoTime - scrollVideo.currentTime;
-            const playRate = timeDelta / flightDuration;
-            
-            tl.call(() => {
-                isNativePlaying = true;
-                scrollVideo.playbackRate = playRate;
-                scrollVideo.play().catch(e => console.log(e));
-            }, null, 0.2);
-
-            // Animate a dummy block to match flightDuration and trigger completion
-            tl.to({}, {
-                duration: flightDuration,
-                onComplete: () => {
-                    isNativePlaying = false;
-                    scrollVideo.pause();
-                    scrollVideo.currentTime = targetConfig.videoTime;
-                    triggerFadeIn();
+        tl.to(videoProxyState, {
+            time: targetConfig.videoTime,
+            duration: flightDuration,
+            ease: targetConfig.flightEase || "power2.inOut",
+            onComplete: () => {
+                const timeDiff = Math.abs(scrollVideo.currentTime - targetConfig.videoTime);
+                if (!isSeeking || timeDiff < 0.25) {
+                    triggerFadeIn(); // Frame reached, trigger fade-in immediately
+                } else {
+                    checkTargetReached = true; // Wait for seeked listener
                 }
-            }, 0.2);
-        } else {
-            // Backward or micro-movement: Fall back to optimized frame seeking
-            tl.to(videoProxyState, {
-                time: targetConfig.videoTime,
-                duration: flightDuration,
-                ease: "power2.inOut",
-                onComplete: () => {
-                    const timeDiff = Math.abs(scrollVideo.currentTime - targetConfig.videoTime);
-                    if (!isSeeking || timeDiff < 0.25) {
-                        triggerFadeIn();
-                    } else {
-                        checkTargetReached = true;
-                    }
-                }
-            }, 0.2);
-        }
+            }
+        }, 0.2);
 
         // D. GRADIENT OVERLAY & CONFLICT UI OVERLAYS
         tl.to(gradOverlay, { opacity: targetConfig.gradOpacity, duration: flightDuration, ease: "power2.out" }, 0.2);
@@ -404,6 +371,12 @@ document.addEventListener("DOMContentLoaded", () => {
         // E. FADE IN TARGET TEXT FUNCTION (Called when video reaches target frame)
         function triggerFadeIn() {
             triggerFadeInFn = null;
+            
+            if (targetIndex === 0) {
+                heroVideo.currentTime = 0;
+                heroVideo.play().catch(e => console.log(e));
+                gsap.set("#hero-video", { opacity: 1 });
+            }
             
             const textTl = gsap.timeline({
                 onComplete: () => {
