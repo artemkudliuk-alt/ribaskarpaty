@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
             contactsOpacity: 0,
             indicatorOpacity: 0.75,
             hasButton: false,
-            flightDuration: 1.2
+            flightDuration: 2.0
         },
         {
             id: "screen-3",
@@ -41,7 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
             contactsOpacity: 0,
             indicatorOpacity: 0.75,
             hasButton: true,
-            flightDuration: 2.2
+            flightDuration: 4.0
         },
         {
             id: "screen-5",
@@ -50,7 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
             contactsOpacity: 0,
             indicatorOpacity: 0.75,
             hasButton: true,
-            flightDuration: 1.8
+            flightDuration: 1.5
         },
         {
             id: "screen-6",
@@ -59,7 +59,7 @@ document.addEventListener("DOMContentLoaded", () => {
             contactsOpacity: 0,
             indicatorOpacity: 0.75,
             hasButton: true,
-            flightDuration: 1.5
+            flightDuration: 2.0
         },
         {
             id: "screen-7",
@@ -68,7 +68,7 @@ document.addEventListener("DOMContentLoaded", () => {
             contactsOpacity: 1,
             indicatorOpacity: 0.0,
             hasButton: true,
-            flightDuration: 1.6
+            flightDuration: 3.5
         }
     ];
 
@@ -93,6 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let activeTargetConfig = null;
     let activeTargetScreen = null;
     let triggerFadeInFn = null;
+    let isNativePlaying = false;
 
     // Dynamically set video source based on screen width (768px threshold)
     const isMobileDevice = window.innerWidth <= 768;
@@ -113,7 +114,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // 3. HIGH PERFORMANCE SEEK LOOP (rAF + seeked queue)
     // ----------------------------------------------------------------------
     function updateVideoFrame() {
-        if (scrollVideo && scrollVideo.readyState >= 1) {
+        if (isNativePlaying) {
+            // Native playback drives the time proxy
+            videoProxyState.time = scrollVideo.currentTime;
+        } else if (scrollVideo && scrollVideo.readyState >= 1) {
             const roundedTarget = Math.round(videoProxyState.time * 100) / 100;
             if (roundedTarget !== lastSeekedTime) {
                 lastSeekedTime = roundedTarget;
@@ -330,20 +334,46 @@ document.addEventListener("DOMContentLoaded", () => {
             tl.to("#hero-video", { opacity: 1, duration: 0.5, ease: "power2.out" }, 0.1);
         }
 
-        // C. DRONE FLIGHT TRANSITION (Animate Scroll Video currentTime)
-        tl.to(videoProxyState, {
-            time: targetConfig.videoTime,
-            duration: flightDuration,
-            ease: "power2.inOut",
-            onComplete: () => {
-                const timeDiff = Math.abs(scrollVideo.currentTime - targetConfig.videoTime);
-                if (!isSeeking || timeDiff < 0.25) {
-                    triggerFadeIn(); // Frame reached, trigger fade-in immediately
-                } else {
-                    checkTargetReached = true; // Wait for seeked listener
+        // C. DRONE FLIGHT TRANSITION
+        const isForward = targetConfig.videoTime > scrollVideo.currentTime;
+
+        if (isForward && Math.abs(targetConfig.videoTime - scrollVideo.currentTime) > 0.1) {
+            // Forward movement: Use native hardware-accelerated playback at dynamic playbackRate
+            const timeDelta = targetConfig.videoTime - scrollVideo.currentTime;
+            const playRate = timeDelta / flightDuration;
+            
+            tl.call(() => {
+                isNativePlaying = true;
+                scrollVideo.playbackRate = playRate;
+                scrollVideo.play().catch(e => console.log(e));
+            }, null, 0.2);
+
+            // Animate a dummy block to match flightDuration and trigger completion
+            tl.to({}, {
+                duration: flightDuration,
+                onComplete: () => {
+                    isNativePlaying = false;
+                    scrollVideo.pause();
+                    scrollVideo.currentTime = targetConfig.videoTime;
+                    triggerFadeIn();
                 }
-            }
-        }, 0.2);
+            }, 0.2);
+        } else {
+            // Backward or micro-movement: Fall back to optimized frame seeking
+            tl.to(videoProxyState, {
+                time: targetConfig.videoTime,
+                duration: flightDuration,
+                ease: "power2.inOut",
+                onComplete: () => {
+                    const timeDiff = Math.abs(scrollVideo.currentTime - targetConfig.videoTime);
+                    if (!isSeeking || timeDiff < 0.25) {
+                        triggerFadeIn();
+                    } else {
+                        checkTargetReached = true;
+                    }
+                }
+            }, 0.2);
+        }
 
         // D. GRADIENT OVERLAY & CONFLICT UI OVERLAYS
         tl.to(gradOverlay, { opacity: targetConfig.gradOpacity, duration: flightDuration, ease: "power2.out" }, 0.2);
