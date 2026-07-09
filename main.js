@@ -1,738 +1,1496 @@
-/* ==========================================================================
-   RIBAS KARPATY — PREMIUM CINEMATIC WEBSITE SCRIPT
-   ========================================================================== */
-
 document.addEventListener("DOMContentLoaded", () => {
-    // ----------------------------------------------------------------------
-    // 1. SCREEN CONFIGURATIONS (7 SCREENS)
-    // ----------------------------------------------------------------------
-    const screenConfigs = [
+    initPreloader();
+    initLobbySeamlessLoop();
+    initWelcomeScreen();
+    initWifiCopy();
+    initPillowCardAction();
+    initFloatingPillowTab();
+    initRestaurantSlider();
+    initRestaurantActions();
+    initSpaActions();
+    initLeisureActions();
+    initUsefulInfoActions();
+    initLanguageSelector();
+});
+
+let currentScreen = 1;
+let screens = [];
+
+function initPreloader() {
+    const preloader = document.getElementById("preloader");
+    const logoContainer = document.querySelector(".preloader-logo-container");
+    const logoFill = document.querySelector(".preloader-logo.logo-fill");
+    const preloaderVideo = preloader ? preloader.querySelector("video") : null;
+    const videoLobby1 = document.getElementById("video-lobby-1");
+
+    if (!preloader || !logoContainer || !logoFill || !preloaderVideo || !videoLobby1) return;
+
+    // 1. Initially hide the Logo Container
+    gsap.set(logoContainer, { opacity: 0, scale: 0.96 });
+    let logoFadedIn = false;
+
+
+    let mainVideoReady = false;
+    let waitingForMain = false;
+
+    // Track main video loading state
+    const setMainReady = () => {
+        if (mainVideoReady) return;
+        mainVideoReady = true;
+        if (waitingForMain) {
+            waitingForMain = false;
+            console.log("Main video ready! Resuming preloader video finish...");
+            preloaderVideo.play().catch(e => {});
+        }
+    };
+
+    // Safety fallback: force start after 10 seconds to prevent getting stuck
+    setTimeout(() => {
+        if (!mainVideoReady) {
+            console.log("Preloader safety timeout triggered. Forcing ready state...");
+            setMainReady();
+        }
+    }, 10000);
+
+    // Hard fallback: if autoplay is blocked entirely (power saving / low power
+    // mode), the preloader video never reaches its end — dismiss anyway.
+    setTimeout(() => {
+        if (!preloader.classList.contains("dismissed")) {
+            console.log("Preloader hard timeout: dismissing without video finish.");
+            dismissPreloader();
+        }
+    }, 12000);
+
+    videoLobby1.addEventListener("canplaythrough", setMainReady);
+    videoLobby1.addEventListener("canplay", setMainReady);
+    videoLobby1.addEventListener("loadeddata", setMainReady);
+
+    // Also fallback check for readyState in a progress handler
+    function checkMainReadyState() {
+        if (videoLobby1.readyState >= 4) {
+            setMainReady();
+        }
+    }
+    videoLobby1.addEventListener("progress", checkMainReadyState);
+    videoLobby1.addEventListener("timeupdate", checkMainReadyState);
+
+    // Sync logo fill to preloader video progress in a requestAnimationFrame loop
+    let lastPercent = 0;
+    function updateProgress() {
+        if (preloader.classList.contains("dismissed")) return;
+
+        // Ensure preloader video is playing if not waiting
+        if (preloaderVideo.paused && !waitingForMain) {
+            preloaderVideo.play().catch(e => {});
+        }
+
+        const duration = preloaderVideo.duration;
+        const currentTime = preloaderVideo.currentTime;
+
+        if (duration) {
+            // Fade in logo container immediately when video starts playing to avoid idle outline state
+            if (currentTime > 0.01 && !logoFadedIn) {
+                logoFadedIn = true;
+                gsap.to(logoContainer, {
+                    opacity: 1,
+                    scale: 1,
+                    duration: 0.2,
+                    ease: "power1.out"
+                });
+            }
+            // Check if we are near the end of the preloader video (e.g. 0.25s before end)
+            if (currentTime >= duration - 0.25 && !mainVideoReady) {
+                // Main video not ready yet: pause preloader video and wait
+                preloaderVideo.pause();
+                preloaderVideo.currentTime = duration - 0.25;
+                waitingForMain = true;
+                console.log("Main video not loaded yet. Pausing preloader video at 98%...");
+            }
+
+            // Start fill at 10% baseline so it immediately colors the bottom text "Karpaty"
+            let percent = 10 + (currentTime / duration) * 90;
+            if (percent > 100) percent = 100;
+
+            // Keep fill progress smooth, don't jump backward
+            if (percent > lastPercent) {
+                lastPercent = percent;
+                logoFill.style.clipPath = `inset(${100 - percent}% 0 0 0)`;
+            }
+
+
+            // If we are at the end, and main video is ready, dismiss preloader
+            if (currentTime >= duration - 0.05 && mainVideoReady) {
+                logoFill.style.clipPath = "inset(0% 0 0 0)";
+                dismissPreloader();
+                return; // Stop animation loop
+            }
+        }
+
+        requestAnimationFrame(updateProgress);
+    }
+
+    // Start video and loop
+    preloaderVideo.play().then(() => {
+        requestAnimationFrame(updateProgress);
+    }).catch(err => {
+        console.log("Preloader video autoplay blocked, starting loop anyway:", err);
+        requestAnimationFrame(updateProgress);
+    });
+
+    function dismissPreloader() {
+        if (preloader.classList.contains("dismissed")) return;
+        preloader.classList.add("dismissed");
+
+        console.log("Preloader finished, dismissing preloader...");
+
+        // Cinematic defocus exit of logo
+        gsap.to(logoContainer, {
+            opacity: 0,
+            filter: "blur(18px)",
+            scale: 1.05,
+            duration: 1.0,
+            ease: "power3.in"
+        });
+
+        // Fade out preloader background video to black
+        gsap.to(preloaderVideo, {
+            opacity: 0,
+            duration: 1.2,
+            ease: "power2.inOut",
+            onComplete: () => {
+                preloaderVideo.pause();
+            }
+        });
+
+        // Fade out the entire preloader container
+        gsap.to(preloader, {
+            opacity: 0,
+            duration: 1.5,
+            delay: 0.5,
+            ease: "power2.out",
+            onComplete: () => {
+                preloader.style.display = "none";
+            }
+        });
+
+        // Smoothly fade in the main screen video and UI from black
+        gsap.set("#screen-1", { display: "block", opacity: 0 });
+        gsap.to("#screen-1", {
+            opacity: 1,
+            duration: 1.2,
+            delay: 0.1,
+            ease: "power2.out",
+            onComplete: () => {
+                console.log("Preloader dismissed, welcome screen active.");
+                initTransitionTrigger();
+
+                // Show floating pillow tab immediately when screen-1 is active
+                const pillowTab = document.getElementById("floating-pillow-tab");
+                if (pillowTab) {
+                    pillowTab.classList.add("is-visible");
+                }
+            }
+        });
+
+        // Trigger the staggered elements immediately to sync with the fade-in
+        animateWelcomeScreenEntrance();
+    }
+}
+
+function initLobbySeamlessLoop() {
+    const v1 = document.getElementById("video-lobby-1");
+    const v2 = document.getElementById("video-lobby-2");
+    if (!v1 || !v2) return;
+
+    // Load both videos
+    v1.load();
+    v2.load();
+    v1.playbackRate = 0.35;
+    v2.playbackRate = 0.35;
+
+    // Try playing video 1 immediately
+    const startPlay = () => {
+        v1.playbackRate = 0.35;
+        v1.play()
+            .then(() => {
+                console.log("Lobby Video 1 playing successfully.");
+                removePlayFallbacks();
+            })
+            .catch(e => {
+                console.log("Lobby Video 1 autoplay blocked, waiting for interaction:", e);
+            });
+    };
+
+    const removePlayFallbacks = () => {
+        document.removeEventListener("click", startPlay);
+        document.removeEventListener("touchstart", startPlay);
+        document.removeEventListener("wheel", startPlay);
+    };
+
+    // Add fallbacks for user interaction to bypass autoplay restrictions
+    document.addEventListener("click", startPlay);
+    document.addEventListener("touchstart", startPlay);
+    document.addEventListener("wheel", startPlay);
+
+    // Initial attempt
+    startPlay();
+
+    let activeVideo = v1;
+    let inactiveVideo = v2;
+    let isTransitioning = false;
+
+    function checkTime() {
+        if (!activeVideo.paused && activeVideo.duration) {
+            const timeLeft = activeVideo.duration - activeVideo.currentTime;
+
+            // Trigger crossfade 0.5 seconds before the video ends
+            if (timeLeft <= 0.5 && !isTransitioning) {
+                isTransitioning = true;
+
+                // Prepare and play the inactive video from the beginning
+                inactiveVideo.currentTime = 0;
+                inactiveVideo.playbackRate = 0.35;
+                inactiveVideo.play().then(() => {
+                    // Seamless crossfade opacities
+                    gsap.to(inactiveVideo, { opacity: 1, duration: 0.4, ease: "none" });
+                    gsap.to(activeVideo, {
+                        opacity: 0,
+                        duration: 0.4,
+                        ease: "none",
+                        onComplete: () => {
+                            activeVideo.pause();
+                            
+                            // Swap active/inactive video references
+                            const temp = activeVideo;
+                            activeVideo = inactiveVideo;
+                            inactiveVideo = temp;
+                            
+                            isTransitioning = false;
+                        }
+                    });
+                }).catch(err => {
+                    console.log("Failed to transition play seamlessly:", err);
+                    isTransitioning = false;
+                });
+            }
+        }
+        requestAnimationFrame(checkTime);
+    }
+
+    requestAnimationFrame(checkTime);
+}
+
+function initTransitionTrigger() {
+    currentScreen = 1; // 1 = Lobby, 2 = Restaurant, 3 = SPA, 4 = Leisure, 5 = Info, 6 = Footer
+    let isTransitioning = false;
+
+    // Elements mapping
+    screens = [
         {
-            id: "screen-1",
-            videoTime: 0.0,
-            gradOpacity: 0.75,
-            contactsOpacity: 1,
-            indicatorOpacity: 1.0,
-            hasButton: true,
-            flightDuration: 1.5,
-            flightEase: "none"
+            id: 1,
+            el: document.getElementById("screen-1"),
+            loopVideo: [document.getElementById("video-lobby-1"), document.getElementById("video-lobby-2")],
+            isDualLoop: true
         },
         {
-            id: "screen-2",
-            videoTime: 3.25, // 03:15 at 60fps
-            gradOpacity: 0.65,
-            contactsOpacity: 0,
-            indicatorOpacity: 0.75,
-            hasButton: false,
-            flightDuration: 1.5,
-            flightEase: "none"
+            id: 2,
+            el: document.getElementById("screen-2"),
+            loopVideo: null
         },
         {
-            id: "screen-3",
-            videoTime: 7.25, // 07:15 at 60fps = 7s + 15/60s
-            gradOpacity: 0.55,
-            contactsOpacity: 0,
-            indicatorOpacity: 0.75,
-            hasButton: false,
-            flightEase: "none"
+            id: 3,
+            el: document.getElementById("screen-3"),
+            loopVideo: null
         },
         {
-            id: "screen-4",
-            videoTime: 11.4, // 11:24 at 60fps = 11s + 24/60s
-            gradOpacity: 0.75,
-            contactsOpacity: 0,
-            indicatorOpacity: 0.75,
-            hasButton: true,
-            flightEase: "none"
+            id: 4,
+            el: document.getElementById("screen-4"),
+            loopVideo: null
         },
         {
-            id: "screen-5",
-            videoTime: 15.47, // 15:28 at 60fps = 15s + 28/60s
-            gradOpacity: 0.85,
-            contactsOpacity: 0,
-            indicatorOpacity: 0.75,
-            hasButton: true,
-            flightEase: "none"
+            id: 5,
+            el: document.getElementById("screen-5"),
+            loopVideo: null
         },
         {
-            id: "screen-6",
-            videoTime: 19.47, // 19:28 at 60fps = 19s + 28/60s
-            gradOpacity: 0.65,
-            contactsOpacity: 0,
-            indicatorOpacity: 0.75,
-            hasButton: true,
-            flightEase: "none"
-        },
-        {
-            id: "screen-7",
-            videoTime: 24.02, // 24:01 at 60fps = 24s + 1/60s
-            gradOpacity: 0.85,
-            contactsOpacity: 1,
-            indicatorOpacity: 0.0,
-            hasButton: true,
-            flightEase: "none"
+            id: 6,
+            el: document.getElementById("screen-footer"),
+            slideTransition: true
         }
     ];
 
-    // ----------------------------------------------------------------------
-    // 2. DOM ELEMENTS & STATE MANAGEMENT
-    // ----------------------------------------------------------------------
-    const heroVideo = document.getElementById("hero-video");
-    const scrollVideo = document.getElementById("scroll-video");
-    const gradOverlay = document.querySelector(".gradient-overlay");
-    const contactsOverlay = document.getElementById("contacts-overlay");
-    const scrollIndicator = document.getElementById("scroll-indicator");
-    const timelineDots = document.querySelectorAll(".timeline-dot");
+    const flashOverlay = document.querySelector(".transition-flash-overlay");
+    const v1 = document.getElementById("video-lobby-1");
+    const v2 = document.getElementById("video-lobby-2");
 
-    let currentScreenIndex = 0;
-    let isAnimating = false;
-    let lastSeekedTime = -1;
+    const scrollingVideo = document.getElementById("video-scrolling");
+    const scrollingVideoReverse = document.getElementById("video-scrolling-reverse");
+    const sharedVideoBg = document.getElementById("shared-video-bg");
 
-    // Seek queue states to prevent decoder choke
-    let isSeeking = false;
-    let pendingSeekTime = null;
-    let checkTargetReached = false;
-    let activeTargetConfig = null;
-    let activeTargetScreen = null;
-    let triggerFadeInFn = null;
+    const screenTimestamps = {
+        1: 0.0,
+        2: 1.5333,
+        3: 3.2667,
+        4: 5.7667,
+        5: 7.6333
+    };
 
-    let isVideoBlobReady = false;
-    let currentPercent = 0;
+    if (!flashOverlay) return;
 
-    // Dynamically set video source based on screen width (768px threshold)
-    const isMobileDevice = window.innerWidth <= 768;
-    const selectedVideoSource = isMobileDevice ? "Scroll_video_mobile_v2.mp4" : "Scroll_video_desktop_v2.mp4";
+    // Preload scrolling video and loop videos
+    if (scrollingVideo && typeof scrollingVideo.load === "function") scrollingVideo.load();
+    if (scrollingVideoReverse && typeof scrollingVideoReverse.load === "function") scrollingVideoReverse.load();
+    screens.forEach(s => {
+        if (s.transitionVideo && typeof s.transitionVideo.load === "function") s.transitionVideo.load();
+        if (s.reverseVideo && typeof s.reverseVideo.load === "function") s.reverseVideo.load();
+        if (s.loopVideo && !s.isDualLoop && typeof s.loopVideo.load === "function") s.loopVideo.load();
+    });
+
+    // Wire restaurant click in header menu to go directly to screen 2
+    const viewMenuBtn = document.getElementById("view-menu-btn");
+    if (viewMenuBtn) {
+        viewMenuBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            if (!isTransitioning && currentScreen === 1) {
+                transitionTo(2);
+            }
+        });
+    }
+
+    // Scroll listeners
+    window.addEventListener("wheel", handleScroll, { passive: false });
+    window.addEventListener("touchmove", handleScroll, { passive: false });
+
+    // Vertical Navigation Ribbon Controls
+    const ribbonItems = document.querySelectorAll(".ribbon-item");
+    const ribbonProgress = document.querySelector(".ribbon-line-progress");
     
-    // Fetch video file as blob for 100% lag-free local scrubbing on remote servers (like Vercel)
-    fetch(selectedVideoSource)
-        .then(response => {
-            if (!response.ok) throw new Error("Network response was not ok");
-            const contentLength = response.headers.get("Content-Length");
-            const totalBytes = contentLength ? parseInt(contentLength, 10) : 0;
-            const reader = response.body.getReader();
-            let receivedBytes = 0;
-            
-            return new ReadableStream({
-                start(controller) {
-                    function read() {
-                        reader.read().then(({ done, value }) => {
-                            if (done) {
-                                controller.close();
-                                return;
-                            }
-                            receivedBytes += value.length;
-                            if (totalBytes > 0) {
-                                currentPercent = Math.floor((receivedBytes / totalBytes) * 100);
-                            }
-                            controller.enqueue(value);
-                            read();
-                        }).catch(err => {
-                            controller.error(err);
-                        });
-                    }
-                    read();
-                }
-            });
-        })
-        .then(stream => new Response(stream))
-        .then(response => response.blob())
-        .then(blob => {
-            const blobURL = URL.createObjectURL(blob);
-            scrollVideo.src = blobURL;
-            scrollVideo.load();
-            isVideoBlobReady = true;
-            currentPercent = 100;
-        })
-        .catch(err => {
-            console.error("Failed to fetch video as blob, falling back to direct stream:", err);
-            // Fallback: load directly if fetch fails
-            const videoSourceElement = document.createElement("source");
-            videoSourceElement.src = selectedVideoSource;
-            videoSourceElement.type = "video/mp4";
-            scrollVideo.appendChild(videoSourceElement);
-            scrollVideo.load();
-            isVideoBlobReady = true;
-            currentPercent = 100;
+    ribbonItems.forEach(item => {
+        item.addEventListener("click", () => {
+            const targetScreen = parseInt(item.getAttribute("data-screen"));
+            if (targetScreen !== currentScreen && !isTransitioning) {
+                transitionTo(targetScreen);
+            }
         });
-
-    // Proxy object for GSAP timeline animations
-    const videoProxyState = { time: 0 };
-
-    // ----------------------------------------------------------------------
-    // 3. HIGH PERFORMANCE SEEK LOOP (rAF + seeked queue)
-    // ----------------------------------------------------------------------
-    function updateVideoFrame() {
-        if (scrollVideo && scrollVideo.readyState >= 1) {
-            const roundedTarget = Math.round(videoProxyState.time * 100) / 100;
-            if (roundedTarget !== lastSeekedTime) {
-                lastSeekedTime = roundedTarget;
-                
-                if (!isSeeking) {
-                    isSeeking = true;
-                    scrollVideo.currentTime = roundedTarget;
-                } else {
-                    pendingSeekTime = roundedTarget;
-                }
-            }
-        }
-        requestAnimationFrame(updateVideoFrame);
-    }
-
-    // Queue seek completion handler
-    scrollVideo.addEventListener("seeked", () => {
-        isSeeking = false;
-        
-        if (pendingSeekTime !== null) {
-            const nextTarget = pendingSeekTime;
-            pendingSeekTime = null;
-            
-            if (scrollVideo && scrollVideo.readyState >= 1) {
-                isSeeking = true;
-                scrollVideo.currentTime = nextTarget;
-            }
-        }
     });
 
-    // Force load metadata & render first frame
-    scrollVideo.addEventListener("loadedmetadata", () => {
-        scrollVideo.currentTime = 0;
-    });
-    if (scrollVideo.readyState >= 1) {
-        scrollVideo.currentTime = 0;
-    }
-
-    // Start render loop
-    requestAnimationFrame(updateVideoFrame);
-
-    // ----------------------------------------------------------------------
-    // 4. LUXURY PRELOADER MANAGER
-    // ----------------------------------------------------------------------
-    const preloader = document.getElementById("preloader");
-    const loaderPercent = document.getElementById("loader-percent");
-    const loaderBar = document.querySelector(".preloader-bar");
-    let loadValue = 0;
-
-    const preloaderInterval = setInterval(() => {
-        if (loadValue < currentPercent) {
-            // Catch up to real progress smoothly
-            loadValue += Math.ceil((currentPercent - loadValue) * 0.1);
-            if (currentPercent - loadValue < 1) loadValue = currentPercent;
-        } else if (loadValue < 95 && !isVideoBlobReady) {
-            // Slow fake progress if progress is stalled or content-length header is missing
-            loadValue += 1;
-        } else if (isVideoBlobReady && scrollVideo.readyState >= 1) {
-            if (loadValue < 100) {
-                loadValue += 1;
+    function updateRibbonState(screenIndex) {
+        ribbonItems.forEach(item => {
+            const s = parseInt(item.getAttribute("data-screen"));
+            if (s === screenIndex) {
+                item.classList.add("active");
             } else {
-                clearInterval(preloaderInterval);
-                
-                // Pulse fade out of preloader
-                gsap.to(preloader, {
-                    opacity: 0,
-                    duration: 0.8,
-                    ease: "power2.out",
-                    onComplete: () => {
-                        preloader.style.visibility = "hidden";
-                        triggerIntroAnimation(); // Run initial text slide-in
-                    }
-                });
+                item.classList.remove("active");
             }
-        }
-
-        loaderPercent.textContent = `${loadValue}%`;
-        loaderBar.style.width = `${loadValue}%`;
-    }, 30);
-
-    // ----------------------------------------------------------------------
-    // 5. INITIAL TEXT STATE CONFIG
-    // ----------------------------------------------------------------------
-    screenConfigs.forEach((config, index) => {
-        const screen = document.getElementById(config.id);
-        const heading = screen.querySelector("h1, h2");
-        const subtitle = screen.querySelector(".subtitle");
-        const button = screen.querySelector(".luxury-btn");
-
-        // Hide all texts initially
-        gsap.set(heading, { opacity: 0, y: 45 });
-        if (subtitle) gsap.set(subtitle, { opacity: 0, y: 35 });
-        if (button) gsap.set(button, { opacity: 0, y: 30 });
-
-        // Hide SPA advantages if present on this screen
-        const rightCol = screen.querySelector(".spa-right-col");
-        const rightItems = screen.querySelectorAll(".spa-advantage-item");
-        if (rightCol) {
-            gsap.set(rightCol, { opacity: 0, y: 20 });
-            rightItems.forEach(item => {
-                gsap.set(item, { opacity: 0, x: 15 });
-                const icon = item.querySelector(".spa-advantage-icon");
-                if (icon) {
-                    gsap.set(icon, { scale: 0, rotate: -30, opacity: 0 });
-                    const shapes = icon.querySelectorAll("svg *");
-                    shapes.forEach(shape => {
-                        if (typeof shape.getTotalLength === "function") {
-                            const len = shape.getTotalLength();
-                            gsap.set(shape, { strokeDasharray: len, strokeDashoffset: len });
-                        }
-                    });
-                }
-            });
-        }
-
-        screen.classList.remove("active");
-    });
-
-    // Set initial overlay states
-    gsap.set(gradOverlay, { opacity: screenConfigs[0].gradOpacity });
-    gsap.set(contactsOverlay, { opacity: 0, y: 20 }); // Wait for loader intro
-    gsap.set(scrollIndicator, { opacity: 0 });
-
-    // Intro animation triggered when Preloader finishes
-    function triggerIntroAnimation() {
-        const screen1 = document.getElementById("screen-1");
-        const heading = screen1.querySelector("h1");
-        const subtitle = screen1.querySelector(".subtitle");
-        const button = screen1.querySelector(".luxury-btn");
-
-        screen1.classList.add("active");
-        heroVideo.play().catch(e => console.log(e));
-
-        const introTl = gsap.timeline();
-        introTl.to(heading, { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" })
-               .to(subtitle, { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" }, 0.2)
-               .to(button, { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" }, 0.4)
-               .to(contactsOverlay, { opacity: screenConfigs[0].contactsOpacity, y: 0, duration: 0.8 }, 0.2)
-               .to(scrollIndicator, { opacity: screenConfigs[0].indicatorOpacity, duration: 0.8 }, 0.4);
-    }
-
-    // ----------------------------------------------------------------------
-    // 6. MASTER SLIDE TRANSITION FUNCTION (GO TO SCREEN)
-    // ----------------------------------------------------------------------
-    function goToScreen(targetIndex) {
-        if (isAnimating || targetIndex === currentScreenIndex) return;
-        if (targetIndex < 0 || targetIndex >= screenConfigs.length) return;
-
-        isAnimating = true;
-
-        const currentConfig = screenConfigs[currentScreenIndex];
-        const targetConfig = screenConfigs[targetIndex];
-
-        activeTargetConfig = targetConfig;
-        activeTargetScreen = document.getElementById(targetConfig.id);
-        checkTargetReached = false;
-
-        const currentScreen = document.getElementById(currentConfig.id);
-        const targetScreen = activeTargetScreen;
-
-        const currentHeading = currentScreen.querySelector("h1, h2");
-        const currentSubtitle = currentScreen.querySelector(".subtitle");
-        const currentBtn = currentScreen.querySelector(".luxury-btn");
-
-        const targetHeading = targetScreen.querySelector("h1, h2");
-        const targetSubtitle = targetScreen.querySelector(".subtitle");
-        const targetBtn = targetScreen.querySelector(".luxury-btn");
-
-        // Calculate dynamic flight duration based on video time delta and constant 2.5x speed factor
-        const SPEED_FACTOR = 2.5;
-        const timeDelta = Math.abs(targetConfig.videoTime - currentConfig.videoTime);
-        const flightDuration = timeDelta > 0 ? (timeDelta / SPEED_FACTOR) : 0.5;
-
-        // Transition Master Timeline
-        const tl = gsap.timeline();
-
-        // A. FADE OUT CURRENT TEXT (0.4s duration)
-        tl.to(currentHeading, { opacity: 0, y: -45, duration: 0.4, ease: "power2.in" }, 0);
-        if (currentSubtitle) {
-            tl.to(currentSubtitle, { opacity: 0, y: -35, duration: 0.4, ease: "power2.in" }, 0.05);
-        }
-
-        if (currentConfig.hasButton && currentBtn) {
-            tl.to(currentBtn, { opacity: 0, y: -30, duration: 0.4, ease: "power2.in" }, 0);
-        }
-
-        const currentRightCol = currentScreen.querySelector(".spa-right-col");
-        if (currentRightCol) {
-            tl.to(currentRightCol, { opacity: 0, y: 20, duration: 0.35, ease: "power2.in" }, 0);
-        }
-
-        // Deactivate old screen visibility
-        tl.call(() => {
-            currentScreen.classList.remove("active");
-        }, null, 0.4);
-
-        // B. VIDEO LAYERS SWITCHING (Hero <-> Scroll Video)
-        if (currentScreenIndex === 0 && targetIndex > 0) {
-            tl.to("#hero-video", {
-                opacity: 0,
-                duration: 0.5,
-                ease: "power2.out",
-                onComplete: () => {
-                    heroVideo.pause();
-                }
-            }, 0.1);
-        }
-
-        // C. DRONE FLIGHT TRANSITION
-        tl.to(videoProxyState, {
-            time: targetConfig.videoTime,
-            duration: flightDuration,
-            ease: targetConfig.flightEase || "power2.inOut",
-            onComplete: () => {
-                triggerFadeIn(); // Trigger fade-in immediately on GSAP timeline complete for snappy feedback
-            }
-        }, 0.2);
-
-        // D. GRADIENT OVERLAY & CONFLICT UI OVERLAYS
-        tl.to(gradOverlay, { opacity: targetConfig.gradOpacity, duration: flightDuration, ease: "power2.out" }, 0.2);
-        
-        tl.to(contactsOverlay, { 
-            opacity: targetConfig.contactsOpacity, 
-            y: targetConfig.contactsOpacity === 0 ? 20 : 0, 
-            duration: 0.6, 
-            ease: "power2.out" 
-        }, 0.2);
-
-        const isMobile = window.innerWidth <= 768;
-        const targetIndicatorOpacity = (isMobile && targetIndex >= 3) ? 0 : targetConfig.indicatorOpacity;
-
-        tl.to(scrollIndicator, { 
-            opacity: targetIndicatorOpacity, 
-            duration: 0.6, 
-            ease: "power2.out" 
-        }, 0.2);
-
-        // Update Timeline dot positions instantly
-        timelineDots.forEach(d => d.classList.remove("active"));
-        timelineDots[targetIndex].classList.add("active");
-
-        // E. FADE IN TARGET TEXT FUNCTION (Called when video reaches target frame)
-        function triggerFadeIn() {
-            
-            if (targetIndex === 0) {
-                heroVideo.currentTime = 0;
-                heroVideo.play().catch(e => console.log(e));
-                gsap.set("#hero-video", { opacity: 1 });
-            }
-            
-            const textTl = gsap.timeline({
-                onComplete: () => {
-                    currentScreenIndex = targetIndex;
-                    isAnimating = false;
-                }
-            });
-
-            // Prep target positions & show layout
-            gsap.set(targetHeading, { y: 45, opacity: 0 });
-            if (targetSubtitle) gsap.set(targetSubtitle, { y: 35, opacity: 0 });
-            if (targetConfig.hasButton && targetBtn) {
-                gsap.set(targetBtn, { y: 30, opacity: 0 });
-            }
-            
-            const rightCol = targetScreen.querySelector(".spa-right-col");
-            const rightItems = targetScreen.querySelectorAll(".spa-advantage-item");
-            if (rightCol) {
-                gsap.set(rightCol, { opacity: 0, y: 20 });
-                rightItems.forEach(item => {
-                    gsap.set(item, { opacity: 0, x: 15 });
-                    const icon = item.querySelector(".spa-advantage-icon");
-                    if (icon) {
-                        gsap.set(icon, { scale: 0, rotate: -30, opacity: 0 });
-                        const shapes = icon.querySelectorAll("svg *");
-                        shapes.forEach(shape => {
-                            if (typeof shape.getTotalLength === "function") {
-                                const len = shape.getTotalLength();
-                                gsap.set(shape, { strokeDasharray: len, strokeDashoffset: len });
-                            }
-                        });
-                    }
-                });
-            }
-
-            targetScreen.classList.add("active");
-
-            // Luxury Word-by-word feel staggers
-            textTl.to(targetHeading, { opacity: 1, y: 0, duration: 0.65, ease: "power2.out" }, 0);
-            if (targetSubtitle) {
-                textTl.to(targetSubtitle, { opacity: 1, y: 0, duration: 0.65, ease: "power2.out" }, 0.15);
-            }
-
-            if (targetConfig.hasButton && targetBtn) {
-                textTl.to(targetBtn, { opacity: 1, y: 0, duration: 0.65, ease: "power2.out" }, 0.35);
-            }
-
-            if (rightCol) {
-                textTl.to(rightCol, { opacity: 1, y: 0, duration: 0.65, ease: "power2.out" }, 0.2);
-                
-                rightItems.forEach((item, idx) => {
-                    const itemDelay = 0.35 + (idx * 0.08);
-                    
-                    // Animate the item container fade/slide
-                    textTl.to(item, { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" }, itemDelay);
-                    
-                    // Pop in the icon container with back-out bounce
-                    const icon = item.querySelector(".spa-advantage-icon");
-                    if (icon) {
-                        textTl.to(icon, { 
-                            scale: 1, 
-                            rotate: 0, 
-                            opacity: 1, 
-                            duration: 0.6, 
-                            ease: "back.out(1.5)" 
-                        }, itemDelay);
-                        
-                        // Draw SVG strokes dynamically
-                        const shapes = icon.querySelectorAll("svg *");
-                        shapes.forEach(shape => {
-                            if (typeof shape.getTotalLength === "function") {
-                                textTl.to(shape, { 
-                                    strokeDashoffset: 0, 
-                                    duration: 0.7, 
-                                    ease: "power2.out" 
-                                }, itemDelay + 0.1);
-                            }
-                        });
-                    }
-                });
-            }
+        });
+        if (ribbonProgress) {
+            // Screen 1 is 16.6%, Screen 6 is 100%
+            const pct = (screenIndex / 6) * 100;
+            ribbonProgress.style.height = `${pct}%`;
         }
     }
 
-    // ----------------------------------------------------------------------
-    // 7. GESTURE DETECTION SYSTEMS
-    // ----------------------------------------------------------------------
-    function navigate(direction) {
-        if (isAnimating) return;
-        const target = currentScreenIndex + direction;
-        if (target >= 0 && target < screenConfigs.length) {
-            goToScreen(target);
+    function handleScroll(e) {
+        if (isTransitioning) return;
+
+        const deltaY = e.deltaY;
+        const isTouchScrollDown = e.touches && e.touches[0].clientY < window.lastTouchY;
+        const isTouchScrollUp = e.touches && e.touches[0].clientY > window.lastTouchY;
+
+        const isScrollDown = deltaY > 0 || isTouchScrollDown;
+        const isScrollUp = deltaY < 0 || isTouchScrollUp;
+
+        // When the screen content is taller than the viewport (stacked layouts
+        // on tablet/mobile), let it scroll natively to its edge first and only
+        // then switch screens.
+        const activeContent = screens[currentScreen - 1].el.querySelector(".screen-content");
+        if (activeContent && activeContent.scrollHeight > activeContent.clientHeight + 2) {
+            const atTop = activeContent.scrollTop <= 2;
+            const atBottom = activeContent.scrollTop + activeContent.clientHeight >= activeContent.scrollHeight - 2;
+            if ((isScrollDown && !atBottom) || (isScrollUp && !atTop)) return;
+        }
+
+        if (isScrollDown && currentScreen < 6) {
+            e.preventDefault();
+            transitionTo(currentScreen + 1);
+        } else if (isScrollUp && currentScreen > 1) {
+            e.preventDefault();
+            transitionTo(currentScreen - 1);
         }
     }
 
-    // Wheel Scroll Detection (Guarded by animation state)
-    window.addEventListener("wheel", (e) => {
-        e.preventDefault();
-        
-        if (isAnimating) return;
-
-        if (Math.abs(e.deltaY) > 2) {
-            if (e.deltaY > 0) {
-                navigate(1);
-            } else {
-                navigate(-1);
-            }
-        }
-    }, { passive: false });
-
-    // Touch Swipe Gesture Detection (Mobile)
-    let touchStartY = 0;
     window.addEventListener("touchstart", (e) => {
-        touchStartY = e.touches[0].clientY;
-    }, { passive: true });
+        window.lastTouchY = e.touches[0].clientY;
+    });
 
-    window.addEventListener("touchend", (e) => {
-        if (isAnimating) return;
-        const touchEndY = e.changedTouches[0].clientY;
-        const swipeDistance = touchStartY - touchEndY;
+    const videoDuration = 7.6333;
 
-        if (Math.abs(swipeDistance) > 60) {
-            if (swipeDistance > 0) {
-                navigate(1);
-            } else {
-                navigate(-1);
-            }
+    function animateVideoTime(nextScreenIndex, onComplete) {
+        const targetTime = screenTimestamps[nextScreenIndex];
+        const currentForwardTime = scrollingVideo.currentTime;
+        const isForward = targetTime > currentForwardTime;
+        const timeDiff = Math.abs(targetTime - currentForwardTime);
+
+        if (timeDiff < 0.02) {
+            scrollingVideo.pause();
+            scrollingVideoReverse.pause();
+            scrollingVideo.currentTime = targetTime;
+            scrollingVideoReverse.currentTime = videoDuration - targetTime;
+            if (onComplete) onComplete();
+            return;
         }
-    }, { passive: true });
 
-    // Keyboard Accessibility
-    window.addEventListener("keydown", (e) => {
-        if (isAnimating) return;
-        if (["ArrowDown", "PageDown", " "].includes(e.key)) {
-            e.preventDefault();
-            navigate(1);
-        } else if (["ArrowUp", "PageUp"].includes(e.key)) {
-            e.preventDefault();
-            navigate(-1);
-        }
-    });
+        // Cancel any pending checkTime loops
+        if (scrollingVideo._seekAnimationFrame) cancelAnimationFrame(scrollingVideo._seekAnimationFrame);
+        if (scrollingVideoReverse._seekAnimationFrame) cancelAnimationFrame(scrollingVideoReverse._seekAnimationFrame);
+        scrollingVideo._seekAnimationFrame = null;
+        scrollingVideoReverse._seekAnimationFrame = null;
 
-    // ----------------------------------------------------------------------
-    // 8. PROGRESS TIMELINE dot click bindings
-    // ----------------------------------------------------------------------
-    timelineDots.forEach((dot, idx) => {
-        dot.addEventListener("click", () => {
-            if (isAnimating) return;
-            goToScreen(idx);
-        });
-    });
+        if (isForward) {
+            // FADE IN FORWARD VIDEO, FADE OUT REVERSE VIDEO INSTANTLY
+            scrollingVideo.style.opacity = "1";
+            scrollingVideoReverse.style.opacity = "0";
+            scrollingVideoReverse.pause();
 
-    // ----------------------------------------------------------------------
-    // 9. LUXURY NAVIGATION MENU
-    // ----------------------------------------------------------------------
-    const menuTrigger = document.getElementById("menu-trigger");
-    const menuOverlay = document.getElementById("menu-overlay");
-    const menuClose = document.getElementById("menu-close");
-    const menuLinks = document.querySelectorAll(".menu-link");
-
-    let menuTimeline = gsap.timeline({ paused: true });
-    menuTimeline.to(menuOverlay, { display: "flex", opacity: 1, duration: 0.3, ease: "power2.out" })
-                .from(".menu-link", { y: 40, opacity: 0, stagger: 0.1, duration: 0.4, ease: "power2.out" }, "-=0.15");
-
-    menuTrigger.addEventListener("click", () => {
-        menuOverlay.setAttribute("aria-hidden", "false");
-        menuTimeline.play();
-    });
-
-    function closeMenu() {
-        menuOverlay.setAttribute("aria-hidden", "true");
-        menuTimeline.reverse();
-    }
-    menuClose.addEventListener("click", closeMenu);
-
-    menuLinks.forEach(link => {
-        link.addEventListener("click", (e) => {
-            e.preventDefault();
-            closeMenu();
+            const targetTimeForward = targetTime;
             
-            const targetScreenIndex = parseInt(link.getAttribute("data-target-screen"));
-            let targetIdx = 0;
-            if (targetScreenIndex === 4) targetIdx = 3;
-            else if (targetScreenIndex === 5) targetIdx = 4;
-            else if (targetScreenIndex === 6) targetIdx = 5;
+            scrollingVideo.playbackRate = 1.0;
+            scrollingVideo.play().then(() => {
+                const checkTime = () => {
+                    if (scrollingVideo.currentTime >= targetTimeForward - 0.02) {
+                        scrollingVideo.pause();
+                        scrollingVideo.currentTime = targetTimeForward;
+                        scrollingVideoReverse.currentTime = videoDuration - targetTimeForward;
+                        scrollingVideo._seekAnimationFrame = null;
+                        if (onComplete) onComplete();
+                    } else {
+                        scrollingVideo._seekAnimationFrame = requestAnimationFrame(checkTime);
+                    }
+                };
+                scrollingVideo._seekAnimationFrame = requestAnimationFrame(checkTime);
+            }).catch(err => {
+                console.log("Native forward play failed, seeking instantly:", err);
+                scrollingVideo.currentTime = targetTimeForward;
+                scrollingVideoReverse.currentTime = videoDuration - targetTimeForward;
+                if (onComplete) onComplete();
+            });
+        } else {
+            // FADE IN REVERSE VIDEO, FADE OUT FORWARD VIDEO INSTANTLY
+            scrollingVideoReverse.style.opacity = "1";
+            scrollingVideo.style.opacity = "0";
+            scrollingVideo.pause();
+
+            const targetTimeReverse = videoDuration - targetTime;
             
-            setTimeout(() => goToScreen(targetIdx), 350);
-        });
-    });
-
-    // Close menu on ESC
-    document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape" && menuOverlay.getAttribute("aria-hidden") === "false") {
-            closeMenu();
+            scrollingVideoReverse.playbackRate = 1.0;
+            scrollingVideoReverse.play().then(() => {
+                const checkTime = () => {
+                    if (scrollingVideoReverse.currentTime >= targetTimeReverse - 0.02) {
+                        scrollingVideoReverse.pause();
+                        scrollingVideoReverse.currentTime = targetTimeReverse;
+                        scrollingVideo.currentTime = targetTime;
+                        scrollingVideoReverse._seekAnimationFrame = null;
+                        if (onComplete) onComplete();
+                    } else {
+                        scrollingVideoReverse._seekAnimationFrame = requestAnimationFrame(checkTime);
+                    }
+                };
+                scrollingVideoReverse._seekAnimationFrame = requestAnimationFrame(checkTime);
+            }).catch(err => {
+                console.log("Native reverse play failed, seeking instantly:", err);
+                scrollingVideoReverse.currentTime = targetTimeReverse;
+                scrollingVideo.currentTime = targetTime;
+                if (onComplete) onComplete();
+            });
         }
-    });
-
-    // ----------------------------------------------------------------------
-    // 10. LUXURY CUSTOM CURSOR PHYSICS & ANIMATION
-    // ----------------------------------------------------------------------
-    const cursorRing = document.getElementById("custom-cursor");
-
-    let cursorX = 0, cursorY = 0;
-    let targetX = 0, targetY = 0;
-    const lerpFactor = 0.15; // Smooth ring catch-up delay
-
-    document.addEventListener("mousemove", (e) => {
-        targetX = e.clientX;
-        targetY = e.clientY;
-        
-        // Show cursor items on first move
-        gsap.set(cursorRing, { opacity: 1 });
-    });
-
-    function animateCursor() {
-        cursorX += (targetX - cursorX) * lerpFactor;
-        cursorY += (targetY - cursorY) * lerpFactor;
-        
-        gsap.set(cursorRing, { x: cursorX, y: cursorY });
-        requestAnimationFrame(animateCursor);
     }
-    requestAnimationFrame(animateCursor);
 
-    // Magnetic click styling on hoverable targets
-    function bindCursorHovers() {
-        const hoverables = document.querySelectorAll("button, a, .menu-trigger, .timeline-dot");
-        hoverables.forEach(el => {
-            el.addEventListener("mouseenter", () => {
-                cursorRing.classList.add("cursor-active");
-            });
-            el.addEventListener("mouseleave", () => {
-                cursorRing.classList.remove("cursor-active");
-            });
-        });
-    }
-    bindCursorHovers();
+    function transitionTo(nextScreenIndex) {
+        if (nextScreenIndex === currentScreen || isTransitioning) return;
+        isTransitioning = true;
+        
+        let skipEntranceInFinalize = false;
+        
+        // Sync vertical navigation ribbon state instantly
+        updateRibbonState(nextScreenIndex);
 
-    // Re-bind cursor hovers when dynamic elements change or load
-    const observer = new MutationObserver(bindCursorHovers);
-    observer.observe(document.body, { childList: true, subtree: true });
+        const fromScreen = screens[currentScreen - 1];
+        const toScreen = screens[nextScreenIndex - 1];
 
-    // ----------------------------------------------------------------------
-    // 11. INTERACTIVE TRIGGERS
-    // ----------------------------------------------------------------------
-    const bookingTriggers = document.querySelectorAll(".booking-trigger");
-    const menuPdfTrigger = document.querySelector(".menu-pdf-trigger");
-    const selectRoomTrigger = document.querySelector(".select-room-trigger");
+        console.log(`Transitioning: Screen ${currentScreen} -> Screen ${nextScreenIndex}`);
+        document.body.style.overflow = "hidden";
 
-    bookingTriggers.forEach((btn, index) => {
-        btn.addEventListener("click", () => {
-            if (index === 0) {
-                goToScreen(6); // Flight to Night Finale
-            } else {
-                showNotification("Дякуємо за ваш вибір! Наш консьєрж зв'яжеться з вами протягом 10 хвилин для підтвердження бронювання.");
+        const finalizeTransition = () => {
+            // Hide the old screen container if it's not the current active screen
+            if (fromScreen.id !== nextScreenIndex) {
+                gsap.set(fromScreen.el, { opacity: 0, display: "none" });
+                fromScreen.el.style.pointerEvents = "none";
             }
-        });
-    });
 
-    if (menuPdfTrigger) {
-        menuPdfTrigger.addEventListener("click", () => {
-            showNotification("Відкриваємо гастрономічну карту ресторану Ribas Karpaty... Смачного!");
-        });
-    }
+            if (!skipEntranceInFinalize) {
+                animateScreenEntrance(toScreen.el);
+            }
+            isTransitioning = false;
+            currentScreen = nextScreenIndex;
+            document.body.style.overflow = "auto";
+            toScreen.el.style.pointerEvents = "auto";
+        };
 
-    if (selectRoomTrigger) {
-        selectRoomTrigger.addEventListener("click", () => {
-            showNotification("Завантажуємо доступні категорії номерів преміум-класу...");
-        });
-    }
+        // ── SLIDE TRANSITION (Footer sliding up or down) ──
+        if (toScreen.slideTransition) {
+            // ── SLIDE FOOTER UP ──
+            toScreen.el.style.display = "block";
+            gsap.set(toScreen.el, { y: "100vh", opacity: 1 });
 
-    const spaPriceTrigger = document.querySelector(".spa-price-trigger");
-    if (spaPriceTrigger) {
-        spaPriceTrigger.addEventListener("click", () => {
-            showNotification("Завантажуємо прайс-лист SPA-послуг готелю Ribas Karpaty...");
-        });
-    }
+            const toContent = toScreen.el.querySelector(".screen-content");
+            const toHeader = toScreen.el.querySelector(".main-header");
+            if (toContent) gsap.set(toContent, { opacity: 0 });
+            if (toHeader) gsap.set(toHeader, { opacity: 0 });
 
-    // Luxury Notification Toast
-    function showNotification(message) {
-        const existingToast = document.querySelector(".luxury-toast");
-        if (existingToast) existingToast.remove();
+            animateScreenExit(fromScreen.el);
 
-        const toast = document.createElement("div");
-        toast.className = "luxury-toast";
-        toast.style.cssText = `
-            position: fixed;
-            bottom: 40px;
-            left: 40px;
-            background: rgba(10, 10, 10, 0.95);
-            border: 1px solid var(--gold);
-            color: var(--white);
-            padding: 16px 28px;
-            font-family: var(--font-accent);
-            font-size: 16px;
-            border-radius: 4px;
-            z-index: 9999;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            transform: translateY(30px);
-            opacity: 0;
-            pointer-events: none;
-            max-width: 400px;
-            line-height: 1.6;
-        `;
-        toast.textContent = message;
-        document.body.appendChild(toast);
+            if (toScreen.loopVideo) {
+                gsap.set(toScreen.loopVideo, { opacity: 0 });
+            }
+            if (toScreen.transitionVideo) {
+                toScreen.transitionVideo.currentTime = 0;
+                toScreen.transitionVideo.playbackRate = 1.0;
+                toScreen.transitionVideo.play().catch(() => {});
+            }
 
-        gsap.to(toast, {
-            opacity: 1,
-            y: 0,
-            duration: 0.4,
-            ease: "power2.out",
-            onComplete: () => {
-                gsap.to(toast, {
-                    opacity: 0,
-                    y: 20,
-                    duration: 0.4,
-                    delay: 5,
-                    ease: "power2.in",
-                    onComplete: () => toast.remove()
+            gsap.to(toScreen.el, {
+                y: 0,
+                duration: 1.0,
+                ease: "power3.inOut",
+                onComplete: () => {
+                    gsap.set(fromScreen.el, { display: "none", opacity: 0 });
+                    const destLoop = toScreen.loopVideo;
+                    if (destLoop && toScreen.transitionVideo) {
+                        destLoop.currentTime = 0;
+                        destLoop.playbackRate = 0.35;
+                        destLoop.play().then(() => {
+                            gsap.set(destLoop, { opacity: 1 });
+                            gsap.set(toScreen.transitionVideo, { opacity: 0 });
+                            toScreen.transitionVideo.pause();
+                        }).catch(err => console.log("Footer loop play failed:", err));
+                    }
+                    finalizeTransition();
+                }
+            });
+            return;
+        }
+
+        if (fromScreen.slideTransition) {
+            // ── SLIDE FOOTER DOWN (returning to Screen 5) ──
+            animateScreenExit(fromScreen.el);
+
+            gsap.set(toScreen.el, { display: "block", opacity: 1 });
+            gsap.set(sharedVideoBg, { display: "block", opacity: 1 });
+            
+            // Hide incoming screen content at start
+            const toContent = toScreen.el.querySelector(".screen-content");
+            const toHeader = toScreen.el.querySelector(".main-header");
+            const overlay = toScreen.el.querySelector(".screen-overlay");
+            if (toContent) gsap.set(toContent, { opacity: 0 });
+            if (toHeader) gsap.set(toHeader, { opacity: 0 });
+            if (overlay) gsap.set(overlay, { opacity: 0 });
+
+            scrollingVideo.pause();
+            scrollingVideoReverse.pause();
+            scrollingVideo.currentTime = screenTimestamps[5];
+            scrollingVideoReverse.currentTime = videoDuration - screenTimestamps[5];
+
+            // Let finalizeTransition trigger the entrance on complete
+            skipEntranceInFinalize = false;
+
+            gsap.to(fromScreen.el, {
+                y: "100vh",
+                duration: 1.0,
+                ease: "power3.inOut",
+                onComplete: () => {
+                    fromScreen.el.style.display = "none";
+                    gsap.set(fromScreen.el, { y: "100vh" });
+                    if (fromScreen.transitionVideo) gsap.set(fromScreen.transitionVideo, { opacity: 1 });
+                    if (fromScreen.loopVideo) gsap.set(fromScreen.loopVideo, { opacity: 0 });
+                    finalizeTransition();
+                }
+            });
+            return;
+        }
+
+        // ── SCROLLING VIDEO TRANSITIONS (Screens 1 to 5) ──
+        const targetTime = screenTimestamps[nextScreenIndex];
+
+        // Hide incoming content at start; entrance animation runs in finalizeTransition when video pauses.
+        skipEntranceInFinalize = false;
+        gsap.set(toScreen.el, { display: "block", opacity: 1 });
+        
+        const toContent = toScreen.el.querySelector(".screen-content");
+        const toHeader = toScreen.el.querySelector(".main-header");
+        const overlay = toScreen.el.querySelector(".screen-overlay");
+        if (toContent) gsap.set(toContent, { opacity: 0 });
+        if (toHeader) gsap.set(toHeader, { opacity: 0 });
+        if (overlay) gsap.set(overlay, { opacity: 0 });
+
+        animateScreenExit(fromScreen.el);
+
+        if (nextScreenIndex === 1) {
+            // Transitioning back to screen 1 (Lobby)
+            scrollingVideo.pause();
+            scrollingVideoReverse.pause();
+            animateVideoTime(1, () => {
+                sharedVideoBg.style.opacity = "0";
+                setTimeout(() => {
+                    sharedVideoBg.style.display = "none";
+                }, 400);
+
+                const lobbyVideo = v1;
+                lobbyVideo.currentTime = 0;
+                lobbyVideo.playbackRate = 0.35;
+                lobbyVideo.play().then(() => {
+                    gsap.to(lobbyVideo, { opacity: 1, duration: 0.4 });
+                }).catch(() => {
+                    gsap.set(lobbyVideo, { opacity: 1 });
                 });
+                finalizeTransition();
+            });
+        } else if (currentScreen === 1) {
+            // Transitioning from screen 1 to screen 2+
+            const lobbyVideo = v2.style.opacity === "1" ? v2 : v1;
+            gsap.to(lobbyVideo, {
+                opacity: 0,
+                duration: 0.4,
+                onComplete: () => {
+                    lobbyVideo.pause();
+                }
+            });
+
+            sharedVideoBg.style.display = "block";
+            // Force reflow
+            sharedVideoBg.offsetHeight;
+            sharedVideoBg.style.opacity = "1";
+
+            scrollingVideo.pause();
+            scrollingVideoReverse.pause();
+            scrollingVideo.currentTime = 0.0;
+            scrollingVideoReverse.currentTime = videoDuration;
+            
+            animateVideoTime(nextScreenIndex, () => {
+                finalizeTransition();
+            });
+        } else {
+            // Transitioning between screens 2, 3, 4, 5
+            sharedVideoBg.style.display = "block";
+            sharedVideoBg.style.opacity = "1";
+            scrollingVideo.pause();
+            scrollingVideoReverse.pause();
+            
+            animateVideoTime(nextScreenIndex, () => {
+                finalizeTransition();
+            });
+        }
+    }
+}
+
+/* ── Screen Exit Animation ───────────────────────────────────────────────────
+   Content of the previous screen glides up and fades out quickly (0.35s),
+   clearing the stage for the incoming scene.
+   ────────────────────────────────────────────────────────────────────────── */
+function animateScreenExit(screenEl) {
+    const content = screenEl.querySelector(".screen-content");
+    if (content) gsap.to(content, { opacity: 0, duration: 0.35, ease: "power2.in" });
+
+    const overlay = screenEl.querySelector(".screen-overlay");
+    if (overlay) gsap.to(overlay, { opacity: 0, duration: 0.35, ease: "power2.in" });
+
+    const movers = screenEl.querySelectorAll(".welcome-text-side, .leisure-bento-grid, .welcome-pillow-card");
+    if (movers.length) gsap.to(movers, { y: -20, duration: 0.35, ease: "power2.in", overwrite: "auto" });
+}
+
+/* ── Generic Staggered Screen Entrance Animation ─────────────────────────────
+   Used to animate text, headings, and info elements sequentially on stopping.
+   ────────────────────────────────────────────────────────────────────────── */
+function animateScreenEntrance(screenEl) {
+    const toContent = screenEl.querySelector(".screen-content");
+    const toHeader = screenEl.querySelector(".main-header");
+    const overlay = screenEl.querySelector(".screen-overlay");
+
+    // Select elements inside this screen for staggered animation
+    const labelTag = screenEl.querySelector(".screen-label-tag");
+    const title = screenEl.querySelector(".welcome-title");
+    const subtitle = screenEl.querySelector(".welcome-subtitle");
+    const divider = screenEl.querySelector(".welcome-divider");
+    const infoItems = screenEl.querySelectorAll(".info-item");
+    const tiles = screenEl.querySelectorAll(".bento-tile, .footer-social-links, .video-promo-btn");
+    const card = screenEl.querySelector(".welcome-pillow-card");
+    const scrollMouse = screenEl.querySelector(".scroll-indicator-mouse");
+
+    // Fresh screens always start scrolled to the top (matters on stacked layouts)
+    if (toContent) toContent.scrollTop = 0;
+
+    // Reset any leftover exit offsets from a previous departure
+    const movers = screenEl.querySelectorAll(".welcome-text-side, .leisure-bento-grid, .welcome-pillow-card");
+    if (movers.length) gsap.set(movers, { y: 0, opacity: 1 });
+
+    // Initialize all to starting state: everything rises softly into place
+    gsap.set([toContent, toHeader], { opacity: 1 });
+    if (overlay) gsap.set(overlay, { opacity: 0 });
+    if (toHeader) gsap.set(toHeader, { y: -30, opacity: 0 });
+    if (labelTag) gsap.set(labelTag, { y: 24, opacity: 0 });
+    if (title) gsap.set(title, { y: 30, opacity: 0 });
+    if (subtitle) gsap.set(subtitle, { y: 30, opacity: 0 });
+    if (divider) gsap.set(divider, { scaleX: 0, transformOrigin: "left" });
+    if (infoItems.length) gsap.set(infoItems, { y: 26, opacity: 0 });
+    if (tiles.length) gsap.set(tiles, { y: 26, opacity: 0 });
+    if (card) gsap.set(card, { scale: 0.97, y: 30, opacity: 0 });
+    if (scrollMouse) gsap.set(scrollMouse, { y: 10, opacity: 0 });
+
+    const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+
+    // 0. Dark Overlay fades in
+    if (overlay) {
+        tl.to(overlay, { opacity: 1, duration: 0.4 }, 0.05);
+    }
+    // 1. Header
+    if (toHeader) {
+        tl.to(toHeader, { y: 0, opacity: 1, duration: 0.4, ease: "power2.out" }, 0.05);
+    }
+    // 2. Label tag
+    if (labelTag) {
+        tl.to(labelTag, { y: 0, opacity: 1, duration: 0.4 }, 0.1);
+    }
+    // 3. Title rises into place
+    if (title) {
+        tl.to(title, { y: 0, opacity: 1, duration: 0.45 }, 0.12);
+    }
+    // 4. Subtitle follows
+    if (subtitle) {
+        tl.to(subtitle, { y: 0, opacity: 1, duration: 0.45 }, 0.18);
+    }
+    // 5. Divider draws itself
+    if (divider) {
+        tl.to(divider, { scaleX: 1, duration: 0.4, ease: "power2.out" }, 0.2);
+    }
+    // 6. Info items cascade upward
+    if (infoItems.length) {
+        tl.to(infoItems, { y: 0, opacity: 1, duration: 0.4, stagger: 0.05 }, 0.22);
+    }
+    // 7. Bento tiles / footer links rise up
+    if (tiles.length) {
+        tl.to(tiles, { y: 0, opacity: 1, duration: 0.4, stagger: 0.05 }, 0.25);
+    }
+    // 8. Side card settles last
+    if (card) {
+        tl.to(card, { scale: 1, y: 0, opacity: 1, duration: 0.45 }, 0.28);
+    }
+    // 9. Scroll Mouse
+    if (scrollMouse) {
+        tl.to(scrollMouse, { y: 0, opacity: 0.85, duration: 0.4, ease: "power2.out" }, 0.35);
+    }
+}
+
+/* =========================================================================
+   SCREEN 1 ENTRANCE & INTERACTION LOGIC
+   ========================================================================= */
+
+function initWelcomeScreen() {
+    // Hide Screen 1 content elements initially for a staggered GSAP entrance
+    gsap.set(".main-header", { y: -50, opacity: 0 });
+    gsap.set("#screen-1 .screen-label-tag", { y: 15, opacity: 0 });
+    gsap.set("#screen-1 .welcome-title", { y: 25, opacity: 0 });
+    gsap.set("#screen-1 .welcome-divider", { scaleX: 0, transformOrigin: "left" });
+    gsap.set("#screen-1 .welcome-subtitle", { y: 15, opacity: 0 });
+    gsap.set(".scroll-indicator-mouse", { y: 15, opacity: 0 });
+}
+
+function animateWelcomeScreenEntrance() {
+    console.log("Starting Screen 1 Staggered Entrance Animation...");
+    const entranceTl = gsap.timeline();
+
+    // 1. Header (Logo, Menu, Languages) fades and slides down
+    entranceTl.to(".main-header", {
+        y: 0,
+        opacity: 1,
+        duration: 0.8,
+        ease: "power3.out"
+    }, 0.1);
+
+    // 2. Screen Tag
+    entranceTl.to("#screen-1 .screen-label-tag", {
+        y: 0,
+        opacity: 1,
+        duration: 0.6,
+        ease: "power2.out"
+    }, 0.3);
+
+    // 3. Title
+    entranceTl.to("#screen-1 .welcome-title", {
+        y: 0,
+        opacity: 1,
+        duration: 0.8,
+        ease: "power3.out"
+    }, 0.4);
+
+    // 4. Divider
+    entranceTl.to("#screen-1 .welcome-divider", {
+        scaleX: 1,
+        duration: 0.6,
+        ease: "power2.out"
+    }, 0.55);
+
+    // 5. Subtitle
+    entranceTl.to("#screen-1 .welcome-subtitle", {
+        y: 0,
+        opacity: 1,
+        duration: 0.8,
+        ease: "power3.out"
+    }, 0.6);
+
+    // 7. Mouse scroll indicator at the bottom fades in
+    entranceTl.to(".scroll-indicator-mouse", {
+        y: 0,
+        opacity: 0.85,
+        duration: 0.8,
+        ease: "power2.out"
+    }, 1.15);
+
+    // Initialize mobile action handlers
+    initMobileActions();
+}
+
+function bindCopyLogic(copyBtn, wifiPassword) {
+    if (!copyBtn || !wifiPassword) return;
+
+    copyBtn.addEventListener("click", () => {
+        const textToCopy = wifiPassword.textContent || "bukovel2026";
+        
+        const showSuccessState = () => {
+            copyBtn.classList.add("copied");
+            const btnText = copyBtn.querySelector(".btn-text");
+            if (btnText) {
+                btnText.textContent = "✓ Скопійовано!";
+            }
+
+            // GSAP click feedback animation
+            gsap.fromTo(copyBtn, 
+                { scale: 0.95 }, 
+                { scale: 1.0, duration: 0.3, ease: "elastic.out(1.2, 0.5)" }
+            );
+
+            // Restore button state after 2.5 seconds
+            setTimeout(() => {
+                copyBtn.classList.remove("copied");
+                if (btnText) {
+                    btnText.textContent = "Скопіювати пароль";
+                }
+            }, 2500);
+        };
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(textToCopy)
+                .then(showSuccessState)
+                .catch(err => {
+                    console.warn("Modern clipboard writeText failed, trying fallback...", err);
+                    executeFallbackCopy(textToCopy, showSuccessState);
+                });
+        } else {
+            executeFallbackCopy(textToCopy, showSuccessState);
+        }
+    });
+}
+
+function executeFallbackCopy(text, onSuccess) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.top = "-9999px";
+    textArea.style.left = "-9999px";
+    textArea.style.opacity = "0";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        const successful = document.execCommand("copy");
+        if (successful) {
+            onSuccess();
+        } else {
+            console.error("Fallback copy unsuccessful.");
+        }
+    } catch (err) {
+        console.error("Fallback copy execution error:", err);
+    }
+    
+    document.body.removeChild(textArea);
+}
+
+function initWifiCopy() {
+    const copyBtn = document.getElementById("copy-wifi-btn");
+    const wifiPassword = document.getElementById("wifi-password");
+    if (copyBtn && wifiPassword) {
+        bindCopyLogic(copyBtn, wifiPassword);
+    }
+
+    const copyDirectBtn = document.getElementById("copy-wifi-direct-btn");
+    const wifiPassVal = document.getElementById("wifi-pass-val");
+    if (copyDirectBtn && wifiPassVal) {
+        bindCopyLogic(copyDirectBtn, wifiPassVal);
+    }
+}
+
+function initMobileActions() {
+    const pills = document.querySelectorAll(".mobile-action-pill");
+    const modal = document.getElementById("mobile-action-modal");
+    const modalBody = document.getElementById("mobile-modal-body");
+    const closeBtn = document.getElementById("close-mobile-modal");
+
+    if (!pills.length || !modal || !modalBody || !closeBtn) return;
+
+    pills.forEach(pill => {
+        pill.addEventListener("click", () => {
+            const target = pill.getAttribute("data-target");
+            let dropdownClass = "";
+
+            if (target === "wifi") dropdownClass = ".wifi-dropdown";
+            else if (target === "reception") dropdownClass = ".reception-dropdown";
+            else if (target === "chat") dropdownClass = ".chat-dropdown";
+            else if (target === "pillow") dropdownClass = ".pillow-dropdown";
+
+            const sourceDropdown = document.querySelector(dropdownClass);
+            if (sourceDropdown) {
+                // Clear previous contents
+                modalBody.innerHTML = "";
+
+                // Clone dropdown menu elements
+                const clone = sourceDropdown.cloneNode(true);
+                modalBody.appendChild(clone);
+
+                // Re-bind click event to copy password button inside modal
+                const cloneCopyBtn = clone.querySelector("#copy-wifi-btn");
+                const cloneWifiPass = clone.querySelector("#wifi-password");
+                if (cloneCopyBtn && cloneWifiPass) {
+                    bindCopyLogic(cloneCopyBtn, cloneWifiPass);
+                }
+
+                // Show modal overlay with GSAP transition
+                modal.style.display = "flex";
+                gsap.fromTo(modal, { opacity: 0 }, { opacity: 1, duration: 0.3 });
+                gsap.fromTo(".mobile-modal-content", 
+                    { scale: 0.92, y: 24 }, 
+                    { scale: 1, y: 0, duration: 0.4, ease: "power3.out" }
+                );
             }
         });
+    });
+
+    const closeModal = () => {
+        gsap.to(modal, {
+            opacity: 0,
+            duration: 0.3,
+            onComplete: () => {
+                modal.style.display = "none";
+                modalBody.innerHTML = "";
+            }
+        });
+    };
+
+    closeBtn.addEventListener("click", closeModal);
+    modal.addEventListener("click", (e) => {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+}
+
+function initPillowCardAction() {
+    const actionBtn = document.getElementById("pillow-card-action-btn");
+    if (!actionBtn) return;
+
+    actionBtn.addEventListener("click", () => {
+        actionBtn.classList.add("copied"); // Re-use copy success green style
+        const btnText = actionBtn.querySelector("span");
+        if (btnText) {
+            btnText.textContent = "✓ Запит надіслано";
+        }
+
+        // GSAP click feedback animation
+        gsap.fromTo(actionBtn, 
+            { scale: 0.95 }, 
+            { scale: 1.0, duration: 0.3, ease: "elastic.out(1.2, 0.5)" }
+        );
+
+        // Restore button state after 3 seconds
+        setTimeout(() => {
+            actionBtn.classList.remove("copied");
+            if (btnText) {
+                btnText.textContent = "Обрати подушку";
+            }
+        }, 3000);
+    });
+}
+
+function initFloatingPillowTab() {
+    const pillowTab = document.getElementById("floating-pillow-tab");
+    if (!pillowTab) return;
+
+    // Toggle expanded on click (for mobile/touch devices or alternative click control)
+    const header = pillowTab.querySelector(".tab-header");
+    if (header) {
+        header.addEventListener("click", (e) => {
+            e.stopPropagation();
+            pillowTab.classList.toggle("is-expanded");
+        });
     }
-});
+
+    // Close when clicking anywhere else on the screen
+    document.addEventListener("click", (e) => {
+        if (!pillowTab.contains(e.target)) {
+            pillowTab.classList.remove("is-expanded");
+        }
+    });
+
+    // Also close on Escape key
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+            pillowTab.classList.remove("is-expanded");
+        }
+    });
+}
+
+/* =========================================================================
+   RESTAURANT GALLERY SLIDER
+   ========================================================================= */
+
+function initRestaurantSlider() {
+    const slides = document.querySelectorAll(".food-slide");
+    const dots = document.querySelectorAll(".slider-dots .dot");
+    if (!slides.length || !dots.length) return;
+
+    let currentIndex = 0;
+    let timer = setInterval(nextSlide, 3500);
+
+    function nextSlide() {
+        goToSlide((currentIndex + 1) % slides.length);
+    }
+
+    function goToSlide(index) {
+        slides[currentIndex].classList.remove("active");
+        dots[currentIndex].classList.remove("active");
+
+        currentIndex = index;
+
+        slides[currentIndex].classList.add("active");
+        dots[currentIndex].classList.add("active");
+    }
+
+    dots.forEach(dot => {
+        dot.addEventListener("click", () => {
+            clearInterval(timer);
+            const index = parseInt(dot.getAttribute("data-index"));
+            goToSlide(index);
+            timer = setInterval(nextSlide, 3500);
+        });
+    });
+}
+
+/* =========================================================================
+   RESTAURANT & BOOKING ACTIONS
+   ========================================================================= */
+
+function initRestaurantActions() {
+    const orderBtn = document.getElementById("order-room-btn");
+    const bookBtn = document.getElementById("book-table-btn");
+
+    if (orderBtn) {
+        orderBtn.addEventListener("click", () => {
+            openBookingModal("order_food");
+        });
+    }
+
+    if (bookBtn) {
+        bookBtn.addEventListener("click", () => {
+            openBookingModal("book_table");
+        });
+    }
+
+    initBookingForm();
+}
+
+function openBookingModal(key) {
+    const modal = document.getElementById("booking-modal");
+    const titleEl = document.getElementById("booking-modal-title");
+    const textarea = document.getElementById("booking-details");
+
+    if (!modal || !titleEl || !textarea) return;
+
+    const t = dynamicTranslations[currentLanguage];
+    titleEl.textContent = t[key + "_title"];
+    textarea.placeholder = t[key + "_placeholder"];
+
+    modal.style.display = "flex";
+    gsap.fromTo(modal, { opacity: 0 }, { opacity: 1, duration: 0.3 });
+    gsap.fromTo(modal.querySelector(".mobile-modal-content"), 
+        { scale: 0.92, y: 24 }, 
+        { scale: 1, y: 0, duration: 0.4, ease: "power3.out" }
+    );
+}
+
+function initBookingForm() {
+    const form = document.getElementById("booking-form");
+    const modal = document.getElementById("booking-modal");
+    const closeBtn = document.getElementById("close-booking-modal");
+    const submitBtn = document.getElementById("submit-booking-btn");
+
+    if (!form || !modal || !closeBtn || !submitBtn) return;
+
+    const closeModal = () => {
+        gsap.to(modal, {
+            opacity: 0,
+            duration: 0.3,
+            onComplete: () => {
+                modal.style.display = "none";
+                form.reset();
+                submitBtn.classList.remove("copied");
+                submitBtn.querySelector(".btn-text").textContent = dynamicTranslations[currentLanguage].send_request;
+            }
+        });
+    };
+
+    closeBtn.addEventListener("click", closeModal);
+    modal.addEventListener("click", (e) => {
+        if (e.target === modal) closeModal();
+    });
+
+    form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        submitBtn.classList.add("copied");
+        submitBtn.querySelector(".btn-text").textContent = dynamicTranslations[currentLanguage].request_sent;
+
+        gsap.fromTo(submitBtn, 
+            { scale: 0.95 }, 
+            { scale: 1.0, duration: 0.3, ease: "elastic.out(1.2, 0.5)" }
+        );
+
+        setTimeout(closeModal, 2000);
+    });
+}
+
+/* =========================================================================
+   SPA ACTIONS
+   ========================================================================= */
+
+function initSpaActions() {
+    const bookSpaBtn = document.getElementById("book-spa-btn");
+    const viewSpaMenuBtn = document.getElementById("view-spa-menu-btn");
+    const spaMenuModal = document.getElementById("spa-menu-modal");
+    const closeSpaMenuBtn = document.getElementById("close-spa-menu-modal");
+
+    if (bookSpaBtn) {
+        bookSpaBtn.addEventListener("click", () => {
+            openBookingModal("book_spa");
+        });
+    }
+
+    if (viewSpaMenuBtn && spaMenuModal && closeSpaMenuBtn) {
+        const openModal = () => {
+            spaMenuModal.style.display = "flex";
+            gsap.fromTo(spaMenuModal, { opacity: 0 }, { opacity: 1, duration: 0.3 });
+            gsap.fromTo(spaMenuModal.querySelector(".mobile-modal-content"), 
+                { scale: 0.92, y: 24 }, 
+                { scale: 1, y: 0, duration: 0.4, ease: "power3.out" }
+            );
+        };
+
+        const closeModal = () => {
+            gsap.to(spaMenuModal, {
+                opacity: 0,
+                duration: 0.3,
+                onComplete: () => {
+                    spaMenuModal.style.display = "none";
+                }
+            });
+        };
+
+        viewSpaMenuBtn.addEventListener("click", openModal);
+        closeSpaMenuBtn.addEventListener("click", closeModal);
+        spaMenuModal.addEventListener("click", (e) => {
+            if (e.target === spaMenuModal) closeModal();
+        });
+    }
+}
+
+/* =========================================================================
+   LEISURE & ACTIVITES ACTIONS (YOUTUBE & BOOKS)
+   ========================================================================= */
+
+function initLeisureActions() {
+    const playVideoBtn = document.getElementById("play-video-promo-btn");
+    const viewBooksBtn = document.getElementById("view-books-btn");
+
+    const youtubeModal = document.getElementById("youtube-modal");
+    const closeYoutubeBtn = document.getElementById("close-youtube-modal");
+    const playerContainer = document.getElementById("youtube-player-container");
+
+    const booksModal = document.getElementById("books-modal");
+    const closeBooksBtn = document.getElementById("close-books-modal");
+
+    if (playVideoBtn && youtubeModal && closeYoutubeBtn && playerContainer) {
+        const openVideo = () => {
+            // Inject YouTube iframe
+            playerContainer.innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/ODR5b6kcyis?autoplay=1" title="Ribas Karpaty Promo Video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen style="border: none;"></iframe>`;
+            
+            youtubeModal.style.display = "flex";
+            gsap.fromTo(youtubeModal, { opacity: 0 }, { opacity: 1, duration: 0.3 });
+            gsap.fromTo(youtubeModal.querySelector(".mobile-modal-content"), 
+                { scale: 0.92, y: 24 }, 
+                { scale: 1, y: 0, duration: 0.4, ease: "power3.out" }
+            );
+        };
+
+        const closeVideo = () => {
+            gsap.to(youtubeModal, {
+                opacity: 0,
+                duration: 0.3,
+                onComplete: () => {
+                    youtubeModal.style.display = "none";
+                    playerContainer.innerHTML = ""; // Clear iframe so sound stops
+                }
+            });
+        };
+
+        playVideoBtn.addEventListener("click", openVideo);
+        closeYoutubeBtn.addEventListener("click", closeVideo);
+        youtubeModal.addEventListener("click", (e) => {
+            if (e.target === youtubeModal) closeVideo();
+        });
+    }
+
+    if (viewBooksBtn && booksModal && closeBooksBtn) {
+        const openBooks = () => {
+            booksModal.style.display = "flex";
+            gsap.fromTo(booksModal, { opacity: 0 }, { opacity: 1, duration: 0.3 });
+            gsap.fromTo(booksModal.querySelector(".mobile-modal-content"), 
+                { scale: 0.92, y: 24 }, 
+                { scale: 1, y: 0, duration: 0.4, ease: "power3.out" }
+            );
+        };
+
+        const closeBooks = () => {
+            gsap.to(booksModal, {
+                opacity: 0,
+                duration: 0.3,
+                onComplete: () => {
+                    booksModal.style.display = "none";
+                }
+            });
+        };
+
+        viewBooksBtn.addEventListener("click", openBooks);
+        closeBooksBtn.addEventListener("click", closeBooks);
+        booksModal.addEventListener("click", (e) => {
+            if (e.target === booksModal) closeBooks();
+        });
+    }
+}
+
+/* =========================================================================
+   USEFUL INFO ACTIONS
+   ========================================================================= */
+
+function initUsefulInfoActions() {
+    const safeBtn = document.getElementById("safe-instr-btn");
+    const baggageBtn = document.getElementById("baggage-novaposhta-btn");
+
+    const safeModal = document.getElementById("safe-modal");
+    const closeSafeBtn = document.getElementById("close-safe-modal");
+
+    const baggageModal = document.getElementById("baggage-modal");
+    const closeBaggageBtn = document.getElementById("close-baggage-modal");
+
+    if (safeBtn && safeModal && closeSafeBtn) {
+        const openSafe = () => {
+            safeModal.style.display = "flex";
+            gsap.fromTo(safeModal, { opacity: 0 }, { opacity: 1, duration: 0.3 });
+            gsap.fromTo(safeModal.querySelector(".mobile-modal-content"), 
+                { scale: 0.92, y: 24 }, 
+                { scale: 1, y: 0, duration: 0.4, ease: "power3.out" }
+            );
+        };
+
+        const closeSafe = () => {
+            gsap.to(safeModal, {
+                opacity: 0,
+                duration: 0.3,
+                onComplete: () => {
+                    safeModal.style.display = "none";
+                }
+            });
+        };
+
+        safeBtn.addEventListener("click", openSafe);
+        closeSafeBtn.addEventListener("click", closeSafe);
+        safeModal.addEventListener("click", (e) => {
+            if (e.target === safeModal) closeSafe();
+        });
+    }
+
+    if (baggageBtn && baggageModal && closeBaggageBtn) {
+        const openBaggage = () => {
+            baggageModal.style.display = "flex";
+            gsap.fromTo(baggageModal, { opacity: 0 }, { opacity: 1, duration: 0.3 });
+            gsap.fromTo(baggageModal.querySelector(".mobile-modal-content"), 
+                { scale: 0.92, y: 24 }, 
+                { scale: 1, y: 0, duration: 0.4, ease: "power3.out" }
+            );
+        };
+
+        const closeBaggage = () => {
+            gsap.to(baggageModal, {
+                opacity: 0,
+                duration: 0.3,
+                onComplete: () => {
+                    baggageModal.style.display = "none";
+                }
+            });
+        };
+
+        baggageBtn.addEventListener("click", openBaggage);
+        closeBaggageBtn.addEventListener("click", closeBaggage);
+        baggageModal.addEventListener("click", (e) => {
+            if (e.target === baggageModal) closeBaggage();
+        });
+    }
+}
+
+
+// ============================================================
+// PDF POPUP MODAL — universal handler for [data-pdf] elements
+// ============================================================
+function initPdfModal() {
+    const modal     = document.getElementById("pdf-modal");
+    const iframe    = document.getElementById("pdf-modal-iframe");
+    const title     = document.getElementById("pdf-modal-title");
+    const closeBtn  = document.getElementById("pdf-modal-close");
+    const backdrop  = document.getElementById("pdf-modal-backdrop");
+    const downloadBtn = document.getElementById("pdf-download-btn");
+
+    if (!modal || !iframe) return;
+
+    function openPdf(src, label) {
+        iframe.src = src;
+        title.textContent = label || "Документ";
+        downloadBtn.href = src;
+        downloadBtn.download = src.split("/").pop();
+        modal.classList.add("is-open");
+        document.body.style.overflow = "hidden";
+    }
+
+    function closePdf() {
+        modal.classList.remove("is-open");
+        document.body.style.overflow = "";
+        // Short delay before clearing src to avoid flash
+        setTimeout(() => { iframe.src = ""; }, 350);
+    }
+
+    // Close controls
+    closeBtn.addEventListener("click", closePdf);
+    backdrop.addEventListener("click", closePdf);
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && modal.classList.contains("is-open")) closePdf();
+    });
+
+    // Intercept ALL [data-pdf] clicks on the page (delegated)
+    document.addEventListener("click", (e) => {
+        const trigger = e.target.closest("[data-pdf]");
+        if (!trigger) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const src   = trigger.dataset.pdf;
+        const label = trigger.dataset.pdfTitle || "";
+        openPdf(src, label);
+    });
+}
+
+document.addEventListener("DOMContentLoaded", initPdfModal);
+
+/* =========================================================================
+   LOCALIZATION / TRANSLATIONS (UA, EN, RU)
+   ========================================================================= */
+
+const dynamicTranslations = window.dynamicTranslations;
+const translations = window.translations;
+
+let currentLanguage = "ua";
+
+function initLanguageSelector() {
+    const langButtons = document.querySelectorAll(".lang-selector .lang-btn");
+    
+    // Load saved language from localStorage if exists
+    const savedLang = localStorage.getItem("ribas_lang");
+    if (savedLang && translations[savedLang]) {
+        currentLanguage = savedLang;
+        // Update active class on buttons
+        langButtons.forEach(btn => {
+            if (btn.textContent.trim().toLowerCase() === currentLanguage) {
+                btn.classList.add("active");
+            } else {
+                btn.classList.remove("active");
+            }
+        });
+        applyTranslations(currentLanguage);
+    }
+
+    langButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+            const selectedLang = btn.textContent.trim().toLowerCase();
+            if (selectedLang === currentLanguage) return;
+
+            // Update active state
+            langButtons.forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+
+            currentLanguage = selectedLang;
+            localStorage.setItem("ribas_lang", currentLanguage);
+
+            // Animate page content out, apply translation, animate in
+            const activeScreenEl = screens[currentScreen - 1].el;
+            const content = activeScreenEl.querySelector(".screen-content");
+            const overlay = activeScreenEl.querySelector(".screen-overlay");
+            
+            const tl = gsap.timeline();
+            if (content) tl.to(content, { opacity: 0, duration: 0.2, ease: "power2.in" });
+            if (overlay) tl.to(overlay, { opacity: 0, duration: 0.2, ease: "power2.in" }, 0);
+            
+            tl.call(() => {
+                applyTranslations(currentLanguage);
+            });
+
+            tl.call(() => {
+                animateScreenEntrance(activeScreenEl);
+            });
+        });
+    });
+}
+
+function applyTranslations(lang) {
+    document.documentElement.lang = lang === "ua" ? "uk" : lang;
+    const data = translations[lang];
+    if (!data) return;
+
+    for (const [selector, value] of Object.entries(data)) {
+        const el = document.querySelector(selector);
+        if (!el) continue;
+
+        if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") {
+            el.placeholder = value;
+        } else {
+            el.innerHTML = value;
+        }
+    }
+}
+
+window.initTransitionTrigger = initTransitionTrigger;
+window.currentScreen = currentScreen;
+
+
+

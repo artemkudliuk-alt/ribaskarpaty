@@ -3,377 +3,763 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Ribas Karpaty — Твій сценарій літа в горах</title>
+    <title>Ribas Karpaty — Welcome Guest</title>
     
-    <!-- Meta tags for SEO -->
-    <meta name="description" content="Преміум готель Ribas Karpaty у самому серці Буковелю. Забронюйте незабутній відпочинок у SPA, насолодіться авторською кухнею та затишними номерами.">
-    <meta name="keywords" content="Ribas Karpaty, Рибас Карпати, готель Буковель, відпочинок в Карпатах, SPA готель, Буковель готель">
-    
-    <!-- Fonts from Google Fonts -->
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Montserrat:wght@400;500;600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Montserrat:wght@400;500;600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
     
-    <!-- Local stylesheet -->
+    <!-- CSS -->
     <link rel="stylesheet" href="style.css">
     
-    <!-- GSAP for core scroll animations -->
+    <!-- GSAP -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" defer></script>
     
-    <!-- Main JS file -->
+    <!-- JS -->
+    <script src="translations.js" defer></script>
     <script src="main.js" defer></script>
 </head>
 <body>
 
-    <!-- Luxury Preloader -->
-    <div id="preloader">
-        <div class="preloader-content">
-            <img src="Ribas_logo_white.png" alt="Ribas Logo" class="preloader-logo">
-            <div class="preloader-progress-wrap">
-                <div class="preloader-bar-bg">
-                    <div class="preloader-bar"></div>
+    <!-- Global vignette: always on top of everything, covers all screens & preloader -->
+    <div class="global-vignette"></div>
+
+    <!-- Blur flash overlay for soft screen transitions (e.g. Restaurant → SPA) -->
+    <div id="blur-flash-overlay" class="blur-flash-overlay"></div>
+
+    <!-- PDF Popup Modal -->
+    <div id="pdf-modal" class="pdf-modal" role="dialog" aria-modal="true" aria-label="PDF переглядач">
+        <div class="pdf-modal-backdrop" id="pdf-modal-backdrop"></div>
+        <div class="pdf-modal-container">
+            <div class="pdf-modal-header">
+                <span class="pdf-modal-title" id="pdf-modal-title">Документ</span>
+                <div class="pdf-modal-actions">
+                    <a id="pdf-download-btn" href="#" download class="pdf-modal-download-btn" title="Завантажити PDF">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        <span>Завантажити</span>
+                    </a>
+                    <button id="pdf-modal-close" class="pdf-modal-close-btn" aria-label="Закрити">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
                 </div>
-                <div class="preloader-percentage" id="loader-percent">0%</div>
+            </div>
+            <div class="pdf-modal-body">
+                <iframe id="pdf-modal-iframe" src="" title="PDF документ" allowfullscreen></iframe>
             </div>
         </div>
     </div>
 
-    <!-- Luxury Custom Cursor -->
-    <div id="custom-cursor"></div>
-
-    <!-- Layer 1 & 2 & 3 wrapper container -->
-    <div id="main-scroll-container">
-        
-        <!-- LAYER 1: VIDEO LAYER -->
-        <div class="video-layer-container">
-            <!-- Hero Video: Preload auto, autoplay, loop, muted -->
-            <video id="hero-video" autoplay muted loop playsinline preload="auto" class="video-viewport">
-                <source src="Hero_video_banner.mp4" type="video/mp4">
-            </video>
-            <!-- Scroll Video: Preload metadata, muted, never autoplay -->
-            <video id="scroll-video" muted playsinline preload="metadata" class="video-viewport">
-                <!-- Source is loaded dynamically via JavaScript based on screen size -->
-            </video>
+    <!-- Global Header -->
+    <header class="main-header">
+        <div class="logo">
+            <img src="Ribas_logo_white.png" alt="Ribas Karpaty Logo" class="header-logo-img">
         </div>
         
-        <!-- LAYER 2: GRADIENT OVERLAYS -->
-        <div class="gradient-overlay"></div>
-        <div class="vignette-overlay"></div>
-        <div class="vignette-radial"></div>
+        <nav class="quick-nav">
+            <div class="nav-item-dropdown">
+                <a href="#wifi" class="nav-link" id="nav-wifi"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 9.5a15 15 0 0 1 19 0"/><path d="M5.5 13a10.5 10.5 0 0 1 13 0"/><path d="M8.5 16.5a5.5 5.5 0 0 1 7 0"/><path d="M12 20h.01"/></svg><span>Wi-Fi</span></a>
+                <div class="dropdown-menu wifi-dropdown">
+                    <div class="dropdown-title">Wi-Fi в готелі</div>
+                    <div class="dropdown-field">
+                        <span class="dropdown-label">Мережа:</span>
+                        <span class="dropdown-val">Karpaty_Guest</span>
+                    </div>
+                    <div class="dropdown-field">
+                        <span class="dropdown-label">Пароль:</span>
+                        <span class="dropdown-val" id="wifi-password">bukovel2026</span>
+                    </div>
+                    <button class="bento-btn gold-btn small-btn" id="copy-wifi-btn">
+                        <span class="btn-text">Скопіювати пароль</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="nav-item-dropdown">
+                <a href="#reception" class="nav-link" id="nav-reception"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg><span>Рецепція</span></a>
+                <div class="dropdown-menu reception-dropdown">
+                    <div class="dropdown-title">Зв'язок з рецепцією</div>
+                    <p class="dropdown-desc">Дзвінок з мобільного або внутрішнього телефону.</p>
+                    <a href="tel:101" class="bento-btn outline-btn small-btn">
+                        <span>Подзвонити 101</span>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="nav-item-dropdown">
+                <a href="#chat" class="nav-link" id="nav-chat"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5c-1.5 0-3-.4-4.2-1.1L3 20l1.1-5.3A8.5 8.5 0 1 1 21 11.5z"/></svg><span>Написати нам</span></a>
+                <div class="dropdown-menu chat-dropdown">
+                    <div class="dropdown-title">Написати нам</div>
+                    <p class="dropdown-desc">Оберіть месенджер для швидкої відповіді:</p>
+                    <div class="dropdown-socials">
+                        <a href="https://t.me/ribaskarpaty" target="_blank" class="social-btn telegram">Telegram</a>
+                        <a href="viber://chat?number=%2B380000000000" target="_blank" class="social-btn viber">Viber</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="nav-item-dropdown">
+                <a href="#menu" class="nav-link" id="nav-menu"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6a2 2 0 0 0 2 2h3zm0 0v7"/></svg><span>Меню</span></a>
+                <div class="dropdown-menu menu-dropdown">
+                    <div class="dropdown-title">Меню ресторану</div>
+                    <p class="dropdown-desc">Вишукані страви карпатської та європейської кухні від нашого шеф-кухаря.</p>
+                    <a href="#" data-pdf="/files/menu.pdf" data-pdf-title="Меню ресторану" class="bento-btn gold-btn small-btn" id="view-menu-btn">
+                        <span>Переглянути меню</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
         
-        <!-- LAYER 3: UI OVERLAYS -->
-        
-        <!-- Vertical Progress Timeline -->
-        <div id="progress-timeline" aria-label="Шкала прогресу">
-            <div class="timeline-line"></div>
-            <div class="timeline-dots">
-                <button class="timeline-dot active" data-index="0" aria-label="Екран 1"><span class="dot-num">01</span></button>
-                <button class="timeline-dot" data-index="1" aria-label="Екран 2"><span class="dot-num">02</span></button>
-                <button class="timeline-dot" data-index="2" aria-label="Екран 3"><span class="dot-num">03</span></button>
-                <button class="timeline-dot" data-index="3" aria-label="Екран 4"><span class="dot-num">04</span></button>
-                <button class="timeline-dot" data-index="4" aria-label="Екран 5"><span class="dot-num">05</span></button>
-                <button class="timeline-dot" data-index="5" aria-label="Екран 6"><span class="dot-num">06</span></button>
-                <button class="timeline-dot" data-index="6" aria-label="Екран 7"><span class="dot-num">07</span></button>
+        <div class="lang-selector">
+            <button class="lang-btn active">UA</button>
+            <button class="lang-btn">EN</button>
+            <button class="lang-btn">RU</button>
+        </div>
+    </header>
+
+    <!-- Global Navigation Ribbon -->
+    <div class="vertical-navigation-ribbon">
+        <div class="ribbon-line-container">
+            <div class="ribbon-line-progress"></div>
+        </div>
+        <div class="ribbon-items">
+            <div class="ribbon-item active" data-screen="1">
+                <span class="ribbon-number">01</span>
+                <span class="ribbon-label">Lobby</span>
+            </div>
+            <div class="ribbon-item" data-screen="2">
+                <span class="ribbon-number">02</span>
+                <span class="ribbon-label">Restaurant LIS</span>
+            </div>
+            <div class="ribbon-item" data-screen="3">
+                <span class="ribbon-number">03</span>
+                <span class="ribbon-label">SPA & Wellness</span>
+            </div>
+            <div class="ribbon-item" data-screen="4">
+                <span class="ribbon-number">04</span>
+                <span class="ribbon-label">Leisure</span>
+            </div>
+            <div class="ribbon-item" data-screen="5">
+                <span class="ribbon-number">05</span>
+                <span class="ribbon-label">Useful Info</span>
+            </div>
+            <div class="ribbon-item" data-screen="6">
+                <span class="ribbon-number">06</span>
+                <span class="ribbon-label">Footer</span>
             </div>
         </div>
+    </div>
 
-        <!-- Header -->
-        <header class="fixed-header">
-            <a href="#" class="logo-link">
-                <img src="Ribas_logo_white.png" alt="Ribas Karpaty Logo" class="logo">
-            </a>
-            <button class="menu-trigger" id="menu-trigger" aria-label="Відкрити меню">МЕНЮ ☰</button>
-        </header>
-        
-        <!-- Fullscreen Menu -->
-        <div class="menu-overlay" id="menu-overlay" aria-hidden="true">
-            <button class="menu-close" id="menu-close" aria-label="Закрити меню">✕</button>
-            <nav class="menu-nav">
-                <a href="#rooms" class="menu-link" data-target-screen="6">Номери</a>
-                <a href="#restaurant" class="menu-link" data-target-screen="5">Ресторан</a>
-                <a href="#spa" class="menu-link" data-target-screen="4">SPA</a>
-            </nav>
-        </div>
-        
-        <!-- Contacts Overlay -->
-        <div class="contacts-overlay" id="contacts-overlay">
-            <p class="contact-item">
-                📍 <a href="https://maps.google.com/?q=с.+Поляниця,+урочище+Вишня,+162а" target="_blank" rel="noopener noreferrer">с. Поляниця, урочище Вишня, 162а</a>
-            </p>
-            <p class="contact-item">
-                ☎ <a href="tel:0674278677">067 427 86 77</a>
-            </p>
-            <p class="contact-item">
-                ☎ <a href="tel:0800335602">0 800 33 56 02</a>
-            </p>
-        </div>
-        
-        <!-- Scroll Indicator -->
-        <div class="scroll-indicator" id="scroll-indicator">
-            <span class="scroll-text">Прокрутіть далі ↓</span>
-            <div class="mouse-icon">
-                <div class="mouse-wheel"></div>
+    <!-- Minimalist Premium Video Preloader -->
+    <div id="preloader">
+        <video class="screen-video" autoplay muted playsinline>
+            <source src="preloader.mp4" type="video/mp4">
+        </video>
+
+        <div class="preloader-content">
+            <div class="preloader-logo-container">
+                <!-- Silhouette contour outline -->
+                <img src="Ribas_logo_outline.png" alt="Ribas Karpaty Silhouette" class="preloader-logo logo-silhouette">
+                <!-- Solid white fill -->
+                <img src="Ribas_logo_white.png" alt="Ribas Karpaty Solid" class="preloader-logo logo-fill">
             </div>
         </div>
+    </div>
+
+    <!-- Shared Scrolling Video Background for Screens 2-5 -->
+    <div id="shared-video-bg" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 5; pointer-events: none; opacity: 0; display: none; transition: opacity 0.4s ease;">
+        <video id="video-scrolling" class="screen-video" muted playsinline preload="auto">
+            <source src="scrolling video.mp4" type="video/mp4">
+        </video>
+        <video id="video-scrolling-reverse" class="screen-video" muted playsinline preload="auto" style="opacity: 0;">
+            <source src="scrolling video_reverse.mp4" type="video/mp4">
+        </video>
+    </div>
+
+    <!-- Screen 1: Welcome / Lobby Screen -->
+    <div id="screen-1" class="screen">
+        <!-- Dual Videos for Seamless Crossfade Looping of 1 screen.mp4 -->
+        <video id="video-lobby-1" class="screen-video" autoplay muted playsinline preload="auto">
+            <source src="1 screen.mp4" type="video/mp4">
+        </video>
+        <video id="video-lobby-2" class="screen-video" muted playsinline preload="auto" style="opacity: 0; pointer-events: none;">
+            <source src="1 screen.mp4" type="video/mp4">
+        </video>
         
-        <!-- TEXT CONTENT LAYER -->
-        <div class="text-layer-container">
-            
-            <!-- Screen 1: Hero -->
-            <section class="text-screen active" id="screen-1" data-align="left">
-                <div class="screen-content">
-                    <h1>ТВІЙ СЦЕНАРІЙ<br>ЛІТА В ГОРАХ</h1>
-                    <p class="subtitle">Готель у самому серці Буковелю</p>
-                    <button class="luxury-btn booking-trigger">Забронювати номер</button>
+        <!-- Transition Glare/Blur Overlay -->
+        <div class="transition-flash-overlay"></div>
+        <div class="screen-overlay"></div>
+
+            <!-- Main centered content: Text -->
+            <div class="welcome-container screen-content">
+                <div class="welcome-text-side">
+                    <span class="screen-label-tag">01 / Welcome</span>
+                    <h1 class="welcome-title">Ласкаво просимо<br class="desktop-only"> до відпочинку<br class="desktop-only"> серед гір</h1>
+                    <div class="welcome-divider"></div>
+                    <p class="welcome-subtitle">Ribas Karpaty — ваш затишний простір у Буковелі. <br class="desktop-only">Ми подбали про деталі, щоб ваш відпочинок був легким, комфортним і по-справжньому безтурботним.</p>
                 </div>
-            </section>
-            
-            <!-- Screen 2: Welcome -->
-            <section class="text-screen" id="screen-2" data-align="center">
-                <div class="screen-content">
-                    <h2>ЛАСКАВО<br>ПРОСИМО</h2>
-                    <p class="subtitle">Подорож до відпочинку<br>починається тут.</p>
+            </div>
+
+            <!-- Floating Pillow Menu Tab (Sits absolute on the right edge, pops up on hover) -->
+            <div id="floating-pillow-tab" class="floating-pillow-tab">
+                <div class="tab-header">
+                    <svg class="svg-icon pillow-svg" viewBox="0 0 24 24">
+                        <rect x="2" y="4" width="20" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/>
+                        <path d="M6 8c2.5 0 2.5 8 0 8m12-8c-2.5 0-2.5 8 0 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    </svg>
+                    <span class="tab-title-text">Меню <br class="tab-br">подушок</span>
                 </div>
-            </section>
-            
-            <!-- Screen 3: Reception -->
-            <section class="text-screen" id="screen-3" data-align="center">
-                <div class="screen-content">
-                    <h2>ВАС УЖЕ<br>ЧЕКАЮТЬ</h2>
-                    <p class="subtitle">Залиште турботи позаду.<br>Час відпочинку настав.</p>
+                <div class="tab-expanded-content">
+                    <p class="pillow-desc">
+                        Міцний сон — важлива частина відпочинку. Ви можете обрати подушку зі спеціального меню: ортопедичну, з ефектом памʼяті або лавандову для релаксу.
+                        <br><br>
+                        Просто повідомте адміністратора на рецепції — і ми доставимо її у ваш номер.
+                    </p>
+                    <button class="gold-action-btn pillow-select-btn" id="pillow-card-action-btn">
+                        <span>Обрати подушку</span>
+                    </button>
                 </div>
-            </section>
-            
-            <!-- Screen 4: SPA -->
-            <section class="text-screen" id="screen-4" data-align="left">
-                <div class="spa-container">
-                    <div class="spa-left-col screen-content">
-                        <h2>SPA ТА СПОКІЙ</h2>
-                        <p class="subtitle">Спускайся з номеру прямо в халаті<br>SPA працює з 10:00 до 22:00<br>Басейни з 10:00 до 22:00<br>Family time (діти до 16 років) з 10:00-20:00<br>Тиша та релакс для дорослих (діти від 16 років) з 20:00-22:00</p>
-                        <button class="luxury-btn spa-price-trigger">Переглянути прайс SPA</button>
-                    </div>
-                    <div class="spa-right-col">
-                        <div class="spa-advantage-item">
-                            <div class="spa-advantage-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M2 10c2.5 1.5 5 1.5 7.5 0s5-1.5 7.5 0 5 1.5 7.5 0" />
-                                    <path d="M2 15c2.5 1.5 5 1.5 7.5 0s5-1.5 7.5 0 5 1.5 7.5 0" />
-                                </svg>
-                            </div>
-                            <div class="spa-advantage-text">Басейн 36 м²</div>
-                        </div>
-                        <div class="spa-advantage-item">
-                            <div class="spa-advantage-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M8 20c0-3 2-4 2-7s-2-4-2-7" />
-                                    <path d="M12 20c0-3 2-4 2-7s-2-4-2-7" />
-                                    <path d="M16 20c0-3 2-4 2-7s-2-4-2-7" />
-                                </svg>
-                            </div>
-                            <div class="spa-advantage-text">Римська та фінська сауна</div>
-                        </div>
-                        <div class="spa-advantage-item">
-                            <div class="spa-advantage-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M12 22C6 19 4 14 5 10c3 1 5 4 7 12Z" />
-                                    <path d="M12 22C18 19 20 14 19 10c-3 1-5 4-7 12Z" />
-                                    <path d="M12 22c-2-6-2-12 0-17 2 5 2 11 0 17Z" />
-                                    <path d="M7 22c2-2 8-2 10 0" />
-                                </svg>
-                            </div>
-                            <div class="spa-advantage-text">Масаж</div>
-                        </div>
-                        <div class="spa-advantage-item">
-                            <div class="spa-advantage-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M18 5l-3 10H5L3 17" />
-                                    <circle cx="17" cy="4" r="1" />
-                                    <path d="M6 15l-1 4M14 15l-1 4" />
-                                </svg>
-                            </div>
-                            <div class="spa-advantage-text">Зона відпочинку з обслуговуванням</div>
-                        </div>
-                    </div>
+            </div>
+
+            <!-- Scroll Indicator Mouse -->
+            <div class="scroll-indicator-mouse">
+                <div class="mouse-icon">
+                    <span class="mouse-wheel"></span>
                 </div>
-            </section>
-            
-            <!-- Screen 5: Restaurant -->
-            <section class="text-screen" id="screen-5" data-align="left">
-                <div class="spa-container">
-                    <div class="spa-left-col screen-content">
-                        <h2>ЩАСТЯ НЕ ЗА ГОРАМИ,<br>ВОНО ТУТ.</h2>
-                        <p class="subtitle">Сучасна українська кухня і трохи душі</p>
-                        <button class="luxury-btn booking-trigger">Забронювати</button>
-                    </div>
-                    <div class="spa-right-col">
-                        <div class="spa-advantage-item">
-                            <div class="spa-advantage-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M6 3v7a3 3 0 0 0 3 3h0a3 3 0 0 0 3-3V3M9 3v10M9 13v8" />
-                                    <path d="M18 3v10H15v8" />
-                                </svg>
+                <span class="scroll-text">Скрольте вниз</span>
+            </div>
+    </div>
+
+    <!-- Screen 2: Restaurant LIS Transition & View Screen -->
+    <div id="screen-2" class="screen" style="display: none; opacity: 0;">
+        <div class="screen-overlay"></div>
+        <div class="screen-content">
+            <div class="welcome-container">
+                <div class="welcome-text-side">
+                    <span class="screen-label-tag">02 / Restaurant LIS</span>
+                    <h1 class="welcome-title">Ресторан LIS:<br class="desktop-only"> щастя не за горами —<br class="desktop-only"> воно тут</h1>
+                    <div class="welcome-divider"></div>
+                    <p class="welcome-subtitle">Сучасна українська кухня, локальні смаки й трохи карпатської душі в кожній страві.</p>
+
+                    <div class="info-grid-restaurant">
+                        <div class="info-item">
+                            <svg class="info-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><path d="M6 2v2M10 2v2M14 2v2"/></svg>
+                            <div>
+                                <h3 class="info-heading">Сніданки, шведський стіл</h3>
+                                <p class="info-text">08:00–11:00 (включено у проживання)</p>
                             </div>
-                            <div class="spa-advantage-text">Загальна зона</div>
                         </div>
-                        <div class="spa-advantage-item">
-                            <div class="spa-advantage-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect x="3" y="4" width="18" height="12" rx="2" />
-                                    <path d="M2 20h20M5 16v4M19 16v4" />
-                                </svg>
+                        <div class="info-item">
+                            <svg class="info-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6a2 2 0 0 0 2 2h3zm0 0v7"/></svg>
+                            <div>
+                                <h3 class="info-heading">Ресторан à la carte</h3>
+                                <p class="info-text">12:00–23:00</p>
                             </div>
-                            <div class="spa-advantage-text">Коворкінг</div>
                         </div>
-                        <div class="spa-advantage-item">
-                            <div class="spa-advantage-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M8 21h8" />
-                                    <path d="M12 17c-2 0-4-2-4-5 0-3 4-8 4-8s4 5 4 8c0 3-2 5-4 5Z" />
-                                    <path d="M6 21l3-4M18 21l-3-4" />
-                                </svg>
+                        <div class="info-item">
+                            <svg class="info-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m19 3-7 8-7-8Z"/><path d="M12 11v11"/><path d="M8 22h8"/></svg>
+                            <div>
+                                <h3 class="info-heading">Лобі-бар</h3>
+                                <p class="info-text">Цілодобово</p>
                             </div>
-                            <div class="spa-advantage-text">Камінна зала</div>
                         </div>
-                        <div class="spa-advantage-item">
-                            <div class="spa-advantage-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M5 3h14l-7 9-7-9Z" />
-                                    <path d="M12 12v9M8 21h8" />
-                                    <circle cx="10" cy="7" r="1" />
-                                </svg>
-                            </div>
-                            <div class="spa-advantage-text">Бар</div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            
-            <!-- Screen 6: Rooms -->
-            <section class="text-screen" id="screen-6" data-align="left">
-                <div class="spa-container">
-                    <div class="spa-left-col screen-content">
-                        <h2>ВІДЧУЙТЕ СЕБЕ<br>ЯК ВДОМА</h2>
-                        <p class="subtitle">Затишні номери,<br>створені для справжнього відпочинку.</p>
-                        <button class="luxury-btn select-room-trigger">Обрати номер</button>
-                    </div>
-                    <div class="spa-right-col">
-                        <h3 class="rooms-advantages-title">У всіх номерах:</h3>
-                        <div class="rooms-grid">
-                            <div class="spa-advantage-item">
-                                <div class="spa-advantage-icon">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M17 8h1a4 4 0 1 1 0 8h-1" />
-                                        <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8Z" />
-                                        <path d="M6 2v2M10 2v2M14 2v2" />
-                                    </svg>
-                                </div>
-                                <div class="spa-advantage-text">Сніданок</div>
-                            </div>
-                            <div class="spa-advantage-item">
-                                <div class="spa-advantage-icon">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z" />
-                                    </svg>
-                                </div>
-                                <div class="spa-advantage-text">Клімат контроль</div>
-                            </div>
-                            <div class="spa-advantage-item">
-                                <div class="spa-advantage-icon">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M2 18a5 5 0 0 0 5 5h10a5 5 0 0 0 5-5v-2H2v2Z" />
-                                        <path d="M7 11V6a2 2 0 0 1 2-2h4" />
-                                        <path d="M22 13V7" />
-                                    </svg>
-                                </div>
-                                <div class="spa-advantage-text">Ванна кімната</div>
-                            </div>
-                            <div class="spa-advantage-item">
-                                <div class="spa-advantage-icon">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                        <rect x="2" y="3" width="20" height="13" rx="2" />
-                                        <path d="M12 16v4M8 20h8" />
-                                    </svg>
-                                </div>
-                                <div class="spa-advantage-text">Телевізор</div>
-                            </div>
-                            <div class="spa-advantage-item">
-                                <div class="spa-advantage-icon">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.1a6 6 0 0 1 6.94 0M12 20h.01" />
-                                    </svg>
-                                </div>
-                                <div class="spa-advantage-text">Wi-Fi</div>
-                            </div>
-                            <div class="spa-advantage-item">
-                                <div class="spa-advantage-icon">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M12 2v12a4 4 0 0 1-4 4h8a4 4 0 0 1-4-4ZM12 18v3M9 21h6" />
-                                    </svg>
-                                </div>
-                                <div class="spa-advantage-text">Міні-бар</div>
-                            </div>
-                            <div class="spa-advantage-item">
-                                <div class="spa-advantage-icon">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M2 18h20M6 18a6 6 0 0 1 12 0" />
-                                        <circle cx="12" cy="12" r="1" />
-                                    </svg>
-                                </div>
-                                <div class="spa-advantage-text">Room service</div>
-                            </div>
-                            <div class="spa-advantage-item">
-                                <div class="spa-advantage-icon">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                        <rect x="3" y="3" width="18" height="18" rx="2" />
-                                        <circle cx="12" cy="12" r="3" />
-                                        <path d="M12 12h4" />
-                                    </svg>
-                                </div>
-                                <div class="spa-advantage-text">Сейф</div>
-                            </div>
-                            <div class="spa-advantage-item">
-                                <div class="spa-advantage-icon">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M12 22C6 19 4 14 5 10c3 1 5 4 7 12Z" />
-                                        <path d="M12 22C18 19 20 14 19 10c-3 1-5 4-7 12Z" />
-                                        <path d="M12 22c-2-6-2-12 0-17 2 5 2 11 0 17Z" />
-                                    </svg>
-                                </div>
-                                <div class="spa-advantage-text">SPA</div>
-                            </div>
-                            <div class="spa-advantage-item full-width">
-                                <div class="spa-advantage-icon">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                        <rect x="4" y="2" width="16" height="20" rx="2" />
-                                        <path d="M12 2v20M9 10h.01M15 10h.01" />
-                                    </svg>
-                                </div>
-                                <div class="spa-advantage-text">Власна шафа у лижній кімнаті</div>
-                            </div>
-                            <div class="spa-advantage-item full-width">
-                                <div class="spa-advantage-icon">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M2 20V9a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v11M2 17h20M2 13h20" />
-                                        <path d="M6 10a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" />
-                                    </svg>
-                                </div>
-                                <div class="spa-advantage-text">Додаткове місце: 1200 грн</div>
+                        <div class="info-item">
+                            <svg class="info-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="10" rx="1.5"/><path d="M3 19h18"/></svg>
+                            <div>
+                                <h3 class="info-heading">Коворкінг та Камінна зала</h3>
+                                <p class="info-text">08:00–23:00 / Цілодобово</p>
                             </div>
                         </div>
                     </div>
                 </div>
-            </section>
-            
-            <!-- Screen 7: Night Finale -->
-            <section class="text-screen" id="screen-7" data-align="center">
-                <div class="screen-content">
-                    <h2><span class="nobr">ДЕНЬ ЗАВЕРШУЄТЬСЯ.</span><br><span class="nobr">ВРАЖЕННЯ ЗАЛИШАЮТЬСЯ.</span></h2>
-                    <button class="luxury-btn booking-trigger">Забронювати номер</button>
+
+                <!-- Interactive side card with food gallery slider & buttons -->
+                <div class="welcome-pillow-card restaurant-card">
+                    <div class="card-header-icon">
+                        <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6a2 2 0 0 0 2 2h3zm0 0v7"/></svg>
+                        <h3>Послуги ресторану</h3>
+                    </div>
+
+                    <!-- Food Slider -->
+                    <div class="food-slider-container">
+                        <div class="food-slider-wrapper">
+                            <div class="food-slide active"><img src="сніданок.png" alt="Сніданки — шведський стіл"><span class="slide-caption">Сніданки</span></div>
+                            <div class="food-slide"><img src="камінна зала.png" alt="Камінна зала"><span class="slide-caption">Камінна зала</span></div>
+                            <div class="food-slide"><img src="основні страви.png" alt="Локальні страви"><span class="slide-caption">Локальні страви</span></div>
+                            <div class="food-slide"><img src="десерти.png" alt="Десерти"><span class="slide-caption">Десерти</span></div>
+                        </div>
+                        <div class="slider-dots">
+                            <span class="dot active" data-index="0"></span>
+                            <span class="dot" data-index="1"></span>
+                            <span class="dot" data-index="2"></span>
+                            <span class="dot" data-index="3"></span>
+                        </div>
+                    </div>
+
+                    <div class="card-actions restaurant-actions">
+                        <a href="#" data-pdf="/files/menu.pdf" data-pdf-title="Онлайн-меню ресторану" class="bento-btn gold-btn small-btn" id="online-menu-btn">
+                            <svg class="btn-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h7z"/></svg>
+                            <span>Онлайн-меню</span>
+                        </a>
+                        <button class="bento-btn outline-btn small-btn" id="order-room-btn">
+                            <svg class="btn-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v11"/><path d="M3 16h18v-4a3 3 0 0 0-3-3H10v4"/><circle cx="6.5" cy="11" r="1.5"/></svg>
+                            <span class="btn-text">Замовити в номер</span>
+                        </button>
+                        <button class="bento-btn outline-btn small-btn" id="book-table-btn">
+                            <svg class="btn-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h10c0 5-2 8-5 8s-5-3-5-8z"/><path d="M12 11v9"/><path d="M8 22h8"/></svg>
+                            <span class="btn-text">Забронювати столик</span>
+                        </button>
+                    </div>
                 </div>
-            </section>
-            
+            </div>
         </div>
-        
+    </div>
+
+    <!-- Screen 3: SPA & Wellness -->
+    <div id="screen-3" class="screen" style="display: none; opacity: 0;">
+        <div class="screen-overlay"></div>
+        <div class="screen-content">
+            <div class="welcome-container">
+                <div class="welcome-text-side">
+                    <span class="screen-label-tag">03 / SPA &amp; Wellness</span>
+                    <h1 class="welcome-title">Територія абсолютного релаксу</h1>
+                    <div class="welcome-divider"></div>
+                    <p class="welcome-subtitle">Для вас — басейн 36 м, римська та фінська сауна, масажі, зона відпочинку й обслуговування, щоб ви могли просто видихнути.</p>
+
+                    <div class="info-grid-restaurant">
+                        <div class="info-item">
+                            <svg class="info-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/></svg>
+                            <div>
+                                <h3 class="info-heading">Зручний доступ</h3>
+                                <p class="info-text">Можна спуститися з номера просто в халаті</p>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <svg class="info-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                            <div>
+                                <h3 class="info-heading">Години роботи</h3>
+                                <p class="info-text">SPA та басейн працюють щодня з 10:00 до 22:00</p>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <svg class="info-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 5a3.5 3.5 0 0 1 0 7"/><path d="M17.5 14.5a6.5 6.5 0 0 1 4 5.5"/></svg>
+                            <div>
+                                <h3 class="info-heading">Family Time (з дітьми)</h3>
+                                <p class="info-text">Для гостей з дітьми до 16 років: 10:00–20:00</p>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <svg class="info-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13A8 8 0 1 1 11 4a6.5 6.5 0 0 0 9 9z"/></svg>
+                            <div>
+                                <h3 class="info-heading">Релакс для дорослих</h3>
+                                <p class="info-text">Для гостей від 16 років (тиша): 20:00–22:00</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Special offer card (Stone Massage Promo & SPA menu button) -->
+                <div class="welcome-pillow-card spa-card premium-card">
+                    <span class="card-badge">Пропозиція дня</span>
+                    <h4 class="spa-promo-title">Стоун-масаж гарячим камінням</h4>
+                    <p class="spa-promo-desc">Тільки сьогодні для гостей нашого готелю діє спеціальна пропозиція <strong>−10%</strong> на розслаблювальний стоун-масаж.</p>
+                    <div class="spa-price-tag"><s>2400₴</s> <span>2160₴</span></div>
+
+                    <div class="card-actions">
+                        <button class="bento-btn gold-btn small-btn" id="book-spa-btn">
+                            <svg class="btn-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18"/><path d="M8 3v4M16 3v4"/></svg>
+                            <span class="btn-text">Записатися на масаж</span>
+                        </button>
+                        <button class="bento-btn outline-btn small-btn" id="view-spa-menu-btn"
+                                data-pdf="/files/spa-menu.pdf" data-pdf-title="SPA & Wellness меню">
+                            <svg class="btn-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13"/><path d="M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>
+                            <span class="btn-text">Переглянути SPA-меню</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Screen 4: Leisure & Activities -->
+    <div id="screen-4" class="screen" style="display: none; opacity: 0;">
+        <div class="screen-overlay"></div>
+        <div class="screen-content">
+            <div class="welcome-container leisure-container-grid">
+                <div class="welcome-text-side">
+                    <span class="screen-label-tag">04 / Leisure</span>
+                    <h1 class="welcome-title">Відкрийте для себе Буковель</h1>
+                    <div class="welcome-divider"></div>
+                    <p class="welcome-subtitle">Ми зібрали найцікавіші локації поруч і подбали про затишне дозвілля всередині готелю.</p>
+                </div>
+
+                <!-- Bento Grid of leisure activities -->
+                <div class="leisure-bento-grid">
+                    <!-- Summer Card -->
+                    <div class="bento-tile glass-card">
+                        <div class="tile-header">
+                            <svg class="tile-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 7.5 9.5h2L6 15h4.5v6h3v-6H18l-3.5-5.5h2L12 3z"/></svg>
+                            <span>Літній відпочинок</span>
+                        </div>
+                        <p class="tile-desc">Трекінг-маршрути, прокат велосипедів і квадроциклів, Озеро Молодості, етнопарк «Гуцул Ленд» та прогулянки серед карпатських краєвидів.</p>
+                    </div>
+
+                    <!-- Winter Card -->
+                    <div class="bento-tile glass-card">
+                        <div class="tile-header">
+                            <svg class="tile-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M4 7l16 10M20 7 4 17"/><path d="m9 4 3 2 3-2M9 20l3-2 3 2"/></svg>
+                            <span>Зимовий відпочинок</span>
+                        </div>
+                        <p class="tile-desc">Актуальний статус підйомників, прокат гірськолижного спорядження, замовлення інструктора та партнерські умови: <strong>−10%</strong> на прокат спорядження.</p>
+                    </div>
+
+                    <!-- Kids Room Card -->
+                    <div class="bento-tile glass-card double-width-tile">
+                        <div class="tile-header">
+                            <svg class="tile-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 14a4.5 4.5 0 0 0 7 0"/><path d="M9 9.5h.01M15 9.5h.01"/></svg>
+                            <span>Дитяча кімната</span>
+                        </div>
+                        <p class="tile-desc">У готелі є безкоштовна дитяча кімната, де маленькі гості можуть грати, відпочивати й проводити час у безпечному затишному просторі.</p>
+                    </div>
+
+                    <!-- Library & Games Card -->
+                    <div class="bento-tile glass-card double-width-tile">
+                        <div class="tile-header">
+                            <svg class="tile-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h7z"/></svg>
+                            <span>Книги &amp; Memo Games</span>
+                        </div>
+                        <p class="tile-desc">Оберіть книгу з нашого каталогу (безкоштовна доставка в номер) або візьміть настільні ігри для веселої компанії біля рецепції чи в камінній залі.</p>
+                        <div class="tile-actions">
+                            <a href="#" data-pdf="/files/memo-games.pdf" data-pdf-title="Список ігор Memo Games" class="bento-btn outline-btn small-btn">
+                                <svg class="btn-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 8h.01M16 8h.01M12 12h.01M8 16h.01M16 16h.01"/></svg>
+                                <span>Список ігор</span>
+                            </a>
+                            <button class="bento-btn outline-btn small-btn" id="view-books-btn">
+                                <svg class="btn-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V2H6.5A2.5 2.5 0 0 0 4 4.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>
+                                <span class="btn-text">Каталог книг</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Video tour CTA lives in the grid, over the scenery -->
+                    <button class="bento-btn gold-btn video-promo-btn" id="play-video-promo-btn">
+                        <svg class="btn-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m10 8.5 5.5 3.5-5.5 3.5z"/></svg>
+                        <span>Переглянути відео-огляд готелю</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Screen 5: Useful Info & Reception -->
+    <div id="screen-5" class="screen" style="display: none; opacity: 0;">
+        <div class="screen-overlay"></div>
+        <div class="screen-content">
+            <div class="welcome-container">
+                <div class="welcome-text-side">
+                    <span class="screen-label-tag">05 / Useful Info</span>
+                    <h1 class="welcome-title">Усе, що знадобиться під час відпочинку</h1>
+                    <div class="welcome-divider"></div>
+                    <p class="welcome-subtitle">Деталі вашого перебування: час заїзду та виїзду, відправка багажу Новою Поштою та інструкція користування сейфом.</p>
+
+                    <div class="info-grid-restaurant">
+                        <div class="info-item">
+                            <svg class="info-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4.5"/><path d="m11.5 11.5 8.5-8.5"/><path d="m16 7 3 3"/><path d="m13 10 2 2"/></svg>
+                            <div>
+                                <h3 class="info-heading">Заїзд / Виїзд</h3>
+                                <p class="info-text">Заїзд з 14:00. Виїзд до 12:00. Для пізнього виїзду зверніться на рецепцію.</p>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <svg class="info-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="7" width="14" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M9 20V7M15 20V7"/></svg>
+                            <div>
+                                <h3 class="info-heading">Відправка багажу через Нову Пошту</h3>
+                                <p class="info-text">Допоможемо зручно надіслати ваші речі до чи після подорожі. Деталі на рецепції.</p>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <svg class="info-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><path d="M12 14.5v1.5"/></svg>
+                            <div>
+                                <h3 class="info-heading">Сейф у номері</h3>
+                                <p class="info-text">Користування сейфом безкоштовне. Інструкція по налаштуванню коду додається.</p>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <svg class="info-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>
+                            <div>
+                                <h3 class="info-heading">Зв'язок з рецепцією</h3>
+                                <p class="info-text">З мобільного або внутрішнього телефону: номер 101.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Info Card (Safe guide & baggage details action buttons) -->
+                <div class="welcome-pillow-card info-card">
+                    <div class="card-header-icon">
+                        <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18h16"/><path d="M5 18a7 7 0 0 1 14 0"/><path d="M12 8V6"/><path d="M10 6h4"/></svg>
+                        <h3>Сервіси та інструкції</h3>
+                    </div>
+                    <p class="pillow-desc">Усе важливе — у два дотики. Детальні інструкції відкриються поверх екрана, не перевантажуючи його.</p>
+
+                    <div class="card-actions info-actions">
+                        <button class="bento-btn gold-btn small-btn" id="safe-instr-btn">
+                            <svg class="btn-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+                            <span class="btn-text">Сейф</span>
+                        </button>
+                        <button class="bento-btn outline-btn small-btn" id="baggage-novaposhta-btn">
+                            <svg class="btn-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="7" width="14" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></svg>
+                            <span class="btn-text">Багаж</span>
+                        </button>
+                        <a href="tel:101" class="bento-btn outline-btn small-btn" id="call-reception-btn">
+                            <svg class="btn-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>
+                            <span>Рецепція</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Screen: End of Journey -->
+    <div id="screen-footer" class="screen" style="display: none;">
+        <video id="video-transition-footer" class="screen-video" muted playsinline preload="auto">
+            <source src="footer.mp4" type="video/mp4">
+        </video>
+        <video id="video-transition-footer-reverse" class="screen-video" muted playsinline preload="auto" style="opacity: 0;">
+            <source src="footer_reverse.mp4" type="video/mp4">
+        </video>
+        <video id="video-footer-loop" class="screen-video" muted playsinline loop preload="auto" style="opacity: 0;">
+            <source src="footer.mp4" type="video/mp4">
+        </video>
+        <div class="screen-overlay"></div>
+        <div class="screen-content">
+            <div class="welcome-container footer-container">
+                <div class="welcome-text-side footer-text-side">
+                    <span class="screen-label-tag">06 / Ribas Karpaty</span>
+                    <h1 class="welcome-title">Бажаємо вам приємного відпочинку!</h1>
+                    <p class="welcome-subtitle">З любов'ю, команда Ribas Karpaty.</p>
+                    <div class="welcome-divider"></div>
+                    
+                    <div class="footer-social-links">
+                        <a href="https://instagram.com/ribaskarpaty" target="_blank" class="footer-social-link">
+                            <svg class="social-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.2 6.8h.01"/></svg>
+                            <span>Instagram</span>
+                        </a>
+                        <a href="https://facebook.com/ribaskarpaty" target="_blank" class="footer-social-link">
+                            <svg class="social-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3V3h-3a5 5 0 0 0-5 5v3H7v4h3v6h4v-6h3l1-4h-4V8a1 1 0 0 1 1-1z"/></svg>
+                            <span>Facebook</span>
+                        </a>
+                        <a href="https://ribashotelsgroup.ua" target="_blank" class="footer-social-link">
+                            <svg class="social-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a13.5 13.5 0 0 1 0 18 13.5 13.5 0 0 1 0-18z"/></svg>
+                            <span>Ribas Hotels Group</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sleek Glass Modal for Mobile Actions -->
+    <div id="mobile-action-modal" class="mobile-modal" style="display: none; opacity: 0;">
+        <div class="mobile-modal-content">
+            <button class="close-modal-btn" id="close-mobile-modal">&times;</button>
+            <div class="modal-body-content" id="mobile-modal-body">
+                <!-- Clicked pill content will be dynamic cloned here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- SPA Menu Modal -->
+    <div id="spa-menu-modal" class="mobile-modal" style="display: none; opacity: 0;">
+        <div class="mobile-modal-content modal-large">
+            <button class="close-modal-btn" id="close-spa-menu-modal">&times;</button>
+            <div class="modal-body-content">
+                <div class="dropdown-title">SPA &amp; Wellness Меню</div>
+                <div class="spa-menu-list">
+                    <div class="spa-menu-item">
+                        <div class="spa-item-title-row">
+                            <span class="spa-item-name">Класичний масаж</span>
+                            <span class="spa-item-price">2100₴ / 2800₴</span>
+                        </div>
+                        <p class="spa-item-desc">Масаж всього тіла позитивно впливає на м'язи, зміцнює зв'язки та суглоби. 60 хв / 90 хв.</p>
+                    </div>
+                    <div class="spa-menu-item">
+                        <div class="spa-item-title-row">
+                            <span class="spa-item-name">Масаж спини</span>
+                            <span class="spa-item-price">1200₴</span>
+                        </div>
+                        <p class="spa-item-desc">Знімає біль та запалення, посилює кровообіг у хребті. 40 хв.</p>
+                    </div>
+                    <div class="spa-menu-item">
+                        <div class="spa-item-title-row">
+                            <span class="spa-item-name">Масаж ніг</span>
+                            <span class="spa-item-price">1200₴</span>
+                        </div>
+                        <p class="spa-item-desc">Поєднує в собі зняття втоми, підняття тонусу м'язів ніг та покращення кровообігу. 40 хв.</p>
+                    </div>
+                    <div class="spa-menu-item">
+                        <div class="spa-item-title-row">
+                            <span class="spa-item-name">Масаж голови та шийно-комірцевої зони</span>
+                            <span class="spa-item-price">1100₴</span>
+                        </div>
+                        <p class="spa-item-desc">Гарантує покращення якості сну, відновлення сил та максимальне розслаблення. 30 хв.</p>
+                    </div>
+                    <div class="spa-menu-item font-highlight">
+                        <div class="spa-item-title-row">
+                            <span class="spa-item-name">Шовковий дотик свічки</span>
+                            <span class="spa-item-price">2500₴ / 3000₴</span>
+                        </div>
+                        <p class="spa-item-desc">Розслаблюючий ритуал із використанням теплого воску свічки, що перетворюється на олію. 60 хв / 90 хв.</p>
+                    </div>
+                    <div class="spa-menu-item">
+                        <div class="spa-item-title-row">
+                            <span class="spa-item-name">Масаж трав'яними мішечками</span>
+                            <span class="spa-item-price">2400₴</span>
+                        </div>
+                        <p class="spa-item-desc">Поєднує релакс масаж та ароматерапію з використанням мішечків з карпатськими травами. 60 хв.</p>
+                    </div>
+                    <div class="spa-menu-item">
+                        <div class="spa-item-title-row">
+                            <span class="spa-item-name">Тайський масаж</span>
+                            <span class="spa-item-price">3200₴ / 4000₴</span>
+                        </div>
+                        <p class="spa-item-desc">Комбінує фізичну роботу з м'язами і вплив на енергетичні лінії тіла. 90 хв / 120 хв.</p>
+                    </div>
+                    <div class="spa-menu-item">
+                        <div class="spa-item-title-row">
+                            <span class="spa-item-name">Тайський масаж стоп</span>
+                            <span class="spa-item-price">2200₴</span>
+                        </div>
+                        <p class="spa-item-desc">Особливий вид масажу із застосуванням дерев'яної палички для стимуляції рефлекторних точок. 60 хв.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Safe Instructions Modal -->
+    <div id="safe-modal" class="mobile-modal" style="display: none; opacity: 0;">
+        <div class="mobile-modal-content modal-large">
+            <button class="close-modal-btn" id="close-safe-modal">&times;</button>
+            <div class="modal-body-content">
+                <div class="dropdown-title">Інструкція до сейфа</div>
+                <div class="safe-instructions-steps">
+                    <h4 class="safe-step-title">Програмування коду:</h4>
+                    <ol class="safe-steps-list">
+                        <li>Натисніть <strong>зелену кнопку</strong> з внутрішньої сторони дверцят сейфа.</li>
+                        <li>Загориться жовтий світловий сигнал — сейф готовий до нового коду.</li>
+                        <li>Введіть новий код (<strong>від 3 до 8 символів</strong>) та натисніть <strong>#</strong>.</li>
+                    </ol>
+                    <h4 class="safe-step-title">Відкриття та закриття:</h4>
+                    <ol class="safe-steps-list">
+                        <li><strong>Відкрити</strong>: Введіть ваш код та натисніть <strong>#</strong>, після чого загориться зелений світлодіод, поверніть ручку та відкрийте сейф.</li>
+                        <li><strong>Закрити</strong>: Зачиніть дверцята, введіть код, натисніть <strong>#</strong> та поверніть ручку у вихідне положення.</li>
+                    </ol>
+                    <div class="safe-notice">
+                        <strong>Важливо:</strong> Перед виїздом з готелю, будь ласка, залиште сейф відкритим.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Baggage Info Modal -->
+    <div id="baggage-modal" class="mobile-modal" style="display: none; opacity: 0;">
+        <div class="mobile-modal-content">
+            <button class="close-modal-btn" id="close-baggage-modal">&times;</button>
+            <div class="modal-body-content">
+                <div class="dropdown-title">Послуга «Вільні руки»</div>
+                <div class="baggage-details">
+                    <p class="baggage-desc">Подорожуйте без зайвих турбот — надішліть ваші валізи Новою Поштою до нашого готелю або назад додому.</p>
+                    <div class="baggage-steps">
+                        <div class="baggage-step">
+                            <svg class="step-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="M3 8l9 5 9-5"/><path d="M12 22V13"/></svg>
+                            <strong>Залишайте багаж на рецепції</strong>
+                        </div>
+                        <div class="baggage-step">
+                            <svg class="step-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
+                            <strong>Оформлюйте через мобільний додаток</strong>
+                        </div>
+                        <div class="baggage-step">
+                            <svg class="step-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 17H2V5h12z"/><path d="M14 8h4l3 4v5h-3"/><circle cx="6.5" cy="17.5" r="1.8"/><circle cx="16.5" cy="17.5" r="1.8"/></svg>
+                            <strong>Доставка прямо під ваші двері</strong>
+                        </div>
+                    </div>
+                    <p class="baggage-desc baggage-note">Для допомоги з оформленням відправки звертайтеся на рецепцію або дзвоніть:</p>
+                    <a href="tel:+380674004593" class="bento-btn gold-btn small-btn phone-number-btn">
+                        <span>+380 67 400 45 93</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- YouTube Video Modal -->
+    <div id="youtube-modal" class="mobile-modal" style="display: none; opacity: 0;">
+        <div class="mobile-modal-content modal-video">
+            <button class="close-modal-btn" id="close-youtube-modal">&times;</button>
+            <div class="modal-body-content" id="youtube-player-container" style="padding: 0; margin-top: 10px; width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden;">
+                <!-- Iframe will be injected here on open and removed on close -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Booking Form Modal (Order Food / Book Table / SPA Booking) -->
+    <div id="booking-modal" class="mobile-modal" style="display: none; opacity: 0;">
+        <div class="mobile-modal-content">
+            <button class="close-modal-btn" id="close-booking-modal">&times;</button>
+            <div class="modal-body-content">
+                <div class="dropdown-title" id="booking-modal-title">Надіслати запит</div>
+                <form id="booking-form" class="booking-form-element" onsubmit="event.preventDefault();">
+                    <div class="form-group">
+                        <label for="booking-name" class="form-label">Ваше ім'я</label>
+                        <input type="text" id="booking-name" class="form-input" placeholder="Олександр" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="booking-room" class="form-label">Номер кімнати</label>
+                        <input type="text" id="booking-room" class="form-input" placeholder="302" required>
+                    </div>
+                    <div class="form-group" id="booking-details-group">
+                        <label for="booking-details" class="form-label" id="booking-details-label">Деталі замовлення</label>
+                        <textarea id="booking-details" class="form-input form-textarea" placeholder="Вкажіть ваші побажання..."></textarea>
+                    </div>
+                    <button type="submit" class="bento-btn gold-btn" id="submit-booking-btn">
+                        <span class="btn-text">Надіслати запит</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Books Catalog Modal -->
+    <div id="books-modal" class="mobile-modal" style="display: none; opacity: 0;">
+        <div class="mobile-modal-content modal-large">
+            <button class="close-modal-btn" id="close-books-modal">&times;</button>
+            <div class="modal-body-content">
+                <div class="dropdown-title">Каталог книг готелю</div>
+                <p class="dropdown-desc">Оберіть книгу з нашої бібліотеки, і ми безкоштовно доставимо її до вашої кімнати. Для замовлення назвіть книгу на рецепції.</p>
+                <div class="books-list">
+                    <div class="book-item">
+                        <div class="book-title">«Карпати. Люди, гори і ліси»</div>
+                        <div class="book-author">Михайло Коцюбинський та сучасні нариси</div>
+                    </div>
+                    <div class="book-item">
+                        <div class="book-title">«Гуцульська міфологія та побут»</div>
+                        <div class="book-author">Іван Франко</div>
+                    </div>
+                    <div class="book-item">
+                        <div class="book-title">«Легенди та перекази стародавніх Карпат»</div>
+                        <div class="book-author">Етнографічна збірка</div>
+                    </div>
+                    <div class="book-item">
+                        <div class="book-title">«Карпатські пішохідні маршрути: гайд для мандрівника»</div>
+                        <div class="book-author">Туристичне видання</div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
 </body>

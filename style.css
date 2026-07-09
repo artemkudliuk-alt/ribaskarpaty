@@ -1,1050 +1,2687 @@
-/* ==========================================================================
-   RIBAS KARPATY — PREMIUM CINEMATIC STYLE SHEET
-   ========================================================================== */
-
-/* --------------------------------------------------------------------------
-   1. DESIGN SYSTEM & CUSTOM PROPERTIES
-   -------------------------------------------------------------------------- */
 :root {
-    /* Color Palette */
-    --gold: #D7B06A;
-    --white: #FFFFFF;
-    --black: #0A0A0A;
-    --overlay: rgba(0, 0, 0, 0.45);
-    
-    /* Fonts */
-    --font-heading: 'Playfair Display', serif;
-    --font-accent: 'Montserrat', sans-serif;
-    --font-body: 'Jost', sans-serif;
-    
-    /* Layout Layer Indexes */
-    --z-video: 1;
-    --z-gradient: 2;
-    --z-text: 10;
-    --z-ui: 50;
-    --z-menu: 200;
-    --z-loader: 9999;
-    --z-cursor: 10000;
+    --color-bg: #09090b;
+    --color-gold: #c3a475;
+    --color-gold-hover: #dcc094;
+    --color-gold-glow: rgba(197, 168, 128, 0.25);
+    --color-text-primary: #f5efe6;
+    --color-text-secondary: #a1a1aa;
+    --glass-bg: rgba(15, 15, 18, 0.65);
+    --glass-border: rgba(197, 168, 128, 0.14);
+    --font-heading: 'Cinzel', 'Playfair Display', serif;
+    --font-body: 'Outfit', 'Montserrat', sans-serif;
 }
 
 /* Reset & Base Styles */
-* {
+*, *::before, *::after {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
 }
 
-html, body {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    background-color: var(--black);
-    color: var(--white);
+body {
     font-family: var(--font-body);
-    font-weight: 400;
-    line-height: 1.5;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    background-color: var(--color-bg);
+    color: var(--color-text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
 }
 
-/* Pinned Main Container */
-#main-scroll-container {
-    position: relative;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100vh;
-    height: 100dvh;
-    overflow: hidden;
-    z-index: 5;
-    background-color: var(--black);
-    transform: translateZ(0);
-    will-change: transform;
-}
-
-/* --------------------------------------------------------------------------
-   2. LAYER 1: VIDEO LAYER
-   -------------------------------------------------------------------------- */
-.video-layer-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: var(--z-video);
-    overflow: hidden;
-    pointer-events: none;
-}
-
-.video-viewport {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center center;
-    transform: translateZ(0);
-    will-change: transform, opacity;
-}
-
-/* Hero remains on top of Scroll video initially */
-#hero-video {
-    z-index: 2;
-    opacity: 1;
-}
-
-#scroll-video {
-    z-index: 1;
-    opacity: 1; /* Keep at 1, Hero video fades to reveal it */
-}
-
-/* --------------------------------------------------------------------------
-   3. LAYER 2: GRADIENT OVERLAYS
-   -------------------------------------------------------------------------- */
-.gradient-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    /* Luxury left gradient for readability */
-    background: linear-gradient(
-        90deg,
-        rgba(0, 0, 0, 0.75) 0%,
-        rgba(0, 0, 0, 0.45) 30%,
-        rgba(0, 0, 0, 0) 70%
-    );
-    z-index: var(--z-gradient);
-    pointer-events: none;
-    will-change: opacity;
-    opacity: 0.75;
-    transition: opacity 800ms cubic-bezier(0.25, 1, 0.5, 1);
-}
-
-.vignette-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    /* Vignette gradient to darken top and bottom edges */
-    background: linear-gradient(
-        180deg,
-        rgba(0, 0, 0, 0.6) 0%,
-        rgba(0, 0, 0, 0) 25%,
-        rgba(0, 0, 0, 0) 75%,
-        rgba(0, 0, 0, 0.6) 100%
-    );
-    z-index: var(--z-gradient);
-    pointer-events: none;
-}
-
-.vignette-radial {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    /* Radial vignette to frame video and enhance focus */
-    background: radial-gradient(
-        circle,
-        rgba(0, 0, 0, 0.2) 0%,
-        rgba(0, 0, 0, 0.55) 60%,
-        rgba(0, 0, 0, 0.96) 100%
-    );
-    z-index: var(--z-gradient);
-    pointer-events: none;
-}
-
-/* --------------------------------------------------------------------------
-   4. LAYER 3: FIXED UI OVERLAYS
-   -------------------------------------------------------------------------- */
-
-/* Header & Logo */
-.fixed-header {
+/* ── Global Vignette ────────────────────────────────────────────────────────
+   One fixed overlay that sits above ALL screens, preloader, and footer.
+   Subtle radial vignette — darkens only the edges (vintage / cinematic look).
+   pointer-events: none so it never blocks clicks.
+   ────────────────────────────────────────────────────────────────────────── */
+.global-vignette {
     position: fixed;
-    top: 40px;
-    left: 50px;
-    right: 50px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    z-index: var(--z-ui);
+    inset: 0;
+    z-index: 10000;
     pointer-events: none;
+    background: radial-gradient(
+        ellipse at 50% 50%,
+        transparent 50%,
+        rgba(0, 0, 0, 0.12) 75%,
+        rgba(0, 0, 0, 0.3) 100%
+    );
 }
 
-.logo-link {
-    pointer-events: auto;
+/* Blur-flash overlay — used for soft cross-blur between specific screens */
+.blur-flash-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9500;
+    pointer-events: none;
+    opacity: 0;
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+    background: rgba(6, 5, 4, 0);
+    will-change: opacity, backdrop-filter;
 }
 
-.logo {
-    width: 144px;
+#app {
+    width: 100%;
+    min-height: 100vh;
+}
+
+/* =========================================================================
+   LUXURY PRELOADER STYLES (SOLID OVER CONTOUR FILL)
+   ========================================================================= */
+
+#preloader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #050505; /* Solid pure dark luxury background */
+    overflow: hidden;
+}
+
+.preloader-content {
+    position: relative;
+    z-index: 15;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 0 20px;
+}
+
+.preloader-logo-container {
+    position: relative;
+    width: 30vw; /* 1/3 of the screen width */
+    max-width: 450px;
+    min-width: 220px;
+    opacity: 0;
+    transform: scale(0.96);
+    will-change: opacity, transform;
+}
+
+
+
+.preloader-logo {
+    width: 100%;
     height: auto;
     display: block;
     user-select: none;
+    -webkit-user-drag: none;
 }
 
-/* Menu Button */
-.menu-trigger {
-    background: none;
-    border: none;
-    color: var(--white);
-    font-family: var(--font-body);
-    font-size: 18px;
-    font-weight: 500;
-    letter-spacing: 0.1em;
-    cursor: pointer;
-    pointer-events: auto;
-    z-index: var(--z-ui);
-    transition: color 300ms cubic-bezier(0.16, 1, 0.3, 1), transform 300ms;
+/* Silhouette contour outline logo */
+.preloader-logo.logo-silhouette {
+    position: relative; /* Defines container dimensions naturally */
+    opacity: 0.25; /* Visible enough to see the letter shapes */
+    z-index: 3;
 }
 
-.menu-trigger:hover {
-    color: var(--gold);
-    transform: scale(1.05);
-}
-
-/* Fullscreen Menu Overlay */
-.menu-overlay {
-    position: fixed;
+/* Solid white fill logo */
+.preloader-logo.logo-fill {
+    position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    height: 100dvh;
-    background-color: rgba(10, 10, 10, 0.96);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    display: none; /* Controlled by GSAP */
-    justify-content: center;
-    align-items: center;
-    z-index: var(--z-menu);
-    opacity: 0;
+    opacity: 1;
+    z-index: 4;
+    clip-path: inset(100% 0 0 0); /* Initially completely empty (clipped from bottom) */
+    will-change: clip-path;
 }
 
-.menu-close {
-    position: absolute;
-    top: 40px;
-    right: 50px;
-    background: none;
-    border: none;
-    color: var(--white);
-    font-size: 24px;
-    cursor: pointer;
-    transition: color 300ms, transform 300ms;
-}
 
-.menu-close:hover {
-    color: var(--gold);
-    transform: rotate(90deg);
-}
+/* =========================================================================
+   SCREENS & VIDEO LAYOUT
+   ========================================================================= */
 
-.menu-nav {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 40px;
-    text-align: center;
-}
-
-.menu-link {
-    font-family: var(--font-heading);
-    font-size: clamp(36px, 6vw, 64px);
-    font-weight: 500;
-    color: var(--white);
-    text-decoration: none;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    transition: color 300ms, transform 300ms;
-    will-change: transform, color;
-}
-
-.menu-link:hover {
-    color: var(--gold);
-    transform: translateY(-5px) scale(1.02);
-}
-
-/* Contacts Overlay */
-.contacts-overlay {
+.screen {
     position: fixed;
-    bottom: 60px;
-    right: 60px;
-    text-align: right;
-    z-index: var(--z-ui);
-    font-family: var(--font-body);
-    font-size: 18px;
-    line-height: 1.8;
-    pointer-events: auto;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    z-index: 10;
+}
+
+#screen-footer {
+    z-index: 20;
+    will-change: transform;
+}
+
+.screen-video {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: translate(-50%, -50%);
     will-change: opacity;
 }
 
-.contact-item {
-    margin: 6px 0;
-    color: rgba(255, 255, 255, 0.8);
-    transition: color 300ms;
+.screen-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Left-weighted gradient keeps the text column readable over bright sky/snow,
+       bottom scrim protects small copy near the lower edge. */
+    background:
+        linear-gradient(0deg, rgba(9, 9, 11, 0.5) 0%, rgba(9, 9, 11, 0) 28%),
+        linear-gradient(90deg, rgba(9, 9, 11, 0.72) 0%, rgba(9, 9, 11, 0.38) 55%, rgba(9, 9, 11, 0.58) 100%);
+    z-index: 12;
+    pointer-events: none;
 }
 
-.contact-item a {
-    color: inherit;
-    text-decoration: none;
-    transition: color 300ms;
+/* Footer text is centered, so the scrim is centered too */
+#screen-footer .screen-overlay {
+    background:
+        radial-gradient(ellipse at 50% 55%, rgba(9, 9, 11, 0.66) 0%, rgba(9, 9, 11, 0.5) 55%, rgba(9, 9, 11, 0.74) 100%);
 }
 
-.contact-item a:hover {
-    color: var(--gold);
+/* ── Per-screen composition ─────────────────────────────────────────────────
+   Each frozen video frame has its own focal subject (diners, the woman in the
+   pool, the receptionist, the couple on the wheel). Content anchors and scrim
+   directions are tuned per screen so overlays never sit on faces. ─────────── */
+
+/* Screen 2 — the diners sit centre-left. Title block pins to the top (over the
+   dim bar wall), the info grid drops to the bottom (over the table foreground),
+   framing the guests in between. */
+#screen-2 .welcome-text-side {
+    align-self: stretch;
+    justify-content: flex-start;
+    padding-top: 60px; /* Push title down a bit from the top edge */
+    max-width: 720px; /* Wider than global 540px so each of the 3 title lines fits at original font-size */
 }
 
-/* Scroll Indicator */
-.scroll-indicator {
+/* Subtitle joins the bottom group: only the title stays at the top, so the
+   guests in the middle of the frame remain fully visible */
+#screen-2 .welcome-subtitle {
+    margin-top: auto;
+}
+
+#screen-2 .info-grid-restaurant {
+    margin-top: 26px;
+    gap: 24px 32px;
+}
+
+
+/* Screen 3 — the guest swims on the left. The entire content (text + card)
+   is right-aligned in a single stacked column, keeping the left pool 100% clean.
+   The card flows naturally (no absolute positioning) but lays out horizontally
+   on desktop so the whole column fits the viewport. */
+#screen-3 .welcome-container {
+    flex-direction: column;
+    max-width: 860px;
+    margin-left: auto;
+    margin-right: 4vw;
+    justify-content: center;
+    align-items: stretch;
+    gap: 24px;
+}
+
+#screen-3 .welcome-text-side {
+    max-width: none;
+}
+
+/* Column layouts carry more content — a calmer title size keeps them airy */
+@media (min-width: 1025px) {
+    #screen-3 .welcome-title,
+    #screen-5 .welcome-title {
+        font-size: 2.5rem;
+    }
+}
+
+#screen-3 .welcome-subtitle {
+    max-width: 680px;
+}
+
+#screen-3 .info-grid-restaurant {
+    margin-top: 28px;
+}
+
+
+#screen-3 .spa-card {
+    width: 100%;
+    max-width: 100%;
+    padding: 24px 30px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+        "badge price"
+        "title actions"
+        "desc actions";
+    column-gap: 36px;
+    align-items: start;
+}
+
+#screen-3 .spa-card .card-badge {
+    grid-area: badge;
+    margin-bottom: 14px;
+}
+
+#screen-3 .spa-promo-title {
+    grid-area: title;
+    font-size: 1.15rem;
+    line-height: 1.35;
+    margin-bottom: 8px;
+    max-width: none;
+}
+
+#screen-3 .spa-promo-desc {
+    grid-area: desc;
+    display: block; /* Keep description visible! */
+    margin-bottom: 0;
+    font-size: 0.88rem;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+    max-width: 520px;
+}
+
+#screen-3 .spa-price-tag {
+    grid-area: price;
+    justify-self: end;
+    margin-bottom: 0;
+}
+
+#screen-3 .spa-card .card-actions {
+    grid-area: actions;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 0;
+    align-self: end;
+    min-width: 260px;
+}
+
+#screen-3 .spa-card .bento-btn {
+    width: 100%;
+    padding: 11px 22px;
+    white-space: nowrap;
+}
+
+/* Screen 4 — the couple sits centre (x ≈ 256–583 at 1280): the sunset sky at
+   the top-left is free for the short text block, and the bento grid on the
+   right (x ≥ 700) never touches them. */
+#screen-4 .welcome-text-side {
+    align-self: flex-start;
+}
+
+
+/* Screen 5 — the receptionist stands on the left (her silhouette ends at
+   x ≈ 500 at 1280): the entire content is a single right column over the dark
+   corridor; the card lays out horizontally so the column fits the viewport. */
+#screen-5 .welcome-container {
+    flex-direction: column;
+    max-width: 760px;
+    margin-left: auto;
+    margin-right: 5vw; /* More breathing room from the right edge */
+    justify-content: center;
+    align-items: stretch;
+    gap: 16px;
+}
+
+#screen-5 .welcome-text-side {
+    max-width: none;
+}
+
+#screen-5 .welcome-subtitle {
+    max-width: 680px;
+}
+
+#screen-5 .welcome-divider {
+    margin: 12px 0;
+}
+
+#screen-5 .info-grid-restaurant {
+    margin-top: 16px;
+    gap: 22px 32px;
+}
+
+
+/* The services card is a slim pinned bar sitting exactly over the
+   receptionist's folded hands: she stays visible, the hands do not.
+   The video is object-fit: cover, so the hands' on-screen position shifts
+   with the viewport; max(100vw, 177.78vh) / max(100vh, 56.25vw) reproduce
+   the displayed 16:9 video size and anchor the bar to the hands region
+   (fx 0.31–0.41, fy 0.74–0.89 of the frame) on any screen. */
+#screen-5 .info-card {
+    position: absolute;
+    /* Centred under the receptionist: her figure sits at fx ≈ 0.27 of the
+       16:9 frame; max(100vw, 177.78vh) reproduces the displayed video width
+       so the card tracks her on any viewport. */
+    left: calc(50vw - 0.23 * max(100vw, 177.78vh) - 220px);
+    right: auto;
+    bottom: 8vh;
+    top: auto;
+    height: auto;
+    min-height: auto;
+    width: 100%;
+    max-width: 440px;
+    padding: 24px 28px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+/* Narrower desktops: pull the right column in so it clears both the
+   receptionist (x ≈ 500 at 1280) and the pinned card */
+@media (min-width: 1025px) and (max-width: 1440px) {
+    #screen-5 .welcome-container {
+        max-width: 640px;
+        margin-right: 3vw;
+    }
+}
+
+/* Pinned card stays put — no hover lift */
+@media (hover: hover) and (pointer: fine) {
+    #screen-5 .info-card:hover {
+        transform: none;
+    }
+}
+
+#screen-5 .info-card .card-header-icon {
+    margin-bottom: 20px;
+    flex-shrink: 0;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+#screen-5 .info-card .pillow-desc {
+    display: none;
+}
+
+#screen-5 .info-card .card-actions {
+    flex-direction: row;
+    gap: 12px;
+    margin-top: 0;
+    min-width: 0;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+#screen-5 .info-card .bento-btn {
+    width: auto;
+    padding: 10px 18px;
+    font-size: 0.72rem;
+    white-space: nowrap;
+}
+
+/* Screen 1 — the card drops below the «Restaurant LIS» sign on the facade.
+   Wider text column keeps the subtitle at exactly two lines on desktop. */
+#screen-1 .welcome-interactive-side {
+    align-self: flex-end;
+}
+
+@media (min-width: 1025px) {
+    /* Hero subtitle holds exactly two lines at this size */
+    #screen-1 .welcome-subtitle {
+        font-size: 1.05rem;
+    }
+
+    /* Restaurant title keeps its three authored lines without extra wraps */
+    #screen-2 .welcome-text-side {
+        max-width: 620px;
+    }
+
+    #screen-2 .welcome-title {
+        font-size: 2.6rem;
+        max-width: none;
+    }
+
+    /* Screen 2: the text column scrolls while the restaurant card stays
+       pinned centre-right in the viewport */
+    #screen-2 .restaurant-card {
+        position: fixed;
+        right: max(70px, calc(50vw - 610px));
+        top: calc(50vh - 250px);
+    }
+
+    /* Screen 4: the intro text stays pinned top-left while the bento grid
+       on the right scrolls */
+    #screen-4 .welcome-text-side {
+        position: fixed;
+        left: max(110px, calc(50vw - 570px));
+        top: 140px;
+        width: 540px;
+    }
+
+    #screen-4 .leisure-bento-grid {
+        margin-left: auto;
+    }
+}
+
+.screen-content {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    z-index: 15;
+    overflow-y: auto;
+    /* Hide scrollbar for clean premium feel */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.screen-content::-webkit-scrollbar {
+    display: none;
+}
+
+/* Premium Cinematic transition lens flash overlay */
+.transition-flash-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(212,178,112,0.8) 40%, rgba(0,0,0,0) 100%);
+    mix-blend-mode: screen;
+    z-index: 14;
+    opacity: 0;
+    pointer-events: none;
+    will-change: opacity, transform, filter;
+}
+
+/* =========================================================================
+   HEADER (TOP PANEL)
+   ========================================================================= */
+
+.main-header {
     position: fixed;
-    bottom: 40px;
+    top: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 60px;
+    z-index: 1000;
+    pointer-events: auto;
+    background: linear-gradient(to bottom, rgba(9, 9, 11, 0.5), transparent);
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    user-select: none;
+}
+
+.header-logo-img {
+    height: 70px; /* Reduced from 120px to look extremely elegant and fit vertical ribbon */
+    width: auto;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+}
+
+.header-logo-img:hover {
+    transform: scale(1.03);
+}
+
+.quick-nav {
+    display: flex;
+    gap: 24px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    padding: 10px 24px;
+    border-radius: 40px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    flex-wrap: nowrap;
+}
+
+.nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: rgba(245, 239, 230, 0.75);
+    text-decoration: none;
+    transition: color 0.3s ease, transform 0.2s ease;
+    white-space: nowrap;
+}
+
+.nav-link:hover {
+    color: var(--color-gold);
+    transform: translateY(-1px);
+}
+
+.lang-selector {
+    display: flex;
+    gap: 15px;
+}
+
+.lang-btn {
+    background: none;
+    border: none;
+    color: rgba(245, 239, 230, 0.5);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 4px 8px;
+    position: relative;
+    transition: color 0.3s ease;
+}
+
+.lang-btn:hover, .lang-btn.active {
+    color: var(--color-text-primary);
+}
+
+.lang-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: var(--color-gold);
+}
+
+/* =========================================================================
+   VERTICAL NAVIGATION RIBBON
+   ========================================================================= */
+.vertical-navigation-ribbon {
+    position: fixed;
+    left: 40px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    z-index: 999;
+    pointer-events: auto;
+    user-select: none;
+}
+
+.ribbon-line-container {
+    width: 2px;
+    height: 120px;
+    background: rgba(245, 239, 230, 0.1);
+    position: relative;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.ribbon-line-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 16.6%; /* Initial progress for screen 1 */
+    background: var(--color-gold);
+    box-shadow: 0 0 8px var(--color-gold-glow);
+    transition: height 0.4s ease;
+}
+
+.ribbon-items {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+
+.ribbon-item {
+    display: flex;
+    align-items: center;
+    position: relative;
+    cursor: pointer;
+    padding: 4px;
+    height: 24px;
+}
+
+.ribbon-number {
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: rgba(245, 239, 230, 0.35);
+    transition: color 0.3s ease, transform 0.3s ease;
+    letter-spacing: 0.05em;
+}
+
+.ribbon-label {
+    position: absolute;
+    left: 36px;
+    font-family: var(--font-heading);
+    font-size: 0.65rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--color-gold);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    white-space: nowrap;
+}
+
+.ribbon-item:hover .ribbon-number,
+.ribbon-item.active .ribbon-number {
+    color: var(--color-gold);
+    transform: scale(1.15);
+}
+
+.ribbon-item:hover .ribbon-label {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+
+/* =========================================================================
+   WELCOME SCREEN LAYOUT (EDITORIAL & CLEAN)
+   ========================================================================= */
+
+.welcome-container {
+    display: flex;
+    width: 100%;
+    max-width: 1540px;
+    margin: 0 auto;
+    min-height: 100vh;
+    align-items: center;
+    justify-content: space-between;
+    padding: 140px 5vw 90px 8vw; /* Fluid offset left for vertical progress ribbon */
+    box-sizing: border-box;
+    gap: 80px;
+    pointer-events: none;
+}
+
+.welcome-text-side {
+    flex: 1;
+    max-width: 540px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    text-align: left;
+    background: none;
+    border: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    padding: 0;
+    pointer-events: auto;
+    box-shadow: none;
+}
+
+#screen-1 .welcome-container {
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    text-align: center;
+    gap: 12px;
+    padding: 170px 8vw 60px 8vw; /* Centered layout with equal padding on both sides */
+}
+
+#screen-1 .welcome-text-side {
+    /* 940px lets the subtitle's second sentence sit on a single line */
+    max-width: 940px;
+    align-items: center;
+    text-align: center;
+}
+
+#screen-1 .welcome-title {
+    font-size: 4.4rem;
+    line-height: 1.15;
+    text-align: center;
+}
+
+#screen-1 .welcome-divider {
+    margin: 12px auto;
+}
+
+
+/* =========================================================================
+   FLOATING PILLOW MENU TAB (SCREEN 1)
+   ========================================================================= */
+
+/* =========================================================================
+   FLOATING PILLOW MENU TAB (SCREEN 1)
+   ========================================================================= */
+
+@keyframes pillow-tab-float {
+    0% {
+        transform: translateY(-50%) translateY(-8px);
+    }
+    50% {
+        transform: translateY(-50%) translateY(8px);
+    }
+    100% {
+        transform: translateY(-50%) translateY(-8px);
+    }
+}
+
+.floating-pillow-tab {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%) translateX(100%);
+    opacity: 0;
+    z-index: 100;
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Center content vertically in folded state */
+    align-items: center; /* Center content horizontally in folded state */
+    /* Premium square folded size */
+    width: 104px;
+    height: 112px;
+    overflow: hidden;
+    background: rgba(14, 13, 11, 0.9);
+    border: 1px solid rgba(197, 168, 128, 0.22);
+    border-right: none;
+    border-radius: 16px 0 0 16px;
+    padding: 12px 10px;
+    box-sizing: border-box; /* Maintain exact dimensions */
+    backdrop-filter: blur(20px) saturate(1.1);
+    -webkit-backdrop-filter: blur(20px) saturate(1.1);
+    box-shadow: -10px 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    transition: width 0.35s cubic-bezier(0.25, 1, 0.5, 1),
+                height 0.35s cubic-bezier(0.25, 1, 0.5, 1),
+                transform 0.4s cubic-bezier(0.25, 1, 0.5, 1),
+                opacity 0.4s ease,
+                background-color 0.3s ease,
+                border-color 0.3s ease;
+    will-change: width, height, transform, opacity;
+}
+
+.floating-pillow-tab.is-visible {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+    animation: pillow-tab-float 3.5s infinite ease-in-out;
+}
+
+.floating-pillow-tab:hover,
+.floating-pillow-tab.is-expanded {
+    animation: none !important;
+    transform: translateY(-50%) translateX(0) !important;
+    justify-content: flex-start; /* Lay out from top when expanded */
+    /* Expanded premium size — tight and neat, no wasted empty space */
+    width: min(90vw, 420px);
+    height: 275px;
+    padding: 20px 24px;
+    background: rgba(14, 13, 11, 0.97);
+    border-color: rgba(197, 168, 128, 0.55);
+    box-shadow: -15px 15px 40px rgba(0, 0, 0, 0.65), 0 0 30px rgba(197, 168, 128, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+.floating-pillow-tab .tab-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: flex-direction 0.3s ease, align-items 0.3s ease, border-bottom 0.3s ease, padding-bottom 0.3s ease, margin-bottom 0.3s ease;
+}
+
+.floating-pillow-tab:hover .tab-header,
+.floating-pillow-tab.is-expanded .tab-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    border-bottom: 1px solid rgba(197, 168, 128, 0.15);
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+    gap: 12px;
+}
+
+.floating-pillow-tab .pillow-svg {
+    width: 32px;
+    height: 32px;
+    color: var(--color-gold);
+    transition: transform 0.3s ease, width 0.3s ease, height 0.3s ease;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4));
+}
+
+.floating-pillow-tab:hover .pillow-svg,
+.floating-pillow-tab.is-expanded .pillow-svg {
+    width: 24px;
+    height: 24px;
+    transform: scale(1.05) rotate(5deg);
+}
+
+.floating-pillow-tab .tab-title-text {
+    font-family: var(--font-body);
+    font-size: 0.68rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-gold);
+    line-height: 1.25;
+    text-align: center;
+    transition: color 0.3s ease, text-align 0.3s ease, font-size 0.3s ease;
+}
+
+.floating-pillow-tab:hover .tab-title-text,
+.floating-pillow-tab.is-expanded .tab-title-text {
+    color: var(--color-text-primary);
+    text-align: left;
+    font-size: 0.88rem;
+    letter-spacing: 0.08em;
+}
+
+.floating-pillow-tab .tab-br {
+    display: inline;
+}
+.floating-pillow-tab:hover .tab-br,
+.floating-pillow-tab.is-expanded .tab-br {
+    display: none;
+}
+
+.floating-pillow-tab .tab-expanded-content {
+    display: none; /* Hide from layout flow when folded to prevent flex box centering overflow */
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.floating-pillow-tab:hover .tab-expanded-content,
+.floating-pillow-tab.is-expanded .tab-expanded-content {
+    display: flex; /* Show in layout when expanded */
+    opacity: 1;
+    pointer-events: auto;
+    transition-delay: 0.15s;
+}
+
+.floating-pillow-tab .pillow-desc {
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    font-weight: 300;
+    line-height: 1.5;
+    color: rgba(220, 215, 205, 0.8);
+    margin: 0;
+}
+
+.screen-label-tag {
+    display: none !important;
+}
+
+.welcome-title {
+    font-family: var(--font-heading);
+    font-size: 3.36rem;
+    font-weight: 500;
+    line-height: 1.25;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--color-text-primary);
+    margin: 0;
+    text-shadow: 0 4px 24px rgba(0, 0, 0, 0.85), 0 2px 4px rgba(0, 0, 0, 0.95);
+    max-width: 100%;
+}
+
+.desktop-only {
+    display: inline;
+}
+
+.welcome-divider {
+    width: 60px;
+    height: 2px;
+    background-color: var(--color-gold);
+    margin: 16px 0;
+}
+
+.welcome-subtitle {
+    font-family: var(--font-body);
+    font-size: 1.1rem;
+    font-weight: 300;
+    line-height: 1.65;
+    color: rgba(220, 215, 205, 0.92);
+    margin: 0;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.85), 0 1px 3px rgba(0, 0, 0, 0.98);
+    max-width: 100%;
+}
+
+/* =========================================================================
+   CINEMATIC BACKGROUND PHOTO (RESTAURANT SCREEN 2)
+   ========================================================================= */
+
+.bg-photo-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.bg-photo {
+    width: 108%;
+    height: 108%;
+    top: -4%;
+    left: -4%;
+    object-fit: cover;
+    position: absolute;
+    transform-origin: center;
+    pointer-events: none;
+}
+
+/* Ken Burns slow breathing animation loop */
+@keyframes kenBurnsBreathing {
+    0% {
+        transform: scale(1.0) translate(0, 0);
+    }
+    25% {
+        transform: scale(1.03) translate(-1%, -0.5%);
+    }
+    50% {
+        transform: scale(1.01) translate(-0.5%, -1%);
+    }
+    75% {
+        transform: scale(1.04) translate(-1.5%, -0.7%);
+    }
+    100% {
+        transform: scale(1.0) translate(0, 0);
+    }
+}
+
+.bg-photo.animated {
+    animation: kenBurnsBreathing 45s ease-in-out infinite;
+}
+
+/* =========================================================================
+   BENTO INTERACTIVE SIDE (GRID & PILLOW)
+   ========================================================================= */
+
+.welcome-interactive-side {
+    flex: 1;
+    max-width: 440px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    pointer-events: auto;
+}
+
+/* ── Premium side card (screens 1, 2, 3, 5) ─────────────────────────────────
+   One shared glass card: deep blur, thin gold gradient border (double
+   background trick), generous inner padding. Sits directly inside
+   .welcome-container (pointer-events: none), so it re-enables interaction. */
+.welcome-pillow-card {
+    position: relative;
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 440px;
+    flex-shrink: 0;
+    background:
+        linear-gradient(rgba(12, 12, 14, 0.55), rgba(12, 12, 14, 0.55)) padding-box,
+        linear-gradient(160deg, rgba(197, 168, 128, 0.45) 0%, rgba(197, 168, 128, 0.07) 45%, rgba(197, 168, 128, 0.28) 100%) border-box;
+    border: 1px solid transparent;
+    border-radius: 22px;
+    padding: 36px 34px;
+    backdrop-filter: blur(28px) saturate(1.15);
+    -webkit-backdrop-filter: blur(28px) saturate(1.15);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    transition: transform 240ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 240ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .welcome-pillow-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 32px 70px rgba(0, 0, 0, 0.5), 0 0 24px rgba(197, 168, 128, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+}
+
+/* Gold pill badge (SPA special offer) */
+.card-badge {
+    display: inline-flex;
+    align-self: flex-start;
+    align-items: center;
+    padding: 7px 15px;
+    border: 1px solid rgba(197, 168, 128, 0.4);
+    border-radius: 999px;
+    background: rgba(197, 168, 128, 0.08);
+    color: var(--color-gold);
+    font-family: var(--font-body);
+    font-size: 0.66rem;
+    font-weight: 600;
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    margin-bottom: 20px;
+}
+
+/* Vertical action stack inside cards */
+.card-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: auto;
+}
+
+/* Small stroke icons inside buttons / nav / list steps */
+.btn-ico {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    transition: transform 220ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .bento-btn:hover .btn-ico {
+        transform: scale(1.15);
+    }
+}
+
+/* Concierge bell swings gently when hovering the services card */
+@keyframes bellSwing {
+    0%, 100% { transform: rotate(0); }
+    25% { transform: rotate(9deg); }
+    55% { transform: rotate(-7deg); }
+    80% { transform: rotate(4deg); }
+}
+
+@media (hover: hover) and (pointer: fine) {
+    #screen-5 .info-card:hover .card-header-icon .svg-icon {
+        animation: bellSwing 0.7s ease-in-out;
+        transform-origin: 50% 20%;
+    }
+}
+
+.nav-ico {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+    opacity: 0.85;
+}
+
+.step-ico {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    color: var(--color-gold);
+}
+
+/* Gold stroke icons in the info grids */
+.info-svg {
+    width: 26px;
+    height: 26px;
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: var(--color-gold);
+    opacity: 0.9;
+    transition: transform 220ms cubic-bezier(0.23, 1, 0.32, 1), opacity 220ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .info-item:hover .info-svg {
+        transform: scale(1.12);
+        opacity: 1;
+    }
+}
+
+/* Card headers reuse the screen-1 pattern, slightly larger on side cards */
+.welcome-pillow-card .card-header-icon {
+    margin-bottom: 16px;
+}
+
+.welcome-pillow-card .card-header-icon h3 {
+    font-size: 0.95rem;
+    letter-spacing: 0.1em;
+}
+
+.quick-access-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    width: 100%;
+}
+
+.bento-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    min-height: 180px;
+    box-sizing: border-box;
+}
+
+.bento-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(197, 168, 128, 0.3);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5), 0 0 15px rgba(197, 168, 128, 0.06);
+}
+
+.card-header-icon {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.svg-icon {
+    width: 22px;
+    height: 22px;
+    color: var(--color-gold);
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+}
+
+.bento-card:hover .svg-icon {
+    transform: scale(1.1);
+}
+
+.card-header-icon h3 {
+    font-family: var(--font-heading);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-primary);
+    margin: 0;
+}
+
+.wifi-details, .phone-details {
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+    margin-bottom: 16px;
+}
+
+.wifi-details p {
+    margin-bottom: 6px;
+}
+
+.wifi-details span {
+    color: var(--color-text-primary);
+    font-weight: 500;
+}
+
+.chat-links {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.social-icon-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    color: var(--color-text-primary);
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+.social-icon-btn:hover {
+    background: rgba(197, 168, 128, 0.1);
+    border-color: var(--color-gold);
+    color: var(--color-gold);
+}
+
+.gold-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 11px 18px;
+    background: transparent;
+    border: 1px solid var(--color-gold);
+    border-radius: 8px;
+    color: var(--color-gold);
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: background 0.3s, color 0.3s, box-shadow 0.3s;
+    text-decoration: none;
+}
+
+.gold-action-btn:hover {
+    background: var(--color-gold);
+    color: #09090b;
+    box-shadow: 0 0 12px var(--color-gold-glow);
+}
+
+.pillow-desc {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--color-text-secondary);
+    margin: 0 0 16px 0;
+}
+
+/* Inline SVG micro-motion animations */
+.wifi-card:hover .wifi-svg path {
+    animation: wifiWavePulse 1.2s infinite;
+}
+
+.phone-card:hover .phone-svg {
+    animation: phoneRing 0.4s ease-in-out infinite;
+}
+
+.chat-card:hover .chat-svg {
+    transform: scale(1.08) translateY(-1px);
+}
+
+.welcome-pillow-card:hover .pillow-svg {
+    transform: scale(1.05) rotate(1deg);
+}
+
+@keyframes wifiWavePulse {
+    0% { opacity: 0.3; }
+    50% { opacity: 1; }
+    100% { opacity: 0.3; }
+}
+
+@keyframes phoneRing {
+    0% { transform: rotate(0); }
+    25% { transform: rotate(8deg); }
+    50% { transform: rotate(-8deg); }
+    75% { transform: rotate(5deg); }
+    100% { transform: rotate(0); }
+}
+
+/* =========================================================================
+   SCROLL INDICATOR MOUSE
+   ========================================================================= */
+
+/* Restaurant Specific Styles */
+.info-grid-restaurant {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 32px 36px;
+    margin-top: 48px;
+    width: 100%;
+}
+
+.info-item {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.info-heading {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: #ffffff;
+    margin-bottom: 6px;
+}
+
+.info-text {
+    font-family: 'Jost', sans-serif;
+    font-weight: 300;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.65);
+    line-height: 1.5;
+}
+
+/* Food Slider inside double-bezel card */
+.food-slider-container {
+    position: relative;
+    width: 100%;
+    height: 180px;
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+}
+
+.food-slider-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.food-slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.food-slide.active {
+    opacity: 1;
+    z-index: 10;
+}
+
+.food-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.slide-caption {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 8px 12px;
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0) 100%);
+    font-family: 'Jost', sans-serif;
+    font-size: 0.75rem;
+    color: #ffffff;
+    font-weight: 500;
+    z-index: 12;
+}
+
+.slider-dots {
+    position: absolute;
+    bottom: 8px;
+    right: 12px;
+    display: flex;
+    gap: 6px;
+    z-index: 15;
+}
+
+.slider-dots .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.slider-dots .dot.active {
+    background: var(--color-gold);
+    transform: scale(1.2);
+}
+
+/* SPA specific stylings */
+.spa-promo-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    font-weight: 500;
+    line-height: 1.35;
+    color: #ffffff;
+    margin-bottom: 10px;
+}
+
+.spa-promo-desc {
+    font-family: 'Jost', sans-serif;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.spa-price-tag {
+    font-family: var(--font-heading);
+    margin-bottom: 26px;
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+}
+
+.spa-price-tag s {
+    color: rgba(255, 255, 255, 0.35);
+    font-size: 0.95rem;
+    text-decoration-color: rgba(197, 168, 128, 0.5);
+}
+
+.spa-price-tag span {
+    color: var(--color-gold);
+    font-weight: 600;
+    font-size: 1.6rem;
+    letter-spacing: 0.02em;
+}
+
+/* Leisure Bento Grid Styles */
+.leisure-container-grid {
+    align-items: center;
+}
+
+.leisure-bento-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    width: 100%;
+    max-width: 580px;
+    flex: 1;
+    pointer-events: auto;
+}
+
+.bento-tile {
+    background: rgba(12, 12, 14, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 20px;
+    padding: 28px;
+    backdrop-filter: blur(22px) saturate(1.15);
+    -webkit-backdrop-filter: blur(22px) saturate(1.15);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
+    transition: transform 240ms cubic-bezier(0.23, 1, 0.32, 1), border-color 240ms ease, box-shadow 240ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .bento-tile:hover {
+        border-color: rgba(197, 168, 128, 0.35);
+        transform: translateY(-3px);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+    }
+}
+
+.tile-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 12px;
+}
+
+.tile-svg {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    color: var(--color-gold);
+}
+
+.tile-desc {
+    font-family: 'Jost', sans-serif;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: rgba(255, 255, 255, 0.68);
+}
+
+.double-width-tile {
+    grid-column: span 2;
+}
+
+.tile-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 18px;
+}
+
+.video-promo-btn {
+    grid-column: 1 / -1;
+    width: 100%;
+    padding: 14px 28px;
+}
+
+/* Footer layout specifics */
+.footer-container {
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+.footer-text-side {
+    max-width: 700px;
+    text-align: center;
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+}
+
+.footer-text-side .welcome-divider {
+    margin: 20px auto;
+}
+
+.footer-social-links {
+    display: flex;
+    gap: 16px;
+    margin-top: 24px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* Glass pill buttons with stroke icons */
+.footer-social-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 24px;
+    border: 1px solid rgba(197, 168, 128, 0.3);
+    border-radius: 999px;
+    background: rgba(12, 12, 14, 0.45);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    font-family: 'Jost', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    color: rgba(245, 239, 230, 0.85);
+    text-decoration: none;
+    transition: color 0.3s ease, border-color 0.3s ease, background 0.3s ease, transform 200ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.social-ico {
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+    color: var(--color-gold);
+    opacity: 0.9;
+    transition: transform 220ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .footer-social-link:hover {
+        color: var(--color-gold);
+        border-color: rgba(197, 168, 128, 0.55);
+        background: rgba(197, 168, 128, 0.08);
+        transform: translateY(-2px);
+    }
+
+    .footer-social-link:hover .social-ico {
+        transform: scale(1.12);
+    }
+}
+
+.footer-social-link:active {
+    transform: scale(0.97);
+}
+
+.social-separator {
+    display: none;
+}
+
+.scroll-indicator-mouse {
+    position: absolute;
+    bottom: 35px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
-    z-index: var(--z-ui);
-    color: rgba(255, 255, 255, 0.75);
-    font-family: var(--font-body);
-    font-size: 14px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+    gap: 8px;
+    opacity: 0.85;
     pointer-events: none;
-    will-change: opacity;
-    animation: floatIndicator 2s ease-in-out infinite;
-}
-
-.scroll-text {
-    font-weight: 500;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    z-index: 100;
+    will-change: opacity, transform;
 }
 
 .mouse-icon {
-    width: 24px;
-    height: 40px;
-    border: 2px solid rgba(255, 255, 255, 0.6);
-    border-radius: 12px;
+    width: 22px;
+    height: 36px;
+    border: 2px solid #ffffff;
+    border-radius: 11px;
     position: relative;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.4);
 }
 
 .mouse-wheel {
     width: 4px;
     height: 8px;
-    background-color: var(--gold);
+    background-color: var(--color-gold);
     border-radius: 2px;
     position: absolute;
-    top: 8px;
+    top: 6px;
     left: 50%;
     transform: translateX(-50%);
-    animation: wheelScroll 1.5s ease-in-out infinite;
+    animation: scrollMouseWheel 1.8s infinite ease-in-out;
 }
 
-/* Floating Animation for Indicator (Preserving translate-x centering) */
-@keyframes floatIndicator {
-    0%, 100% {
-        transform: translate(-50%, 0);
-    }
-    50% {
-        transform: translate(-50%, -6px);
-    }
-}
-
-/* Scrolling Wheel Animation */
-@keyframes wheelScroll {
+@keyframes scrollMouseWheel {
     0% {
-        transform: translate(-50%, 0);
-        opacity: 0;
-    }
-    20% {
+        top: 6px;
         opacity: 1;
     }
-    80% {
-        transform: translate(-50%, 8px);
-        opacity: 0;
+    50% {
+        top: 18px;
+        opacity: 0.1;
     }
     100% {
-        opacity: 0;
+        top: 6px;
+        opacity: 1;
     }
 }
 
-/* --------------------------------------------------------------------------
-   5. BUTTON DESIGN
-   -------------------------------------------------------------------------- */
-.luxury-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    height: 56px;
-    padding: 0 32px;
-    background-color: var(--gold);
-    color: var(--black);
-    font-family: var(--font-body);
+.scroll-text {
+    font-family: 'Jost', sans-serif;
+    font-size: 0.7rem;
     font-weight: 500;
-    font-size: 18px;
-    border: none;
-    border-radius: 999px;
-    cursor: pointer;
-    box-shadow: 0 4px 20px rgba(215, 176, 106, 0.15);
-    transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1), 
-                background-color 300ms, 
-                box-shadow 300ms;
-    pointer-events: auto;
-    will-change: transform;
+    color: rgba(255, 255, 255, 0.65);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.5);
 }
 
-.luxury-btn:hover {
-    transform: scale(1.03);
-    box-shadow: 0 6px 24px rgba(215, 176, 106, 0.3);
+/* =========================================================================
+   HEADER DROPDOWNS
+   ========================================================================= */
+
+.nav-item-dropdown {
+    position: relative;
+    display: inline-block;
 }
 
-.luxury-btn:active {
-    transform: scale(0.98);
-}
-
-/* --------------------------------------------------------------------------
-   6. TEXT CONTENT LAYER
-   -------------------------------------------------------------------------- */
-.text-layer-container {
+.dropdown-menu {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: var(--z-text);
-    pointer-events: none; /* Make container unclickable so scroll passes through */
-}
-
-.text-screen {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    box-sizing: border-box;
-    padding: 80px 10%;
+    top: calc(100% + 15px);
+    left: 50%;
+    transform: translateX(-50%) translateY(15px);
+    width: 280px;
+    background: rgba(10, 10, 10, 0.97);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 18px;
+    padding: 24px;
+    opacity: 0;
     pointer-events: none;
-}
-
-/* Alignment Configurations */
-.text-screen[data-align="left"] {
-    justify-content: center;
-    align-items: flex-start;
+    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 200;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+    box-sizing: border-box;
     text-align: left;
 }
 
-.text-screen[data-align="center"] {
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-}
-
-.text-screen[data-align="right"] {
-    justify-content: center;
-    align-items: flex-end;
-    text-align: right;
-}
-
-/* Screen Content */
-.screen-content {
-    max-width: 900px;
-    pointer-events: auto; /* Re-enable pointer events for buttons/links */
-}
-
-/* Typography Scale */
-h1 {
-    font-family: var(--font-heading);
-    font-size: clamp(52px, 6.5vw, 110px);
-    font-weight: 500;
-    line-height: 1.1;
-    margin-bottom: 24px;
-    text-transform: uppercase;
-    letter-spacing: -0.02em;
-    text-shadow: 0 4px 24px rgba(0, 0, 0, 0.75), 0 2px 6px rgba(0, 0, 0, 0.5);
-    will-change: transform, opacity;
-}
-
-h2 {
-    font-family: var(--font-heading);
-    font-size: clamp(38px, 5.5vw, 90px);
-    font-weight: 500;
-    line-height: 1.15;
-    margin-bottom: 24px;
-    text-transform: uppercase;
-    letter-spacing: -0.01em;
-    text-shadow: 0 4px 24px rgba(0, 0, 0, 0.75), 0 2px 6px rgba(0, 0, 0, 0.5);
-    will-change: transform, opacity;
-}
-
-.subtitle {
-    font-family: var(--font-body);
-    font-size: clamp(18px, 1.8vw, 26px);
-    font-weight: 300;
-    letter-spacing: 0.03em;
-    line-height: 1.5;
-    margin-bottom: 40px;
-    color: rgba(255, 255, 255, 0.85);
-    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.75), 0 1px 4px rgba(0, 0, 0, 0.5);
-    will-change: transform, opacity;
-}
-/* Secondary Typography for potential extra description */
-.secondary-text {
-    font-size: clamp(16px, 1.5vw, 22px);
-    color: rgba(255, 255, 255, 0.7);
-}
-
-/* Initial styling for non-hero buttons */
-.screen-content .luxury-btn {
-    will-change: transform, opacity;
-    font-family: var(--font-accent);
-}
-
-/* --------------------------------------------------------------------------
-   7. RESPONSIVE DESIGN & MEDIA QUERIES
-   -------------------------------------------------------------------------- */
-
-/* Large screens adjust layout paddings */
-@media (max-width: 1440px) {
-    .text-screen {
-        padding: 80px 8%;
-    }
-}
-
-/* Medium screens - adjust logo and menu margins */
-@media (max-width: 1280px) {
-    .fixed-header {
-        top: 30px;
-        left: 40px;
-        right: 40px;
-    }
-    
-    .logo {
-        width: 132px;
-    }
-    
-    .menu-trigger {
-        font-size: 16px;
-    }
-    
-    .contacts-overlay {
-        bottom: 40px;
-        right: 40px;
-        font-size: 16px;
-    }
-}
-
-/* Small screens / Tablets */
-@media (max-width: 1024px) {
-    .text-screen {
-        padding: 80px 6%;
-    }
-    #progress-timeline {
-        left: 30px; /* Shift inward on smaller screens */
-    }
-}
-
-/* Mobile Screens */
-@media (max-width: 768px) {
-    .fixed-header {
-        top: 24px;
-        left: 24px;
-        right: 24px;
-    }
-    
-    .logo {
-        width: 120px;
-    }
-    
-    .menu-trigger {
-        font-size: 15px;
-    }
-    
-    /* Hide contacts completely below 768px as requested */
-    .contacts-overlay {
-        display: none !important;
-    }
-    
-    /* Hide custom cursor and progress timeline on mobile for space and performance */
-    #custom-cursor,
-    #custom-cursor-dot,
-    #progress-timeline {
-        display: none !important;
-    }
-    
-    .scroll-indicator {
-        bottom: 30px;
-    }
-    
-    .text-screen {
-        padding: 85px 24px 30px 24px;
-    }
-    
-    /* Ensure text alignment works well on mobile */
-    .text-screen[data-align="right"] {
-        align-items: center;
-        text-align: center;
-    }
-    .text-screen[data-align="left"] {
-        align-items: center;
-        text-align: center;
-    }
-    
-    /* Mobile headings & subtitle optimization (Specifically for Screen 4 SPA to fit multi-line content) */
-    #screen-4 h2 {
-        font-size: clamp(36px, 5.5vw, 46px);
-        margin-bottom: 12px;
-        line-height: 1.2;
-    }
-    #screen-4 .subtitle {
-        font-size: clamp(13px, 1.6vw, 15px);
-        margin-bottom: 18px;
-        line-height: 1.35;
-    }
-    #screen-4 .luxury-btn {
-        height: 46px;
-        padding: 0 24px;
-        font-size: 15px;
-    }
-    
-    /* Screen 6 specifically to fit all 11 amenities */
-    #screen-6 h2 {
-        font-size: clamp(28px, 4.8vw, 36px);
-        margin-bottom: 10px;
-        line-height: 1.2;
-    }
-    #screen-6 .subtitle {
-        font-size: clamp(13px, 1.6vw, 15px);
-        margin-bottom: 16px;
-        line-height: 1.35;
-    }
-    #screen-6 .luxury-btn {
-        height: 46px;
-        padding: 0 24px;
-        font-size: 15px;
-    }
-    
-    .menu-link {
-        font-size: 32px;
-    }
-}
-
-/* Extremely Small Phones height check */
-@media (max-height: 500px) {
-    .scroll-indicator {
-        display: none !important;
-    }
-    .fixed-header {
-        top: 15px;
-    }
-    #progress-timeline {
-        display: none !important;
-    }
-}
-
-/* --------------------------------------------------------------------------
-   8. LUXURY PRELOADER
-   -------------------------------------------------------------------------- */
-#preloader {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: var(--black);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: var(--z-loader);
-    opacity: 1;
-    visibility: visible;
-    transition: opacity 800ms cubic-bezier(0.25, 1, 0.5, 1), 
-                visibility 800ms cubic-bezier(0.25, 1, 0.5, 1);
-}
-
-.preloader-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 30px;
-    max-width: 250px;
-    width: 100%;
-}
-
-.preloader-logo {
-    width: 120px;
-    height: auto;
-    animation: preloaderPulse 2.5s ease-in-out infinite;
-}
-
-.preloader-progress-wrap {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-}
-
-.preloader-bar-bg {
-    width: 100%;
-    height: 2px;
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 99px;
-    overflow: hidden;
-    position: relative;
-}
-
-.preloader-bar {
+/* Caret/arrow pointing up */
+.dropdown-menu::before {
+    content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 0%;
-    background-color: var(--gold);
-    transition: width 100ms ease-out;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 8px;
+    border-style: solid;
+    border-color: transparent transparent rgba(10, 10, 10, 0.97) transparent;
 }
 
-.preloader-percentage {
-    font-family: var(--font-accent);
-    font-size: 14px;
-    font-weight: 500;
-    letter-spacing: 0.15em;
-    color: var(--gold);
-}
-
-@keyframes preloaderPulse {
-    0%, 100% { transform: scale(1); opacity: 0.75; }
-    50% { transform: scale(1.04); opacity: 1; filter: drop-shadow(0 0 8px rgba(215, 176, 106, 0.35)); }
-}
-
-/* --------------------------------------------------------------------------
-   9. VERTICAL PROGRESS TIMELINE
-   -------------------------------------------------------------------------- */
-#progress-timeline {
-    position: fixed;
-    left: 50px;
-    top: 50%;
-    transform: translateY(-50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    z-index: var(--z-ui);
+.nav-item-dropdown:hover .dropdown-menu {
+    opacity: 1;
     pointer-events: auto;
+    transform: translateX(-50%) translateY(0);
 }
 
-.timeline-line {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 1px;
-    background-color: rgba(255, 255, 255, 0.1);
-    z-index: 1;
+.dropdown-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 8px;
 }
 
-.timeline-dots {
-    display: flex;
-    flex-direction: column;
-    gap: 28px;
-    position: relative;
-    z-index: 2;
+.dropdown-desc {
+    font-family: 'Jost', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 300;
+    line-height: 1.45;
+    color: rgba(255, 255, 255, 0.65);
+    margin-bottom: 18px;
 }
 
-.timeline-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background-color: transparent;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    cursor: pointer;
-    position: relative;
-    transition: border-color 400ms, background-color 400ms, transform 400ms;
-    outline: none;
-    padding: 0;
-}
-
-.timeline-dot:hover {
-    border-color: var(--gold);
-    transform: scale(1.2);
-}
-
-.timeline-dot.active {
-    border-color: var(--gold);
-    background-color: var(--gold);
-    box-shadow: 0 0 10px rgba(215, 176, 106, 0.5);
-}
-
-.dot-num {
-    position: absolute;
-    left: 24px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-family: var(--font-accent);
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.1em;
-    color: rgba(255, 255, 255, 0.4);
-    opacity: 0;
-    transition: opacity 400ms, color 400ms, transform 400ms;
-    transform: translateY(-50%) translateX(-10px);
-    pointer-events: none;
-}
-
-.timeline-dot:hover .dot-num,
-.timeline-dot.active .dot-num {
-    opacity: 1;
-    color: var(--gold);
-    transform: translateY(-50%) translateX(0);
-}
-
-/* --------------------------------------------------------------------------
-   10. LUXURY CUSTOM CURSOR
-   -------------------------------------------------------------------------- */
-#custom-cursor {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 40px;
-    height: 40px;
-    border: 1px solid var(--white);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: var(--z-cursor);
-    transform: translate(-50%, -50%);
-    transition: width 300ms cubic-bezier(0.25, 1, 0.5, 1),
-                height 300ms cubic-bezier(0.25, 1, 0.5, 1),
-                background-color 300ms,
-                border-color 300ms;
-    opacity: 0;
-    will-change: transform, width, height;
-}
-
-#custom-cursor.cursor-active {
-    width: 64px;
-    height: 64px;
-    background-color: rgba(255, 255, 255, 0.08);
-    border-color: var(--white);
-    box-shadow: 0 0 15px rgba(255, 255, 255, 0.15);
-}
-
-/* --------------------------------------------------------------------------
-   11. SPA SECTION TWO-COLUMN LAYOUT
-   -------------------------------------------------------------------------- */
-.spa-container {
+.dropdown-field {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    width: 100%;
-    gap: 80px;
+    margin-bottom: 12px;
 }
 
-.spa-left-col {
-    flex: 1.2;
-    max-width: 550px;
+.dropdown-label {
+    font-family: 'Jost', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
 }
 
-.spa-right-col {
-    flex: 1;
-    max-width: 450px;
+.dropdown-val {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #ffffff;
+}
+
+.dropdown-socials {
     display: flex;
-    flex-direction: column;
-    gap: 24px;
-    background: rgba(10, 10, 10, 0.45);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    padding: 36px 40px;
-    border-radius: 16px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-    will-change: transform, opacity;
-    pointer-events: auto;
+    gap: 10px;
 }
 
-.spa-advantage-item {
-    display: flex;
+.small-btn {
+    padding: 10px 20px;
+    font-size: 0.75rem;
+    border-radius: 20px;
+}
+
+/* Premium Buttons inside dropdowns */
+.bento-btn {
+    position: relative;
+    overflow: hidden;
+    display: inline-flex;
     align-items: center;
-    gap: 20px;
-    will-change: transform, opacity;
-    opacity: 0;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: background 240ms ease, color 240ms ease, border-color 240ms ease, box-shadow 240ms ease, transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+    text-decoration: none;
+    box-sizing: border-box;
 }
 
-.spa-advantage-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    border: 1px solid rgba(255, 255, 255, 0.25);
+.bento-btn:active {
+    transform: scale(0.97);
+}
+
+.gold-btn {
+    background: var(--color-gold);
+    border: 1px solid var(--color-gold);
+    color: #050505;
+}
+
+/* Soft shine sweep across the gold button on hover */
+.gold-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.4) 50%, transparent 70%);
+    transform: translateX(-130%);
+    pointer-events: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .gold-btn:hover {
+        background: var(--color-gold-hover);
+        border-color: var(--color-gold-hover);
+        color: #050505;
+        box-shadow: 0 6px 22px rgba(197, 168, 128, 0.35);
+    }
+
+    .gold-btn:hover::after {
+        transform: translateX(130%);
+        transition: transform 700ms cubic-bezier(0.23, 1, 0.32, 1);
+    }
+}
+
+.outline-btn {
+    background: transparent;
+    border: 1px solid rgba(197, 168, 128, 0.35);
+    color: var(--color-text-primary);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .outline-btn:hover {
+        border-color: var(--color-gold);
+        color: var(--color-gold);
+        background: rgba(197, 168, 128, 0.07);
+    }
+}
+
+.social-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    border-radius: 30px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-decoration: none;
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.social-btn:hover {
+    border-color: var(--color-gold);
+    color: var(--color-gold);
+}
+
+/* Copied checkmark state animation */
+#copy-wifi-btn.copied, #pillow-card-action-btn.copied, .mobile-modal .copied {
+    background: #4bb543 !important;
+    border-color: #4bb543 !important;
+    color: #ffffff !important;
+}
+
+/* =========================================================================
+   MOBILE ACTIONS GRID & MODAL
+   ========================================================================= */
+
+.mobile-actions-grid {
+    display: none;
+}
+
+/* Mobile Modal Overlay */
+.mobile-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(5, 5, 7, 0.55);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    z-index: 2000;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--gold);
-    flex-shrink: 0;
-    background-color: rgba(255, 255, 255, 0.03);
-    transition: border-color 300ms, background-color 300ms, transform 300ms;
+    pointer-events: auto;
 }
 
-.spa-advantage-item:hover .spa-advantage-icon {
-    border-color: var(--gold);
-    background-color: rgba(215, 176, 106, 0.08);
-    transform: scale(1.05);
+/* Frosted glass modal surface with a thin gold gradient border */
+.mobile-modal-content {
+    background:
+        linear-gradient(rgba(15, 15, 18, 0.78), rgba(15, 15, 18, 0.78)) padding-box,
+        linear-gradient(160deg, rgba(197, 168, 128, 0.4) 0%, rgba(197, 168, 128, 0.08) 50%, rgba(197, 168, 128, 0.22) 100%) border-box;
+    border: 1px solid transparent;
+    backdrop-filter: blur(28px) saturate(1.15);
+    -webkit-backdrop-filter: blur(28px) saturate(1.15);
+    border-radius: 24px;
+    padding: 44px 28px 28px;
+    width: 88%;
+    max-width: 340px;
+    max-height: 85vh;
+    overflow-y: auto;
+    scrollbar-width: none;
+    position: relative;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.65);
+    box-sizing: border-box;
 }
 
-.spa-advantage-icon svg {
-    width: 20px;
-    height: 20px;
+.mobile-modal-content::-webkit-scrollbar {
+    display: none;
 }
 
-.spa-advantage-text {
-    font-family: var(--font-body);
-    font-size: clamp(16px, 1.4vw, 20px);
-    font-weight: 400;
-    color: rgba(255, 255, 255, 0.9);
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+.close-modal-btn {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 50%;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 1.25rem;
+    line-height: 1;
+    padding: 0;
+    cursor: pointer;
+    transition: color 200ms ease, border-color 200ms ease, transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-/* Responsive adjust for SPA columns */
+.close-modal-btn:hover {
+    color: var(--color-gold);
+    border-color: rgba(197, 168, 128, 0.5);
+}
+
+.close-modal-btn:active {
+    transform: scale(0.92);
+}
+
+/* Make cloned elements inside modal display cleanly block-level */
+.modal-body-content .dropdown-menu {
+    position: static;
+    transform: none;
+    opacity: 1;
+    pointer-events: auto;
+    width: 100%;
+    background: none;
+    backdrop-filter: none;
+    border: none;
+    padding: 0;
+    box-shadow: none;
+}
+
+.modal-body-content .dropdown-menu::before {
+    display: none; /* Hide carets */
+}
+
+/* =========================================================================
+   MODALS EXTRA STYLING (SPA MENU, SAFE, BAGGAGE, BOOKING, BOOKS)
+   ========================================================================= */
+
+.modal-large {
+    max-width: 500px !important;
+    width: 90% !important;
+}
+
+.modal-video {
+    max-width: 768px !important;
+    width: 95% !important;
+}
+
+.spa-menu-list {
+    max-height: 55vh;
+    overflow-y: auto;
+    padding-right: 8px;
+    margin-top: 15px;
+}
+
+.spa-menu-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.spa-menu-list::-webkit-scrollbar-thumb {
+    background: rgba(212, 178, 112, 0.3);
+    border-radius: 4px;
+}
+
+.spa-menu-item {
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    text-align: left;
+}
+
+.spa-menu-item:last-child {
+    border-bottom: none;
+}
+
+.spa-item-title-row {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--color-gold);
+    margin-bottom: 6px;
+    gap: 15px;
+}
+
+.spa-item-price {
+    white-space: nowrap;
+}
+
+.spa-item-desc {
+    font-family: 'Jost', sans-serif;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.font-highlight .spa-item-name {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+/* Safe Guide instructions styles */
+.safe-instructions-steps {
+    text-align: left;
+    margin-top: 15px;
+}
+
+.safe-step-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.95rem;
+    color: var(--color-gold);
+    margin-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 4px;
+}
+
+.safe-steps-list {
+    margin-left: 20px;
+    margin-bottom: 16px;
+    font-family: 'Jost', sans-serif;
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.5;
+}
+
+.safe-steps-list li {
+    margin-bottom: 6px;
+}
+
+.safe-notice {
+    background: rgba(212, 178, 112, 0.05);
+    border-left: 3px solid var(--color-gold);
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-family: 'Jost', sans-serif;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.85);
+    margin-top: 20px;
+}
+
+/* Baggage details */
+.baggage-details {
+    text-align: left;
+    margin-top: 15px;
+}
+
+.baggage-desc {
+    font-family: 'Jost', sans-serif;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 16px;
+}
+
+.baggage-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.baggage-step {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-family: 'Jost', sans-serif;
+    font-size: 0.82rem;
+    color: #ffffff;
+}
+
+.baggage-note {
+    font-size: 0.8rem;
+    margin-top: 12px;
+}
+
+.phone-number-btn {
+    text-transform: none;
+    letter-spacing: 0.03em;
+}
+
+/* Form Styles for bookings */
+.booking-form-element {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 15px;
+    text-align: left;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-label {
+    font-family: 'Jost', sans-serif;
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.form-input {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 11px 14px;
+    color: #ffffff;
+    font-family: 'Jost', sans-serif;
+    font-size: 0.85rem;
+    transition: border-color 0.3s ease, background 0.3s ease;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--color-gold);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.form-textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+/* Books catalog */
+.books-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 15px;
+    text-align: left;
+    max-height: 50vh;
+    overflow-y: auto;
+}
+
+.book-item {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 12px 16px;
+}
+
+.book-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.95rem;
+    color: #ffffff;
+    font-weight: 500;
+    margin-bottom: 2px;
+}
+
+.book-author {
+    font-family: 'Jost', sans-serif;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+/* =========================================================================
+   RESPONSIVENESS & MEDIA QUERIES
+   ========================================================================= */
+
+/* Shorter laptop viewports (1366x768, 1280x800): tighten vertical rhythm so
+   every screen fits without inner scrolling */
+@media (max-height: 860px) and (min-width: 1025px) {
+    .welcome-container {
+        padding-top: 110px;
+        padding-bottom: 60px;
+    }
+
+    .info-grid-restaurant {
+        margin-top: 36px;
+        gap: 26px 32px;
+    }
+
+    .welcome-pillow-card {
+        padding: 30px 28px;
+    }
+
+    .food-slider-container {
+        height: 150px;
+        margin-bottom: 18px;
+    }
+
+    .bento-tile {
+        padding: 22px;
+    }
+
+    .leisure-bento-grid {
+        gap: 18px;
+    }
+}
+
+/* Narrow desktop / landscape tablet: compact header so nav never overlaps logo */
+@media (max-width: 1200px) {
+    .main-header {
+        padding: 20px 32px;
+    }
+
+    .quick-nav {
+        gap: 16px;
+        padding: 9px 18px;
+    }
+
+    .nav-link {
+        font-size: 0.82rem;
+    }
+
+    .lang-selector {
+        gap: 8px;
+    }
+}
+
 @media (max-width: 1024px) {
-    .spa-container {
-        gap: 40px;
+    .vertical-navigation-ribbon {
+        display: none !important;
+    }
+
+    .scroll-indicator-mouse {
+        display: none !important;
+    }
+
+    .main-header {
+        padding: 20px 30px;
+    }
+
+    .header-logo-img {
+        height: 48px;
+    }
+
+    .welcome-container {
+        padding: 110px 40px 70px 40px;
+        gap: 48px;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        height: 100%;
+        overflow-y: auto;
+    }
+
+    .welcome-text-side {
+        max-width: 100%;
+        width: 100%;
+    }
+
+    .welcome-interactive-side {
+        max-width: 480px;
+        width: 100%;
+    }
+
+    .welcome-pillow-card {
+        max-width: 480px;
+    }
+
+    .welcome-title {
+        font-size: 2.8rem;
+    }
+
+    /* Hero title scales down with the id-level rule overridden */
+    #screen-1 .welcome-title {
+        font-size: 3.2rem;
+    }
+
+    /* Reset per-screen desktop composition anchors in stacked layouts */
+    #screen-1 .welcome-interactive-side {
+        align-self: center;
+    }
+
+    #screen-2 .welcome-text-side,
+    #screen-4 .welcome-text-side {
+        align-self: center;
+    }
+
+    #screen-2 .welcome-subtitle {
+        margin-top: 0;
+    }
+
+    #screen-2 .info-grid-restaurant {
+        margin-top: 36px;
+    }
+
+    #screen-3 .welcome-container,
+    #screen-5 .welcome-container {
+        flex-direction: column;
+        margin-left: auto;
+        margin-right: auto;
+        max-width: 480px;
+        transform: none;
+        gap: 48px;
+    }
+
+    #screen-3 .welcome-text-side,
+    #screen-5 .welcome-text-side {
+        max-width: 100%;
+    }
+
+    /* Cards go back to a simple vertical stack in the flow */
+    #screen-3 .spa-card,
+    #screen-5 .info-card {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        padding: 30px 28px;
+        position: static;
+        width: 100%;
+        max-width: 480px;
+        height: auto;
+        min-height: 0;
+        justify-content: flex-start;
+    }
+
+    #screen-3 .spa-card .card-actions,
+    #screen-5 .info-card .card-actions {
+        min-width: 0;
+        margin-top: 20px;
+    }
+
+    #screen-3 .spa-promo-desc,
+    #screen-5 .info-card .pillow-desc {
+        display: block;
+        max-width: none;
+        margin-bottom: 16px;
+    }
+
+    #screen-3 .spa-price-tag {
+        justify-self: start;
+    }
+
+    #screen-3 .spa-card .card-badge {
+        margin-bottom: 20px;
+    }
+
+    #screen-3 .spa-promo-title {
+        font-size: 1.3rem;
+        line-height: 1.35;
+        margin-bottom: 10px;
+    }
+
+    #screen-3 .spa-price-tag {
+        margin-bottom: 26px;
+    }
+
+    #screen-5 .info-card .card-header-icon {
+        margin-bottom: 16px;
     }
 }
 
 @media (max-width: 768px) {
-    .spa-container {
-        flex-direction: column;
-        align-items: center;
-        gap: 20px;
-        text-align: center;
-    }
-    .spa-left-col {
-        max-width: 100%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+    .desktop-only {
+        display: none !important;
     }
     
-    /* Screen 4 & 5 right column 2-column grid on mobile */
-    #screen-4 .spa-right-col,
-    #screen-5 .spa-right-col {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px 16px;
-        padding: 16px 20px;
+    .main-header {
+        padding: 20px;
+    }
+    
+    .header-logo-img {
+        height: 44px;
+    }
+    
+    .quick-nav {
+        display: none; /* Hide top panel links with dropdowns on mobile */
+    }
+    
+    .welcome-container {
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: flex-start;
+        padding: 100px 20px 60px 20px;
+        gap: 36px;
+        height: auto;
+        overflow-y: auto;
+    }
+    
+    .welcome-text-side {
+        max-width: 100%;
+        padding: 0;
+        transform: none; /* Reset desktop left shift */
+    }
+    
+    .welcome-title {
+        font-size: 1.8rem;
+    }
+
+    #screen-1 .welcome-title {
+        font-size: 2.2rem;
+    }
+
+    .welcome-subtitle {
+        font-size: 1rem;
+        line-height: 1.45;
+    }
+    
+    .welcome-divider {
+        margin: 12px 0;
+    }
+    
+    .welcome-interactive-side {
         max-width: 100%;
         width: 100%;
     }
-    
-    /* Screen 6 right column layout on mobile */
-    #screen-6 .spa-right-col {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        padding: 12px 16px;
+
+    /* Cards return as a full-width compact stack under the text */
+    .welcome-pillow-card {
         max-width: 100%;
-        width: 100%;
-        align-items: stretch;
+        padding: 20px;
+        border-radius: 16px;
     }
-    
-    .spa-advantage-item {
-        text-align: left;
+
+    /* Comfortable tap targets on touch screens */
+    .bento-btn,
+    .gold-action-btn {
+        min-height: 44px;
+    }
+
+    .food-slider-container {
+        height: 150px;
+        margin-bottom: 18px;
+    }
+
+    .leisure-bento-grid {
+        max-width: 100%;
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .bento-tile {
+        padding: 22px;
+    }
+
+    .double-width-tile {
+        grid-column: span 1;
+    }
+
+    .info-grid-restaurant {
+        grid-template-columns: 1fr;
+        gap: 24px;
+        margin-top: 36px;
+    }
+
+    .scroll-indicator-mouse {
+        display: none;
+    }
+
+    .footer-social-links {
+        flex-direction: column;
         gap: 10px;
     }
-    
-    .spa-advantage-icon {
-        width: 36px;
-        height: 36px;
-    }
-    
-    .spa-advantage-icon svg {
-        width: 16px;
-        height: 16px;
-    }
-    
-    .spa-advantage-text {
-        font-size: 13px;
-        line-height: 1.3;
-    }
-    
-    /* Screen 6 overrides to fit 11 items cleanly */
-    #screen-6 .spa-advantage-item {
-        gap: 8px;
-    }
-    
-    #screen-6 .spa-advantage-icon {
-        width: 30px;
-        height: 30px;
-    }
-    
-    #screen-6 .spa-advantage-icon svg {
-        width: 14px;
-        height: 14px;
-    }
-    
-    #screen-6 .spa-advantage-text {
-        font-size: 12px;
-        line-height: 1.25;
-    }
-    
-    /* Screen 6: 2-column grid on mobile instead of 1-column */
-    #screen-6 .rooms-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px 10px;
-    }
-    
-    #screen-6 .rooms-advantages-title {
-        font-size: 13px;
-        margin-bottom: 8px;
-        text-align: center;
-    }
 
-    /* Disable GPU-heavy backdrop-filter blur on mobile and use slightly more opaque dark backgrounds */
-    .spa-right-col {
-        backdrop-filter: none !important;
-        -webkit-backdrop-filter: none !important;
-        background: rgba(10, 10, 10, 0.88) !important;
-    }
-
-    .menu-overlay {
-        backdrop-filter: none !important;
-        -webkit-backdrop-filter: none !important;
-        background-color: rgba(10, 10, 10, 0.98) !important;
+    .social-separator {
+        display: none;
     }
 }
 
-/* --------------------------------------------------------------------------
-   12. ROOMS ADVANTAGES STYLING
-   -------------------------------------------------------------------------- */
-.rooms-advantages-title {
-    font-family: var(--font-accent);
-    font-size: 16px;
-    font-weight: 600;
+/* =========================================================================
+   PDF POPUP MODAL
+   ========================================================================= */
+
+.pdf-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pdf-modal.is-open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.pdf-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(6, 6, 8, 0.82);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    cursor: pointer;
+}
+
+.pdf-modal-container {
+    position: relative;
+    z-index: 1;
+    width: min(92vw, 1100px);
+    height: min(90vh, 860px);
+    background: rgba(14, 13, 11, 0.96);
+    border: 1px solid rgba(197, 168, 128, 0.18);
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 32px 80px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(197, 168, 128, 0.08);
+    transform: translateY(24px) scale(0.97);
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pdf-modal.is-open .pdf-modal-container {
+    transform: translateY(0) scale(1);
+}
+
+.pdf-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(197, 168, 128, 0.12);
+    background: rgba(20, 18, 14, 0.95);
+    flex-shrink: 0;
+}
+
+.pdf-modal-title {
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--gold);
-    margin-bottom: 24px;
+    color: var(--color-gold);
 }
 
-.rooms-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px 20px;
+.pdf-modal-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
-.spa-advantage-item.full-width {
-    grid-column: span 2;
+.pdf-modal-download-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: rgba(240, 235, 225, 0.7);
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid rgba(197, 168, 128, 0.2);
+    background: transparent;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+    cursor: pointer;
 }
 
-/* --------------------------------------------------------------------------
-   13. SCREEN 7 NIGHT FINALE ADJUSTMENTS
-   -------------------------------------------------------------------------- */
-#screen-7 .screen-content {
-    max-width: 1200px;
+.pdf-modal-download-btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
 }
 
-@media (min-width: 769px) {
-    .nobr {
-        white-space: nowrap;
+.pdf-modal-download-btn:hover {
+    color: var(--color-gold);
+    border-color: rgba(197, 168, 128, 0.5);
+    background: rgba(197, 168, 128, 0.06);
+}
+
+.pdf-modal-close-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1px solid rgba(197, 168, 128, 0.18);
+    background: transparent;
+    color: rgba(240, 235, 225, 0.55);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+
+.pdf-modal-close-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.pdf-modal-close-btn:hover {
+    color: #fff;
+    border-color: rgba(197, 168, 128, 0.45);
+    background: rgba(197, 168, 128, 0.08);
+}
+
+.pdf-modal-body {
+    flex: 1;
+    overflow: hidden;
+}
+
+.pdf-modal-body iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+}
+
+
+/* =========================================================================
+   MOBILE PILLOW TAB (TZ: plaques move to the bottom, full width, 16px radius)
+   ========================================================================= */
+
+@media (max-width: 768px) {
+    .floating-pillow-tab {
+        top: auto;
+        bottom: 16px;
+        left: 16px;
+        right: 16px;
+        width: auto;
+        height: auto;
+        transform: translateY(16px);
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: stretch;
+        border-right: 1px solid rgba(197, 168, 128, 0.22);
+        border-radius: 16px;
+        padding: 14px 18px;
+    }
+
+    .floating-pillow-tab.is-visible {
+        transform: translateY(0);
+        animation: none;
+    }
+
+    .floating-pillow-tab:hover,
+    .floating-pillow-tab.is-expanded {
+        transform: translateY(0) !important;
+        width: auto;
+        height: auto;
+        padding: 16px 18px;
+    }
+
+    .floating-pillow-tab .tab-header {
+        flex-direction: row;
+        justify-content: flex-start;
+        gap: 10px;
+    }
+
+    .floating-pillow-tab .pillow-svg {
+        width: 22px;
+        height: 22px;
+    }
+
+    .floating-pillow-tab .tab-title-text {
+        text-align: left;
+        font-size: 0.8rem;
+    }
+
+    .floating-pillow-tab .tab-br {
+        display: none;
     }
 }
