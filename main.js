@@ -1,6 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
     initPreloader();
-    initLobbySeamlessLoop();
     initWelcomeScreen();
     initWifiCopy();
     initPillowCardAction();
@@ -16,134 +15,153 @@ document.addEventListener("DOMContentLoaded", () => {
 let currentScreen = 1;
 let screens = [];
 
+function preloadFile(url, onProgress) {
+    return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', url, true);
+        xhr.responseType = 'blob';
+
+        xhr.onprogress = (event) => {
+            if (event.lengthComputable) {
+                const percent = (event.loaded / event.total) * 100;
+                onProgress(percent);
+            }
+        };
+
+        xhr.onload = () => {
+            if (xhr.status === 200) {
+                const blob = xhr.response;
+                const blobUrl = URL.createObjectURL(blob);
+                resolve(blobUrl);
+            } else {
+                reject(new Error(`Failed to load ${url} (Status: ${xhr.status})`));
+            }
+        };
+
+        xhr.onerror = () => reject(new Error(`Network error loading ${url}`));
+        xhr.send();
+    });
+}
+
+function preloadScrollingVideos() {
+    const vScrolling = document.getElementById("video-scrolling");
+    const vScrollingRev = document.getElementById("video-scrolling-reverse");
+    if (vScrolling) vScrolling.src = "scrolling video.mp4";
+    if (vScrollingRev) vScrollingRev.src = "scrolling video_reverse.mp4";
+}
+
 function initPreloader() {
     const preloader = document.getElementById("preloader");
     const logoContainer = document.querySelector(".preloader-logo-container");
     const logoFill = document.querySelector(".preloader-logo.logo-fill");
     const preloaderVideo = preloader ? preloader.querySelector("video") : null;
+    const progressText = preloader ? preloader.querySelector(".preloader-progress") : null;
     const videoLobby1 = document.getElementById("video-lobby-1");
+    const videoLobby2 = document.getElementById("video-lobby-2");
 
-    if (!preloader || !logoContainer || !logoFill || !preloaderVideo || !videoLobby1) return;
+    if (!preloader || !logoContainer || !logoFill || !preloaderVideo || !videoLobby1 || !videoLobby2) return;
 
-    // 1. Initially hide the Logo Container
-    gsap.set(logoContainer, { opacity: 0, scale: 0.96 });
-    let logoFadedIn = false;
-
+    // Show logo silhouette immediately
+    gsap.set(logoContainer, { opacity: 1, scale: 1 });
 
     let mainVideoReady = false;
+    let preloaderVideoFinished = false;
     let waitingForMain = false;
+    let lobbyVideoBlobUrl = null;
 
-    // Track main video loading state
-    const setMainReady = () => {
-        if (mainVideoReady) return;
+    // Safety timeout (15 seconds hard limit)
+    const safetyTimeout = setTimeout(() => {
+        console.log("Preloader safety timeout triggered. Forcing dismiss...");
+        dismissPreloader();
+    }, 15000);
+
+    // Step 1: Preload preloader.mp4
+    preloadFile("preloader.mp4", (percent) => {
+        if (progressText) {
+            progressText.textContent = `${Math.round(percent)}%`;
+        }
+        logoFill.style.clipPath = `inset(${100 - percent}% 0 0 0)`;
+    })
+    .then((preloaderBlobUrl) => {
+        // Step 2: Play the preloader video
+        preloaderVideo.src = preloaderBlobUrl;
+        preloaderVideo.play().then(() => {
+            preloaderVideo.addEventListener("timeupdate", checkPreloaderVideoProgress);
+        }).catch(err => {
+            console.log("Preloader video autoplay blocked, bypass waiting.", err);
+            preloaderVideoFinished = true;
+            checkReadyState();
+        });
+
+        // Hide progress text once preloader starts playing
+        gsap.to(progressText, { opacity: 0, duration: 0.3, delay: 0.2 });
+
+        // Step 3: Start preloading the main lobby video (1 screen.mp4) in the background
+        return preloadFile("1 screen.mp4", () => {});
+    })
+    .then((lobbyBlobUrl) => {
+        console.log("Lobby video preloaded!");
+        lobbyVideoBlobUrl = lobbyBlobUrl;
         mainVideoReady = true;
+
+        // Assign Blob URL to both lobby video layers
+        videoLobby1.src = lobbyVideoBlobUrl;
+        videoLobby2.src = lobbyVideoBlobUrl;
+
+        // Initialize lobby loop now
+        initLobbySeamlessLoop();
+
         if (waitingForMain) {
             waitingForMain = false;
-            console.log("Main video ready! Resuming preloader video finish...");
-            preloaderVideo.play().catch(e => {});
+            preloaderVideo.play().catch(() => {});
         }
-    };
+        checkReadyState();
+    })
+    .catch((err) => {
+        console.error("Preload engine error, running fallback...", err);
+        preloaderVideo.src = "preloader.mp4";
+        videoLobby1.src = "1 screen.mp4";
+        videoLobby2.src = "1 screen.mp4";
+        
+        preloaderVideo.play().catch(() => {});
+        initLobbySeamlessLoop();
+        
+        mainVideoReady = true;
+        checkReadyState();
+    });
 
-    // Safety fallback: force start after 10 seconds to prevent getting stuck
-    setTimeout(() => {
-        if (!mainVideoReady) {
-            console.log("Preloader safety timeout triggered. Forcing ready state...");
-            setMainReady();
-        }
-    }, 10000);
-
-    // Hard fallback: if autoplay is blocked entirely (power saving / low power
-    // mode), the preloader video never reaches its end — dismiss anyway.
-    setTimeout(() => {
-        if (!preloader.classList.contains("dismissed")) {
-            console.log("Preloader hard timeout: dismissing without video finish.");
-            dismissPreloader();
-        }
-    }, 12000);
-
-    videoLobby1.addEventListener("canplaythrough", setMainReady);
-    videoLobby1.addEventListener("canplay", setMainReady);
-    videoLobby1.addEventListener("loadeddata", setMainReady);
-
-    // Also fallback check for readyState in a progress handler
-    function checkMainReadyState() {
-        if (videoLobby1.readyState >= 4) {
-            setMainReady();
-        }
-    }
-    videoLobby1.addEventListener("progress", checkMainReadyState);
-    videoLobby1.addEventListener("timeupdate", checkMainReadyState);
-
-    // Sync logo fill to preloader video progress in a requestAnimationFrame loop
-    let lastPercent = 0;
-    function updateProgress() {
-        if (preloader.classList.contains("dismissed")) return;
-
-        // Ensure preloader video is playing if not waiting
-        if (preloaderVideo.paused && !waitingForMain) {
-            preloaderVideo.play().catch(e => {});
-        }
-
+    function checkPreloaderVideoProgress() {
         const duration = preloaderVideo.duration;
         const currentTime = preloaderVideo.currentTime;
 
         if (duration) {
-            // Fade in logo container immediately when video starts playing to avoid idle outline state
-            if (currentTime > 0.01 && !logoFadedIn) {
-                logoFadedIn = true;
-                gsap.to(logoContainer, {
-                    opacity: 1,
-                    scale: 1,
-                    duration: 0.2,
-                    ease: "power1.out"
-                });
-            }
-            // Check if we are near the end of the preloader video (e.g. 0.25s before end)
             if (currentTime >= duration - 0.25 && !mainVideoReady) {
-                // Main video not ready yet: pause preloader video and wait
                 preloaderVideo.pause();
                 preloaderVideo.currentTime = duration - 0.25;
                 waitingForMain = true;
                 console.log("Main video not loaded yet. Pausing preloader video at 98%...");
             }
 
-            // Start fill at 10% baseline so it immediately colors the bottom text "Karpaty"
-            let percent = 10 + (currentTime / duration) * 90;
-            if (percent > 100) percent = 100;
-
-            // Keep fill progress smooth, don't jump backward
-            if (percent > lastPercent) {
-                lastPercent = percent;
-                logoFill.style.clipPath = `inset(${100 - percent}% 0 0 0)`;
-            }
-
-
-            // If we are at the end, and main video is ready, dismiss preloader
-            if (currentTime >= duration - 0.05 && mainVideoReady) {
-                logoFill.style.clipPath = "inset(0% 0 0 0)";
-                dismissPreloader();
-                return; // Stop animation loop
+            if (currentTime >= duration - 0.05) {
+                preloaderVideoFinished = true;
+                checkReadyState();
             }
         }
-
-        requestAnimationFrame(updateProgress);
     }
 
-    // Start video and loop
-    preloaderVideo.play().then(() => {
-        requestAnimationFrame(updateProgress);
-    }).catch(err => {
-        console.log("Preloader video autoplay blocked, starting loop anyway:", err);
-        requestAnimationFrame(updateProgress);
-    });
+    function checkReadyState() {
+        if (preloaderVideoFinished && mainVideoReady) {
+            dismissPreloader();
+        }
+    }
 
     function dismissPreloader() {
         if (preloader.classList.contains("dismissed")) return;
         preloader.classList.add("dismissed");
+        clearTimeout(safetyTimeout);
 
-        console.log("Preloader finished, dismissing preloader...");
+        console.log("Dismissing preloader...");
 
-        // Cinematic defocus exit of logo
         gsap.to(logoContainer, {
             opacity: 0,
             filter: "blur(18px)",
@@ -152,7 +170,6 @@ function initPreloader() {
             ease: "power3.in"
         });
 
-        // Fade out preloader background video to black
         gsap.to(preloaderVideo, {
             opacity: 0,
             duration: 1.2,
@@ -162,7 +179,6 @@ function initPreloader() {
             }
         });
 
-        // Fade out the entire preloader container
         gsap.to(preloader, {
             opacity: 0,
             duration: 1.5,
@@ -170,10 +186,10 @@ function initPreloader() {
             ease: "power2.out",
             onComplete: () => {
                 preloader.style.display = "none";
+                preloadScrollingVideos();
             }
         });
 
-        // Smoothly fade in the main screen video and UI from black
         gsap.set("#screen-1", { display: "block", opacity: 0 });
         gsap.to("#screen-1", {
             opacity: 1,
@@ -181,10 +197,9 @@ function initPreloader() {
             delay: 0.1,
             ease: "power2.out",
             onComplete: () => {
-                console.log("Preloader dismissed, welcome screen active.");
+                console.log("Welcome screen active.");
                 initTransitionTrigger();
 
-                // Show floating pillow tab immediately when screen-1 is active
                 const pillowTab = document.getElementById("floating-pillow-tab");
                 if (pillowTab) {
                     pillowTab.classList.add("is-visible");
@@ -192,7 +207,6 @@ function initPreloader() {
             }
         });
 
-        // Trigger the staggered elements immediately to sync with the fade-in
         animateWelcomeScreenEntrance();
     }
 }

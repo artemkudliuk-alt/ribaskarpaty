@@ -153,39 +153,30 @@
 
     <!-- Minimalist Premium Video Preloader -->
     <div id="preloader">
-        <video class="screen-video" autoplay muted playsinline>
-            <source src="preloader.mp4" type="video/mp4">
-        </video>
+        <video class="screen-video" muted playsinline></video>
 
-        <div class="preloader-content">
+        <div class="preloader-content" style="display: flex; flex-direction: column; align-items: center;">
             <div class="preloader-logo-container">
                 <!-- Silhouette contour outline -->
                 <img src="Ribas_logo_outline.png" alt="Ribas Karpaty Silhouette" class="preloader-logo logo-silhouette">
                 <!-- Solid white fill -->
                 <img src="Ribas_logo_white.png" alt="Ribas Karpaty Solid" class="preloader-logo logo-fill">
             </div>
+            <div class="preloader-progress">0%</div>
         </div>
     </div>
 
     <!-- Shared Scrolling Video Background for Screens 2-5 -->
     <div id="shared-video-bg" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 5; pointer-events: none; opacity: 0; display: none; transition: opacity 0.4s ease;">
-        <video id="video-scrolling" class="screen-video" muted playsinline preload="auto">
-            <source src="scrolling video.mp4" type="video/mp4">
-        </video>
-        <video id="video-scrolling-reverse" class="screen-video" muted playsinline preload="auto" style="opacity: 0;">
-            <source src="scrolling video_reverse.mp4" type="video/mp4">
-        </video>
+        <video id="video-scrolling" class="screen-video" muted playsinline></video>
+        <video id="video-scrolling-reverse" class="screen-video" muted playsinline style="opacity: 0;"></video>
     </div>
 
     <!-- Screen 1: Welcome / Lobby Screen -->
     <div id="screen-1" class="screen">
         <!-- Dual Videos for Seamless Crossfade Looping of 1 screen.mp4 -->
-        <video id="video-lobby-1" class="screen-video" autoplay muted playsinline preload="auto">
-            <source src="1 screen.mp4" type="video/mp4">
-        </video>
-        <video id="video-lobby-2" class="screen-video" muted playsinline preload="auto" style="opacity: 0; pointer-events: none;">
-            <source src="1 screen.mp4" type="video/mp4">
-        </video>
+        <video id="video-lobby-1" class="screen-video" muted playsinline></video>
+        <video id="video-lobby-2" class="screen-video" muted playsinline style="opacity: 0; pointer-events: none;"></video>
         
         <!-- Transition Glare/Blur Overlay -->
         <div class="transition-flash-overlay"></div>
