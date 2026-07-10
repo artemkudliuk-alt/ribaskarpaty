@@ -1712,7 +1712,13 @@ function initBackgroundMusic() {
             } else {
                 tryPlay();
             }
-        }
+        },
+        _trackA: trackA,
+        _trackB: trackB,
+        getStarted() { return started; },
+        getMuted() { return muted; },
+        getPreloaderDismissed() { return preloaderDismissed; },
+        getActive() { return active; }
     };
 }
 
