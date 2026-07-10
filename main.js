@@ -752,19 +752,44 @@ function initTransitionTrigger() {
                 }
             });
 
-            sharedVideoBg.style.display = "block";
-            // Force reflow
-            sharedVideoBg.offsetHeight;
-            sharedVideoBg.style.opacity = "1";
-
+            // Pre-seek the scrolling video to frame 0 BEFORE revealing the
+            // shared background — this guarantees the first painted frame is
+            // ready and eliminates the 2-3 s black flash on first scroll.
             scrollingVideo.pause();
             scrollingVideoReverse.pause();
             scrollingVideo.currentTime = 0.0;
             scrollingVideoReverse.currentTime = videoDuration;
-            
-            animateVideoTime(nextScreenIndex, () => {
-                finalizeTransition();
-            });
+
+            const revealAndPlay = () => {
+                sharedVideoBg.style.display = "block";
+                // Force reflow so the transition: opacity kicks in
+                sharedVideoBg.offsetHeight;
+                sharedVideoBg.style.opacity = "1";
+                animateVideoTime(nextScreenIndex, () => {
+                    finalizeTransition();
+                });
+            };
+
+            // If the video has already decoded data (blob source, readyState ≥ 2)
+            // the seeked event fires almost instantly; otherwise we fall back
+            // after a short timeout so the UI never deadlocks.
+            if (scrollingVideo.readyState >= 2) {
+                // Already have pixel data — reveal immediately
+                revealAndPlay();
+            } else {
+                let revealed = false;
+                const onSeeked = () => {
+                    if (revealed) return;
+                    revealed = true;
+                    scrollingVideo.removeEventListener("seeked", onSeeked);
+                    revealAndPlay();
+                };
+                scrollingVideo.addEventListener("seeked", onSeeked);
+                // Safety: if seeked never fires within 400 ms, proceed anyway
+                setTimeout(() => {
+                    if (!revealed) { revealed = true; scrollingVideo.removeEventListener("seeked", onSeeked); revealAndPlay(); }
+                }, 400);
+            }
         } else {
             // Transitioning between screens 2, 3, 4, 5
             sharedVideoBg.style.display = "block";
