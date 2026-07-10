@@ -64,35 +64,12 @@ function preloadScrollingVideos() {
         video.src = src;
         video.load();
 
-        // As soon as enough data has arrived, do a ghost play/pause to force
-        // the GPU to decode and cache frame 0 — this eliminates the black flash
-        // when the user scrolls before the blob download completes.
+        // Warm up the video decoder to make sure frame 0 is decoded and cached by GPU
         video.addEventListener("canplay", () => {
             if (video.paused) {
                 video.play().then(() => video.pause()).catch(() => {});
             }
         }, { once: true });
-
-        // Meanwhile fully download the clip (same blob engine as the
-        // preloader) and swap it in: after that transitions never touch the
-        // network — no buffering stalls mid-scroll, stable on mobile too.
-        preloadFile(src, () => {}).then(blobUrl => {
-            const swap = () => {
-                if (!video.paused) {          // mid-transition — retry shortly
-                    setTimeout(swap, 500);
-                    return;
-                }
-                const t = video.currentTime;  // keep the parked checkpoint frame
-                video.src = blobUrl;
-                video.load();
-                video.currentTime = t;
-                // Re-warm first frame on the blob source too
-                video.addEventListener("canplay", () => {
-                    if (video.paused) video.play().then(() => video.pause()).catch(() => {});
-                }, { once: true });
-            };
-            swap();
-        }).catch(() => { /* streaming source stays as fallback */ });
     });
 }
 
@@ -759,55 +736,29 @@ function initTransitionTrigger() {
             // Transitioning from screen 1 to screen 2+
             const lobbyVideo = v2.style.opacity === "1" ? v2 : v1;
 
-            // Park scrolling video at frame 0
+            // Make sure the scrolling video is parked at frame 0
             scrollingVideo.pause();
             scrollingVideoReverse.pause();
             scrollingVideo.currentTime = 0.0;
             scrollingVideoReverse.currentTime = videoDuration;
 
-            // Keep lobby visible as background fallback.
-            // Make sharedVideoBg present in DOM but invisible.
-            sharedVideoBg.style.transition = "none";
+            // Directly reveal the shared background and fade out the lobby video
+            sharedVideoBg.style.transition = "";
             sharedVideoBg.style.display = "block";
-            sharedVideoBg.style.opacity = "0";
+            sharedVideoBg.offsetHeight;
+            sharedVideoBg.style.opacity = "1";
 
-            const crossfade = () => {
-                // Crossfade: shared bg fades in, lobby fades out — simultaneously
-                sharedVideoBg.style.transition = "";
-                sharedVideoBg.offsetHeight;
-                sharedVideoBg.style.opacity = "1";
-                gsap.to(lobbyVideo, {
-                    opacity: 0,
-                    duration: 0.4,
-                    onComplete: () => { lobbyVideo.pause(); }
-                });
-                animateVideoTime(nextScreenIndex, () => { finalizeTransition(); });
-            };
+            gsap.to(lobbyVideo, {
+                opacity: 0,
+                duration: 0.4,
+                onComplete: () => {
+                    lobbyVideo.pause();
+                }
+            });
 
-            // 'playing' fires when the first real video frame hits the screen.
-            // This is the only reliable signal that the GPU has decoded a frame.
-            let fired = false;
-            const onPlaying = () => {
-                if (fired) return;
-                fired = true;
-                scrollingVideo.removeEventListener("playing", onPlaying);
-                // Pause immediately — animateVideoTime will take control
-                scrollingVideo.pause();
-                scrollingVideo.currentTime = 0.0;
-                crossfade();
-            };
-            scrollingVideo.addEventListener("playing", onPlaying, { once: false });
-
-            const playP = scrollingVideo.play();
-            if (playP && typeof playP.then === "function") {
-                playP.catch(() => {
-                    if (!fired) { fired = true; scrollingVideo.removeEventListener("playing", onPlaying); crossfade(); }
-                });
-            }
-            // Hard fallback: if 'playing' never fires within 600 ms, proceed anyway
-            setTimeout(() => {
-                if (!fired) { fired = true; scrollingVideo.removeEventListener("playing", onPlaying); crossfade(); }
-            }, 600);
+            animateVideoTime(nextScreenIndex, () => {
+                finalizeTransition();
+            });
         } else {
             // Transitioning between screens 2, 3, 4, 5
             sharedVideoBg.style.display = "block";
