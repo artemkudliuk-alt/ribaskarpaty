@@ -55,7 +55,7 @@ function preloadScrollingVideos() {
     // If for some reason it didn't get loaded, we assign the streaming source.
     if (vScrolling && !vScrolling.src) {
         vScrolling.preload = "auto";
-        vScrolling.src = isMobile ? "scrolling video mob.mp4" : "scrolling video.mp4";
+        vScrolling.src = isMobile ? "scrolling video mob.webm" : "scrolling video.webm";
         vScrolling.load();
         vScrolling.addEventListener("canplay", () => {
             if (vScrolling.paused) vScrolling.play().then(() => vScrolling.pause()).catch(() => {});
@@ -64,7 +64,7 @@ function preloadScrollingVideos() {
 
     if (vScrollingRev) {
         vScrollingRev.preload = "auto";
-        vScrollingRev.src = isMobile ? "scrolling video mob_reverse.mp4" : "scrolling video_reverse.mp4";
+        vScrollingRev.src = isMobile ? "scrolling video mob_reverse.webm" : "scrolling video_reverse.webm";
         vScrollingRev.load();
         vScrollingRev.addEventListener("canplay", () => {
             if (vScrollingRev.paused) vScrollingRev.play().then(() => vScrollingRev.pause()).catch(() => {});
@@ -98,8 +98,8 @@ function initPreloader() {
         dismissPreloader();
     }, 15000);
 
-    // Step 1: Preload preloader.mp4
-    preloadFile("preloader.mp4", (percent) => {
+    // Step 1: Preload preloader.webm
+    preloadFile("preloader.webm", (percent) => {
         if (progressText) {
             progressText.textContent = `${Math.round(percent)}%`;
         }
@@ -123,14 +123,14 @@ function initPreloader() {
         // Hide progress text once preloader starts playing
         gsap.to(progressText, { opacity: 0, duration: 0.3, delay: 0.2 });
 
-        // Step 3: Start preloading both the main lobby video (1 screen.mp4) AND the active scrolling video in parallel
+        // Step 3: Start preloading both the main lobby video (1 screen.webm) AND the active scrolling video in parallel
         const isMobile = window.matchMedia("(max-width: 768px)").matches;
-        const scrollVideoSrc = isMobile ? "scrolling video mob.mp4" : "scrolling video.mp4";
+        const scrollVideoSrc = isMobile ? "scrolling video mob.webm" : "scrolling video.webm";
 
         return Promise.all([
-            preloadFile("1 screen.mp4", () => {}).catch(err => {
+            preloadFile("1 screen.webm", () => {}).catch(err => {
                 console.warn("Lobby video preload failed, falling back to streaming:", err);
-                return "1 screen.mp4";
+                return "1 screen.webm";
             }),
             preloadFile(scrollVideoSrc, () => {}).catch(err => {
                 console.warn("Scrolling video preload failed, falling back to streaming:", err);
@@ -169,9 +169,9 @@ function initPreloader() {
     })
     .catch((err) => {
         console.error("Preload engine error, running fallback...", err);
-        preloaderVideo.src = "preloader.mp4";
-        videoLobby1.src = "1 screen.mp4";
-        videoLobby2.src = "1 screen.mp4";
+        preloaderVideo.src = "preloader.webm";
+        videoLobby1.src = "1 screen.webm";
+        videoLobby2.src = "1 screen.webm";
         
         preloaderVideo.play().catch(() => {});
         initLobbySeamlessLoop();
