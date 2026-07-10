@@ -99,17 +99,25 @@ function initPreloader() {
         // Hide progress text once preloader starts playing
         gsap.to(progressText, { opacity: 0, duration: 0.3, delay: 0.2 });
 
-        // Step 3: Start preloading the main lobby video (1 screen.mp4) in the background
-        return preloadFile("1 screen.mp4", () => {});
+        // Step 3: Start preloading the main lobby video (1 screen.mp4) and music in parallel
+        return Promise.all([
+            preloadFile("1 screen.mp4", () => {}),
+            preloadFile("music.mp3", () => {})
+        ]);
     })
-    .then((lobbyBlobUrl) => {
-        console.log("Lobby video preloaded!");
+    .then(([lobbyBlobUrl, musicBlobUrl]) => {
+        console.log("Lobby video and music preloaded!");
         lobbyVideoBlobUrl = lobbyBlobUrl;
         mainVideoReady = true;
 
         // Assign Blob URL to both lobby video layers
         videoLobby1.src = lobbyVideoBlobUrl;
         videoLobby2.src = lobbyVideoBlobUrl;
+
+        // Pass the preloaded music blob URL to the music manager
+        if (window.__ribasMusic && window.__ribasMusic.setMusicSrc) {
+            window.__ribasMusic.setMusicSrc(musicBlobUrl);
+        }
 
         // Initialize lobby loop now
         initLobbySeamlessLoop();
@@ -1711,6 +1719,18 @@ function initBackgroundMusic() {
                 gsap.to(active, { volume: TARGET_VOL, duration: FADE_IN, ease: "power1.out" });
             } else {
                 tryPlay();
+            }
+        },
+        setMusicSrc(blobUrl) {
+            if (started) {
+                // If already playing from direct URL fallback, just assign it to standby trackB so it is ready for the loop
+                trackB.src = blobUrl;
+                trackB.load();
+            } else {
+                trackA.src = blobUrl;
+                trackB.src = blobUrl;
+                trackA.load();
+                trackB.load();
             }
         }
     };
