@@ -1717,10 +1717,18 @@ function initBackgroundMusic() {
         }
     };
 
-    const gestureEvents = ["pointerdown", "touchstart", "wheel", "keydown"];
+    const gestureEvents = ["pointerdown", "touchstart", "keydown"];
     const onGesture = () => tryPlay();
-    const addGestureFallbacks = () => gestureEvents.forEach(ev => window.addEventListener(ev, onGesture, { passive: true }));
-    const removeGestureFallbacks = () => gestureEvents.forEach(ev => window.removeEventListener(ev, onGesture));
+    const addGestureFallbacks = () => {
+        gestureEvents.forEach(ev => {
+            window.addEventListener(ev, onGesture, { capture: true, passive: true });
+        });
+    };
+    const removeGestureFallbacks = () => {
+        gestureEvents.forEach(ev => {
+            window.removeEventListener(ev, onGesture, { capture: true });
+        });
+    };
 
     function updateButton() {
         if (!toggleBtn) return;
