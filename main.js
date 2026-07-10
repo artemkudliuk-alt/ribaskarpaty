@@ -51,26 +51,25 @@ function preloadScrollingVideos() {
     const vScrollingRev = document.getElementById("video-scrolling-reverse");
     const isMobile = window.matchMedia("(max-width: 768px)").matches;
 
-    const pairs = [
-        [vScrolling, isMobile ? "scrolling video mob.mp4" : "scrolling video.mp4"],
-        [vScrollingRev, isMobile ? "scrolling video mob_reverse.mp4" : "scrolling video_reverse.mp4"]
-    ];
-
-    pairs.forEach(([video, src]) => {
-        if (!video) return;
-
-        // Streaming source right away so the very first scroll always works
-        video.preload = "auto";
-        video.src = src;
-        video.load();
-
-        // Warm up the video decoder to make sure frame 0 is decoded and cached by GPU
-        video.addEventListener("canplay", () => {
-            if (video.paused) {
-                video.play().then(() => video.pause()).catch(() => {});
-            }
+    // vScrolling is already preloaded as a blob URL during the preloader step.
+    // If for some reason it didn't get loaded, we assign the streaming source.
+    if (vScrolling && !vScrolling.src) {
+        vScrolling.preload = "auto";
+        vScrolling.src = isMobile ? "scrolling video mob.mp4" : "scrolling video.mp4";
+        vScrolling.load();
+        vScrolling.addEventListener("canplay", () => {
+            if (vScrolling.paused) vScrolling.play().then(() => vScrolling.pause()).catch(() => {});
         }, { once: true });
-    });
+    }
+
+    if (vScrollingRev) {
+        vScrollingRev.preload = "auto";
+        vScrollingRev.src = isMobile ? "scrolling video mob_reverse.mp4" : "scrolling video_reverse.mp4";
+        vScrollingRev.load();
+        vScrollingRev.addEventListener("canplay", () => {
+            if (vScrollingRev.paused) vScrollingRev.play().then(() => vScrollingRev.pause()).catch(() => {});
+        }, { once: true });
+    }
 }
 
 
@@ -124,11 +123,23 @@ function initPreloader() {
         // Hide progress text once preloader starts playing
         gsap.to(progressText, { opacity: 0, duration: 0.3, delay: 0.2 });
 
-        // Step 3: Start preloading the main lobby video (1 screen.mp4) in the background
-        return preloadFile("1 screen.mp4", () => {});
+        // Step 3: Start preloading both the main lobby video (1 screen.mp4) AND the active scrolling video in parallel
+        const isMobile = window.matchMedia("(max-width: 768px)").matches;
+        const scrollVideoSrc = isMobile ? "scrolling video mob.mp4" : "scrolling video.mp4";
+
+        return Promise.all([
+            preloadFile("1 screen.mp4", () => {}).catch(err => {
+                console.warn("Lobby video preload failed, falling back to streaming:", err);
+                return "1 screen.mp4";
+            }),
+            preloadFile(scrollVideoSrc, () => {}).catch(err => {
+                console.warn("Scrolling video preload failed, falling back to streaming:", err);
+                return scrollVideoSrc;
+            })
+        ]);
     })
-    .then((lobbyBlobUrl) => {
-        console.log("Lobby video preloaded!");
+    .then(([lobbyBlobUrl, scrollBlobUrl]) => {
+        console.log("Lobby and scrolling videos preloaded!");
         lobbyVideoBlobUrl = lobbyBlobUrl;
         mainVideoReady = true;
 
@@ -138,6 +149,17 @@ function initPreloader() {
 
         // Initialize lobby loop now
         initLobbySeamlessLoop();
+
+        // Assign Blob URL to scrolling video layer so it is ready immediately on first scroll
+        const vScrolling = document.getElementById("video-scrolling");
+        if (vScrolling) {
+            vScrolling.preload = "auto";
+            vScrolling.src = scrollBlobUrl;
+            vScrolling.load();
+            vScrolling.addEventListener("canplay", () => {
+                if (vScrolling.paused) vScrolling.play().then(() => vScrolling.pause()).catch(() => {});
+            }, { once: true });
+        }
 
         if (waitingForMain) {
             waitingForMain = false;
