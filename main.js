@@ -316,6 +316,7 @@ function initLobbySeamlessLoop() {
 function initTransitionTrigger() {
     currentScreen = 1; // 1 = Lobby, 2 = Restaurant, 3 = SPA, 4 = Leisure, 5 = Info, 6 = Footer
     let isTransitioning = false;
+    let touchTriggered = false;
 
     // Elements mapping
     screens = [
@@ -439,9 +440,12 @@ function initTransitionTrigger() {
     function handleScroll(e) {
         if (isTransitioning) return;
 
+        const isTouchEvent = e.touches && e.touches.length > 0;
+        if (isTouchEvent && touchTriggered) return;
+
         const deltaY = e.deltaY;
-        const isTouchScrollDown = e.touches && e.touches[0].clientY < window.lastTouchY;
-        const isTouchScrollUp = e.touches && e.touches[0].clientY > window.lastTouchY;
+        const isTouchScrollDown = isTouchEvent && e.touches[0].clientY < window.lastTouchY;
+        const isTouchScrollUp = isTouchEvent && e.touches[0].clientY > window.lastTouchY;
 
         const isScrollDown = deltaY > 0 || isTouchScrollDown;
         const isScrollUp = deltaY < 0 || isTouchScrollUp;
@@ -453,23 +457,39 @@ function initTransitionTrigger() {
         if (activeContent && activeContent.scrollHeight > activeContent.clientHeight + 2) {
             const atTop = activeContent.scrollTop <= 2;
             const atBottom = activeContent.scrollTop + activeContent.clientHeight >= activeContent.scrollHeight - 2;
-            if ((isScrollDown && !atBottom) || (isScrollUp && !atTop)) return;
+            if ((isScrollDown && !atBottom) || (isScrollUp && !atTop)) {
+                if (isTouchEvent) {
+                    window.lastTouchY = e.touches[0].clientY;
+                }
+                return;
+            }
         }
 
         if (isScrollDown && currentScreen < 6) {
             e.preventDefault();
+            if (isTouchEvent) touchTriggered = true;
             transitionTo(currentScreen + 1);
         } else if (isScrollUp && currentScreen > 1) {
             e.preventDefault();
+            if (isTouchEvent) touchTriggered = true;
             transitionTo(currentScreen - 1);
         }
     }
 
     window.addEventListener("touchstart", (e) => {
         window.lastTouchY = e.touches[0].clientY;
-    });
+        touchTriggered = false;
+    }, { passive: true });
 
-    const videoDuration = 7.6333;
+    let videoDuration = 7.6333;
+    if (scrollingVideo) {
+        scrollingVideo.addEventListener("loadedmetadata", () => {
+            if (scrollingVideo.duration && !isNaN(scrollingVideo.duration)) {
+                videoDuration = scrollingVideo.duration;
+                console.log("Updated videoDuration to actual duration:", videoDuration);
+            }
+        });
+    }
 
     function animateVideoTime(nextScreenIndex, onComplete) {
         const targetTime = screenTimestamps[nextScreenIndex];
