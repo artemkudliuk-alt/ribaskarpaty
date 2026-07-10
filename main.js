@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initUsefulInfoActions();
     initLanguageSelector();
     initBackgroundMusic();
+    initMobileMenu();
 });
 
 let currentScreen = 1;
@@ -1059,6 +1060,12 @@ function initWifiCopy() {
     if (copyDirectBtn && wifiPassVal) {
         bindCopyLogic(copyDirectBtn, wifiPassVal);
     }
+
+    const mobileCopyBtn = document.getElementById("mobile-copy-wifi-btn");
+    const mobileWifiPassword = document.getElementById("mobile-wifi-password");
+    if (mobileCopyBtn && mobileWifiPassword) {
+        bindCopyLogic(mobileCopyBtn, mobileWifiPassword);
+    }
 }
 
 function initMobileActions() {
@@ -1882,4 +1889,52 @@ function initLeisureAccordion() {
     isMobile.addEventListener("change", (e) => {
         if (!e.matches) tiles.forEach(t => t.classList.remove("acc-open"));
     });
+}
+
+/* =========================================================================
+   MOBILE MENU TOGGLE & OVERLAY INTERACTIVITY
+   ========================================================================= */
+
+function initMobileMenu() {
+    const toggle = document.getElementById("mobile-menu-toggle");
+    const overlay = document.getElementById("mobile-menu-overlay");
+    const menuLinks = overlay ? overlay.querySelectorAll("a, button") : [];
+
+    if (!toggle || !overlay) return;
+
+    toggle.addEventListener("click", () => {
+        const isOpen = overlay.classList.contains("is-open");
+        if (isOpen) {
+            closeMenu();
+        } else {
+            openMenu();
+        }
+    });
+
+    // Close menu when a link inside it is clicked
+    menuLinks.forEach(link => {
+        link.addEventListener("click", () => {
+            closeMenu();
+        });
+    });
+
+    function openMenu() {
+        toggle.classList.add("is-active");
+        overlay.classList.add("is-open");
+        
+        // Disable scroll on main body to prevent background scrolling
+        document.body.style.overflow = "hidden";
+
+        // Premium fade-in slide animation using GSAP
+        gsap.fromTo(".mobile-menu-section", 
+            { opacity: 0, y: 15 }, 
+            { opacity: 1, y: 0, duration: 0.35, stagger: 0.06, ease: "power2.out" }
+        );
+    }
+
+    function closeMenu() {
+        toggle.classList.remove("is-active");
+        overlay.classList.remove("is-open");
+        document.body.style.overflow = "";
+    }
 }

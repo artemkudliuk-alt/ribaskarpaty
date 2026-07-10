@@ -2287,6 +2287,50 @@ body {
     }
 }
 
+@media (max-height: 768px) and (min-width: 1025px) {
+    .welcome-container {
+        padding-top: 100px;
+        padding-bottom: 40px;
+    }
+
+    .welcome-title {
+        font-size: 2.5rem !important;
+        line-height: 1.15;
+    }
+
+    #screen-1 .welcome-title {
+        font-size: 3.0rem !important;
+        line-height: 1.15;
+    }
+
+    .welcome-subtitle {
+        font-size: 0.95rem !important;
+        line-height: 1.4;
+    }
+
+    .info-grid-restaurant {
+        margin-top: 20px;
+        gap: 16px 24px;
+    }
+
+    .leisure-bento-grid {
+        gap: 12px;
+    }
+
+    .bento-tile {
+        padding: 18px;
+    }
+
+    .welcome-pillow-card {
+        padding: 20px 24px;
+    }
+
+    .food-slider-container {
+        height: 130px;
+        margin-bottom: 12px;
+    }
+}
+
 /* Narrow desktop / landscape tablet: compact header so nav never overlaps logo */
 @media (max-width: 1200px) {
     .main-header {
@@ -2380,14 +2424,16 @@ body {
         flex-direction: column;
         margin-left: auto;
         margin-right: auto;
-        max-width: 480px;
+        max-width: 720px;
+        width: 100%;
         transform: none;
         gap: 48px;
     }
 
     #screen-3 .welcome-text-side,
     #screen-5 .welcome-text-side {
-        max-width: 100%;
+        max-width: 540px;
+        width: 100%;
     }
 
     /* Cards go back to a simple vertical stack in the flow */
@@ -2852,11 +2898,320 @@ body {
         margin-top: 12px;
     }
 
+
+/* =========================================================================
+   SOUND TOGGLE (under the language switcher) + LEISURE ACCORDION + GRID BTNS
+   ========================================================================= */
+
+.header-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+.sound-toggle {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(197, 168, 128, 0.3);
+    border-radius: 50%;
+    color: var(--color-gold);
+    cursor: pointer;
+    padding: 0;
+    transition: border-color 0.25s ease, color 0.25s ease, transform 0.16s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .sound-toggle:hover {
+        border-color: rgba(197, 168, 128, 0.6);
+    }
+}
+
+.sound-toggle:active {
+    transform: scale(0.92);
+}
+
+.sound-ico {
+    width: 17px;
+    height: 17px;
+}
+
+.sound-ico .sound-wave,
+.sound-ico .sound-mute-line {
+    transition: opacity 0.2s ease;
+}
+
+.sound-ico .sound-mute-line {
+    opacity: 0;
+}
+
+.sound-toggle.is-muted {
+    color: rgba(245, 239, 230, 0.55);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.sound-toggle.is-muted .sound-wave {
+    opacity: 0;
+}
+
+.sound-toggle.is-muted .sound-mute-line {
+    opacity: 1;
+}
+
+/* Map / excursion buttons living directly in the bento grid */
+.grid-btn {
+    width: 100%;
+    padding: 13px 20px;
+}
+
+/* Chevron only participates in the mobile accordion */
+.tile-chevron {
+    display: none;
+    width: 18px;
+    height: 18px;
+    margin-left: auto;
+    color: var(--color-gold);
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+}
+
+.tile-body {
+    display: contents;
+}
+
+@media (max-width: 768px) {
+    .tile-chevron {
+        display: block;
+    }
+
+    .tile-header {
+        cursor: pointer;
+        margin-bottom: 0;
+    }
+
+    .tile-body {
+        display: block;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.45s cubic-bezier(0.25, 1, 0.5, 1), margin-top 0.3s ease;
+    }
+
+    .bento-tile.acc-open .tile-body {
+        max-height: 440px;
+        margin-top: 12px;
+    }
+
     .bento-tile.acc-open .tile-chevron {
         transform: rotate(180deg);
     }
 
     .tile-body .tile-actions {
         margin-top: 14px;
+    }
+}
+
+/* =========================================================================
+   MOBILE MENU TOGGLE & OVERLAY STYLE
+   ========================================================================= */
+
+.mobile-menu-toggle {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    width: 38px;
+    height: 38px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(197, 168, 128, 0.28);
+    border-radius: 50%;
+    color: var(--color-gold);
+    cursor: pointer;
+    z-index: 10005; /* sits above overlay */
+    position: relative;
+    padding: 0;
+    transition: border-color 0.25s ease, transform 0.16s ease, background-color 0.25s ease;
+}
+
+.mobile-menu-toggle:active {
+    transform: scale(0.92);
+}
+
+.hamburger-line {
+    width: 17px;
+    height: 1.5px;
+    background-color: var(--color-gold);
+    transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease;
+    transform-origin: center;
+}
+
+/* Active hamburger icon morphing */
+.mobile-menu-toggle.is-active .hamburger-line:nth-child(1) {
+    transform: translateY(6.5px) rotate(45deg);
+}
+
+.mobile-menu-toggle.is-active .hamburger-line:nth-child(2) {
+    opacity: 0;
+}
+
+.mobile-menu-toggle.is-active .hamburger-line:nth-child(3) {
+    transform: translateY(-6.5px) rotate(-45deg);
+}
+
+/* Mobile overlay menu */
+.mobile-menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(12, 11, 10, 0.97);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    z-index: 10000;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-30px);
+    transition: opacity 0.4s cubic-bezier(0.25, 1, 0.5, 1), transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+.mobile-menu-overlay.is-open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+.mobile-menu-content {
+    width: 100%;
+    max-width: 480px;
+    padding: 110px 24px 60px 24px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    height: 100%;
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+
+.mobile-menu-content::-webkit-scrollbar {
+    display: none;
+}
+
+.mobile-menu-section {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(197, 168, 128, 0.08);
+    border-radius: 14px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.mobile-section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-gold);
+}
+
+.mobile-section-title svg {
+    width: 16px;
+    height: 16px;
+}
+
+.mobile-wifi-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.mobile-field {
+    font-size: 0.9rem;
+    color: rgba(240, 235, 225, 0.8);
+    display: flex;
+    justify-content: space-between;
+}
+
+.mobile-field strong {
+    font-weight: 500;
+    color: rgba(240, 235, 225, 0.5);
+}
+
+.mobile-section-desc {
+    font-size: 0.85rem;
+    line-height: 1.45;
+    color: rgba(240, 235, 225, 0.65);
+    margin: 0;
+}
+
+.mobile-socials-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+@media (max-width: 1024px) {
+    .mobile-menu-toggle {
+        display: flex;
+    }
+}
+
+/* =========================================================================
+   MOBILE LANDSCAPE AND MOBILE OVERFLOW ADJUSTMENTS
+   ========================================================================= */
+
+@media (max-width: 768px) and (orientation: landscape) and (max-height: 480px) {
+    .welcome-container {
+        padding-top: 80px;
+        padding-bottom: 30px;
+        gap: 20px;
+        flex-direction: row !important;
+        flex-wrap: wrap;
+    }
+
+    .welcome-text-side, 
+    .welcome-interactive-side {
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+
+    .welcome-title {
+        font-size: 1.6rem !important;
+    }
+
+    #screen-1 .welcome-title {
+        font-size: 1.8rem !important;
+    }
+
+    .welcome-subtitle {
+        font-size: 0.88rem !important;
+    }
+
+    .food-slider-container {
+        height: 100px;
+    }
+
+    .mobile-menu-content {
+        padding-top: 80px;
+        gap: 16px;
+    }
+
+    .mobile-menu-section {
+        padding: 14px;
+        gap: 10px;
     }
 }
