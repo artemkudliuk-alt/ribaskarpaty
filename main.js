@@ -759,7 +759,7 @@ function animateScreenEntrance(screenEl) {
     const subtitle = screenEl.querySelector(".welcome-subtitle");
     const divider = screenEl.querySelector(".welcome-divider");
     const infoItems = screenEl.querySelectorAll(".info-item");
-    const tiles = screenEl.querySelectorAll(".bento-tile, .footer-social-links, .video-promo-btn");
+    const tiles = screenEl.querySelectorAll(".bento-tile, .footer-social-links, .video-promo-btn, .grid-btn");
     const card = screenEl.querySelector(".welcome-pillow-card");
     const scrollMouse = screenEl.querySelector(".scroll-indicator-mouse");
 
@@ -1610,20 +1610,21 @@ window.currentScreen = currentScreen;
 
 function initBackgroundMusic() {
     const toggleBtn = document.getElementById("sound-toggle");
-    const TARGET_VOL = 0.35;
+    const TARGET_VOL = 0.3;
     const FADE_IN = 2.5;
     const CROSSFADE = 1.6;
 
     const trackA = new Audio("music.mp3");
     const trackB = new Audio("music.mp3");
-    trackA.preload = "none";
-    trackB.preload = "none";
+    trackA.preload = "auto";
+    trackB.preload = "auto";
 
     let active = trackA;
     let standby = trackB;
     let started = false;
     let crossfading = false;
     let muted = false;
+    let preloaderDismissed = false;
     try { muted = localStorage.getItem("ribasMuted") === "1"; } catch (e) {}
 
     updateButton();
@@ -1662,7 +1663,9 @@ function initBackgroundMusic() {
         active.play().then(() => {
             started = true;
             removeGestureFallbacks();
-            gsap.to(active, { volume: TARGET_VOL, duration: FADE_IN, ease: "power1.out" });
+            if (preloaderDismissed) {
+                gsap.to(active, { volume: TARGET_VOL, duration: FADE_IN, ease: "power1.out" });
+            }
         }).catch(() => { /* autoplay blocked — a gesture listener will retry */ });
     };
 
@@ -1703,7 +1706,12 @@ function initBackgroundMusic() {
 
     window.__ribasMusic = {
         start() {
-            tryPlay();
+            preloaderDismissed = true;
+            if (started && !muted) {
+                gsap.to(active, { volume: TARGET_VOL, duration: FADE_IN, ease: "power1.out" });
+            } else {
+                tryPlay();
+            }
         }
     };
 }
