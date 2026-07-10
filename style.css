@@ -454,17 +454,56 @@ body {
         top: calc(50vh - 250px);
     }
 
-    /* Screen 4: the intro text stays pinned top-left while the bento grid
-       on the right scrolls */
+    #screen-4 .welcome-container {
+        padding-top: 110px;
+        padding-bottom: 50px;
+    }
+
     #screen-4 .welcome-text-side {
         position: fixed;
         left: max(110px, calc(50vw - 570px));
-        top: 140px;
+        top: 115px;
         width: 540px;
     }
 
     #screen-4 .leisure-bento-grid {
         margin-left: auto;
+        gap: 14px;
+        max-width: 540px;
+    }
+
+    #screen-4 .bento-tile {
+        padding: 16px 20px;
+        border-radius: 16px;
+    }
+
+    #screen-4 .tile-header {
+        margin-bottom: 6px;
+        font-size: 0.95rem;
+    }
+
+    #screen-4 .tile-desc {
+        font-size: 0.78rem;
+        line-height: 1.45;
+    }
+
+    #screen-4 .tile-actions {
+        margin-top: 10px;
+    }
+
+    #screen-4 .bento-btn.small-btn {
+        padding: 8px 14px;
+        font-size: 0.72rem;
+    }
+
+    #screen-4 .grid-btn {
+        padding: 10px 16px;
+        font-size: 0.72rem;
+    }
+
+    #screen-4 .video-promo-btn {
+        padding: 10px 16px;
+        font-size: 0.72rem;
     }
 }
 
