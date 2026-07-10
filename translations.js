@@ -125,7 +125,7 @@ window.translations = {
         ".leisure-bento-grid .bento-tile:nth-child(5) .tile-header span": "Memo Games",
         ".leisure-bento-grid .bento-tile:nth-child(5) .tile-desc": "Для затишних вечорів у номері, лобі чи камінній залі у нас є настільні ігри. Оберіть гру — і ми підкажемо, де її можна отримати.",
         ".leisure-bento-grid .bento-tile:nth-child(5) .tile-actions a span": "Переглянути настільні ігри",
-        "#resort-map-btn span": "Карта курорту Буковель",
+        "#resort-map-btn span": "Завантажити карту курорту Буковель",
         "#order-transfer-btn span": "Екскурсія або трансфер",
         "#play-video-promo-btn span": "Переглянути відео-огляд готелю",
 
@@ -291,7 +291,7 @@ window.translations = {
         ".leisure-bento-grid .bento-tile:nth-child(5) .tile-header span": "Memo Games",
         ".leisure-bento-grid .bento-tile:nth-child(5) .tile-desc": "For cozy evenings in your room, the lobby or the fireplace hall we offer board games. Pick a game — and we will tell you where to get it.",
         ".leisure-bento-grid .bento-tile:nth-child(5) .tile-actions a span": "Browse Board Games",
-        "#resort-map-btn span": "Bukovel Resort Map",
+        "#resort-map-btn span": "Download Bukovel Resort Map",
         "#order-transfer-btn span": "Excursion or Transfer",
         "#play-video-promo-btn span": "Watch Hotel Video Tour",
 
@@ -457,7 +457,7 @@ window.translations = {
         ".leisure-bento-grid .bento-tile:nth-child(5) .tile-header span": "Memo Games",
         ".leisure-bento-grid .bento-tile:nth-child(5) .tile-desc": "Для уютных вечеров в номере, лобби или каминном зале у нас есть настольные игры. Выберите игру — и мы подскажем, где её получить.",
         ".leisure-bento-grid .bento-tile:nth-child(5) .tile-actions a span": "Посмотреть настольные игры",
-        "#resort-map-btn span": "Карта курорта Буковель",
+        "#resort-map-btn span": "Загрузить карту курорта Буковель",
         "#order-transfer-btn span": "Экскурсия или трансфер",
         "#play-video-promo-btn span": "Посмотреть видео-обзор отеля",
 
