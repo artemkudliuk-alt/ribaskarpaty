@@ -1706,11 +1706,11 @@ body {
     padding: 24px;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     z-index: 200;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
     box-sizing: border-box;
     text-align: left;
+    display: none;
 }
 
 /* Caret/arrow pointing up */
@@ -1725,10 +1725,17 @@ body {
     border-color: transparent transparent rgba(10, 10, 10, 0.97) transparent;
 }
 
-.nav-item-dropdown:hover .dropdown-menu {
-    opacity: 1;
-    pointer-events: auto;
-    transform: translateX(-50%) translateY(0);
+/* Invisible bridge over the 15px gap between the nav item and its menu,
+   so the hover chain never breaks while moving the cursor down */
+.dropdown-menu::after {
+    content: '';
+    position: absolute;
+    top: -18px;
+    left: 0;
+    right: 0;
+    height: 18px;
+    background: transparent;
+    border: none;
 }
 
 .dropdown-title {
@@ -1962,6 +1969,7 @@ body {
 
 /* Make cloned elements inside modal display cleanly block-level */
 .modal-body-content .dropdown-menu {
+    display: block !important;
     position: static;
     transform: none;
     opacity: 1;
@@ -2695,5 +2703,121 @@ body {
 
     .floating-pillow-tab .tab-br {
         display: none;
+    }
+}
+
+
+/* =========================================================================
+   SOUND TOGGLE (under the language switcher) + LEISURE ACCORDION + GRID BTNS
+   ========================================================================= */
+
+.header-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+.sound-toggle {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(197, 168, 128, 0.3);
+    border-radius: 50%;
+    color: var(--color-gold);
+    cursor: pointer;
+    padding: 0;
+    transition: border-color 0.25s ease, color 0.25s ease, transform 0.16s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .sound-toggle:hover {
+        border-color: rgba(197, 168, 128, 0.6);
+    }
+}
+
+.sound-toggle:active {
+    transform: scale(0.92);
+}
+
+.sound-ico {
+    width: 17px;
+    height: 17px;
+}
+
+.sound-ico .sound-wave,
+.sound-ico .sound-mute-line {
+    transition: opacity 0.2s ease;
+}
+
+.sound-ico .sound-mute-line {
+    opacity: 0;
+}
+
+.sound-toggle.is-muted {
+    color: rgba(245, 239, 230, 0.55);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.sound-toggle.is-muted .sound-wave {
+    opacity: 0;
+}
+
+.sound-toggle.is-muted .sound-mute-line {
+    opacity: 1;
+}
+
+/* Map / excursion buttons living directly in the bento grid */
+.grid-btn {
+    width: 100%;
+    padding: 13px 20px;
+}
+
+/* Chevron only participates in the mobile accordion */
+.tile-chevron {
+    display: none;
+    width: 18px;
+    height: 18px;
+    margin-left: auto;
+    color: var(--color-gold);
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+}
+
+.tile-body {
+    display: contents;
+}
+
+@media (max-width: 768px) {
+    .tile-chevron {
+        display: block;
+    }
+
+    .tile-header {
+        cursor: pointer;
+        margin-bottom: 0;
+    }
+
+    .tile-body {
+        display: block;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.45s cubic-bezier(0.25, 1, 0.5, 1), margin-top 0.3s ease;
+    }
+
+    .bento-tile.acc-open .tile-body {
+        max-height: 440px;
+        margin-top: 12px;
+    }
+
+    .bento-tile.acc-open .tile-chevron {
+        transform: rotate(180deg);
+    }
+
+    .tile-body .tile-actions {
+        margin-top: 14px;
     }
 }

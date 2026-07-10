@@ -4,12 +4,15 @@ document.addEventListener("DOMContentLoaded", () => {
     initWifiCopy();
     initPillowCardAction();
     initFloatingPillowTab();
+    initHeaderDropdowns();
     initRestaurantSlider();
     initRestaurantActions();
     initSpaActions();
     initLeisureActions();
+    initLeisureAccordion();
     initUsefulInfoActions();
     initLanguageSelector();
+    initBackgroundMusic();
 });
 
 let currentScreen = 1;
@@ -161,6 +164,9 @@ function initPreloader() {
         clearTimeout(safetyTimeout);
 
         console.log("Dismissing preloader...");
+
+        // Lounge soundtrack fades in together with the first screen
+        if (window.__ribasMusic) window.__ribasMusic.start();
 
         gsap.to(logoContainer, {
             opacity: 0,
@@ -329,6 +335,8 @@ function initTransitionTrigger() {
         {
             id: 6,
             el: document.getElementById("screen-footer"),
+            transitionVideo: document.getElementById("video-transition-footer"),
+            loopVideo: document.getElementById("video-footer-loop"),
             slideTransition: true
         }
     ];
@@ -346,7 +354,9 @@ function initTransitionTrigger() {
         2: 1.5333,
         3: 3.2667,
         4: 5.7667,
-        5: 7.6333
+        // 75ms before the physical end of the clip: seeking to the exact end
+        // puts the <video> into the "ended" state and paints a black frame
+        5: 7.58
     };
 
     if (!flashOverlay) return;
@@ -355,9 +365,18 @@ function initTransitionTrigger() {
     if (scrollingVideo && typeof scrollingVideo.load === "function") scrollingVideo.load();
     if (scrollingVideoReverse && typeof scrollingVideoReverse.load === "function") scrollingVideoReverse.load();
     screens.forEach(s => {
-        if (s.transitionVideo && typeof s.transitionVideo.load === "function") s.transitionVideo.load();
-        if (s.reverseVideo && typeof s.reverseVideo.load === "function") s.reverseVideo.load();
-        if (s.loopVideo && !s.isDualLoop && typeof s.loopVideo.load === "function") s.loopVideo.load();
+        if (s.transitionVideo && typeof s.transitionVideo.load === "function") {
+            s.transitionVideo.preload = "auto";
+            s.transitionVideo.load();
+        }
+        if (s.reverseVideo && typeof s.reverseVideo.load === "function") {
+            s.reverseVideo.preload = "auto";
+            s.reverseVideo.load();
+        }
+        if (s.loopVideo && !s.isDualLoop && typeof s.loopVideo.load === "function") {
+            s.loopVideo.preload = "auto";
+            s.loopVideo.load();
+        }
     });
 
     // Wire restaurant click in header menu to go directly to screen 2
@@ -581,7 +600,7 @@ function initTransitionTrigger() {
                     const destLoop = toScreen.loopVideo;
                     if (destLoop && toScreen.transitionVideo) {
                         destLoop.currentTime = 0;
-                        destLoop.playbackRate = 0.35;
+                        destLoop.playbackRate = 1.0;
                         destLoop.play().then(() => {
                             gsap.set(destLoop, { opacity: 1 });
                             gsap.set(toScreen.transitionVideo, { opacity: 0 });
@@ -613,6 +632,11 @@ function initTransitionTrigger() {
             scrollingVideoReverse.pause();
             scrollingVideo.currentTime = screenTimestamps[5];
             scrollingVideoReverse.currentTime = videoDuration - screenTimestamps[5];
+            // Make sure the forward layer (holding the screen-5 frame) is the
+            // visible one — the reverse copy may still sit on top after an
+            // earlier upward transition
+            scrollingVideo.style.opacity = "1";
+            scrollingVideoReverse.style.opacity = "0";
 
             // Let finalizeTransition trigger the entrance on complete
             skipEntranceInFinalize = false;
@@ -759,7 +783,8 @@ function animateScreenEntrance(screenEl) {
     if (card) gsap.set(card, { scale: 0.97, y: 30, opacity: 0 });
     if (scrollMouse) gsap.set(scrollMouse, { y: 10, opacity: 0 });
 
-    const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+    // Info blocks settle in ~0.5s after the scene stops (owner request)
+    const tl = gsap.timeline({ delay: 0.5, defaults: { ease: "power3.out" } });
 
     // 0. Dark Overlay fades in
     if (overlay) {
@@ -1017,30 +1042,7 @@ function initMobileActions() {
 }
 
 function initPillowCardAction() {
-    const actionBtn = document.getElementById("pillow-card-action-btn");
-    if (!actionBtn) return;
-
-    actionBtn.addEventListener("click", () => {
-        actionBtn.classList.add("copied"); // Re-use copy success green style
-        const btnText = actionBtn.querySelector("span");
-        if (btnText) {
-            btnText.textContent = "✓ Запит надіслано";
-        }
-
-        // GSAP click feedback animation
-        gsap.fromTo(actionBtn, 
-            { scale: 0.95 }, 
-            { scale: 1.0, duration: 0.3, ease: "elastic.out(1.2, 0.5)" }
-        );
-
-        // Restore button state after 3 seconds
-        setTimeout(() => {
-            actionBtn.classList.remove("copied");
-            if (btnText) {
-                btnText.textContent = "Обрати подушку";
-            }
-        }, 3000);
-    });
+    // PDF menu opening is now handled universally by the [data-pdf] listener
 }
 
 function initFloatingPillowTab() {
@@ -1067,6 +1069,86 @@ function initFloatingPillowTab() {
     document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
             pillowTab.classList.remove("is-expanded");
+        }
+    });
+}
+
+function initHeaderDropdowns() {
+    const dropdowns = document.querySelectorAll(".nav-item-dropdown");
+    let activeDropdown = null;
+    let activeLink = null;
+    let activeMenu = null;
+
+    dropdowns.forEach(dropdown => {
+        const link = dropdown.querySelector(".nav-link");
+        const menu = dropdown.querySelector(".dropdown-menu");
+        if (!link || !menu) return;
+
+        dropdown.addEventListener("mouseenter", () => {
+            if (activeDropdown && activeDropdown !== dropdown) {
+                closeDropdown(activeMenu);
+            }
+            
+            activeDropdown = dropdown;
+            activeLink = link;
+            activeMenu = menu;
+            
+            openDropdown(menu);
+        });
+    });
+
+    function openDropdown(menu) {
+        menu.classList.add("is-visible");
+        gsap.killTweensOf(menu);
+        gsap.set(menu, { display: "block", pointerEvents: "auto" });
+        gsap.to(menu, {
+            opacity: 1,
+            y: 0,
+            duration: 0.35,
+            ease: "power3.out"
+        });
+    }
+
+    function closeDropdown(menu) {
+        if (!menu) return;
+        menu.classList.remove("is-visible");
+        gsap.killTweensOf(menu);
+        gsap.to(menu, {
+            opacity: 0,
+            y: 15,
+            duration: 0.25,
+            ease: "power2.in",
+            onComplete: () => {
+                gsap.set(menu, { display: "none", pointerEvents: "none" });
+            }
+        });
+    }
+
+    function getDistanceToRect(x, y, rect) {
+        const dx = Math.max(rect.left - x, 0, x - rect.right);
+        const dy = Math.max(rect.top - y, 0, y - rect.bottom);
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    document.addEventListener("mousemove", (e) => {
+        if (!activeDropdown || !activeLink || !activeMenu) return;
+
+        const mouseX = e.clientX;
+        const mouseY = e.clientY;
+
+        const linkRect = activeLink.getBoundingClientRect();
+        const menuRect = activeMenu.getBoundingClientRect();
+
+        const distLink = getDistanceToRect(mouseX, mouseY, linkRect);
+        const distMenu = getDistanceToRect(mouseX, mouseY, menuRect);
+        const minDist = Math.min(distLink, distMenu);
+
+        // If mouse wanders more than 25 pixels away from link and menu, close it
+        if (minDist > 25) {
+            closeDropdown(activeMenu);
+            activeDropdown = null;
+            activeLink = null;
+            activeMenu = null;
         }
     });
 }
@@ -1240,6 +1322,14 @@ function initSpaActions() {
 function initLeisureActions() {
     const playVideoBtn = document.getElementById("play-video-promo-btn");
     const viewBooksBtn = document.getElementById("view-books-btn");
+
+    // Excursion / transfer request goes through the shared booking modal
+    const transferBtn = document.getElementById("order-transfer-btn");
+    if (transferBtn) {
+        transferBtn.addEventListener("click", () => {
+            openBookingModal("book_transfer");
+        });
+    }
 
     const youtubeModal = document.getElementById("youtube-modal");
     const closeYoutubeBtn = document.getElementById("close-youtube-modal");
@@ -1419,8 +1509,27 @@ function initPdfModal() {
         if (!trigger) return;
         e.preventDefault();
         e.stopPropagation();
-        const src   = trigger.dataset.pdf;
-        const label = trigger.dataset.pdfTitle || "";
+
+        let src = trigger.dataset.pdf;
+
+        // Dynamic responsive swap for Memo Games PDF
+        if (src === "/files/memo-games.pdf" || src.includes("MemoGames") || src.includes("memo-games")) {
+            const isMobile = window.innerWidth <= 768;
+            src = isMobile ? "/files/MemoGames mob.pdf" : "/files/MemoGames декстоп.pdf";
+        }
+
+        // Dynamic translated title extraction (falls back to data-pdf-title)
+        let label = "";
+        const textSpan = trigger.querySelector(".btn-text, span");
+        if (textSpan) {
+            label = textSpan.textContent.trim();
+        } else if (trigger.textContent.trim()) {
+            label = trigger.textContent.trim();
+        }
+        if (!label || label === "") {
+            label = trigger.dataset.pdfTitle || "";
+        }
+
         openPdf(src, label);
     });
 }
@@ -1508,3 +1617,135 @@ window.currentScreen = currentScreen;
 
 
 
+
+
+/* =========================================================================
+   BACKGROUND MUSIC — lounge jazz, seamless loop via two overlapping tracks
+   ========================================================================= */
+
+function initBackgroundMusic() {
+    const toggleBtn = document.getElementById("sound-toggle");
+    const TARGET_VOL = 0.35;
+    const FADE_IN = 2.5;
+    const CROSSFADE = 1.6;
+
+    const trackA = new Audio("music.mp3");
+    const trackB = new Audio("music.mp3");
+    trackA.preload = "none";
+    trackB.preload = "none";
+
+    let active = trackA;
+    let standby = trackB;
+    let started = false;
+    let crossfading = false;
+    let muted = false;
+    try { muted = localStorage.getItem("ribasMuted") === "1"; } catch (e) {}
+
+    updateButton();
+
+    // Seamless loop: shortly before the active track ends, the standby copy
+    // starts from zero and both are crossfaded (overlap looping).
+    const watchLoop = () => {
+        if (started && !muted && !crossfading && active.duration &&
+            active.duration - active.currentTime <= CROSSFADE) {
+            crossfading = true;
+            standby.currentTime = 0;
+            standby.volume = 0;
+            standby.play().then(() => {
+                gsap.to(standby, { volume: TARGET_VOL, duration: CROSSFADE, ease: "none" });
+                gsap.to(active, {
+                    volume: 0,
+                    duration: CROSSFADE,
+                    ease: "none",
+                    onComplete: () => {
+                        active.pause();
+                        const t = active; active = standby; standby = t;
+                        crossfading = false;
+                    }
+                });
+            }).catch(() => { crossfading = false; });
+        }
+        requestAnimationFrame(watchLoop);
+    };
+    requestAnimationFrame(watchLoop);
+
+    const tryPlay = () => {
+        if (started || muted) return;
+        trackA.preload = "auto";
+        trackB.preload = "auto";
+        active.volume = 0;
+        active.play().then(() => {
+            started = true;
+            removeGestureFallbacks();
+            gsap.to(active, { volume: TARGET_VOL, duration: FADE_IN, ease: "power1.out" });
+        }).catch(() => { /* autoplay blocked — a gesture listener will retry */ });
+    };
+
+    const gestureEvents = ["pointerdown", "touchstart", "wheel", "keydown"];
+    const onGesture = () => tryPlay();
+    const addGestureFallbacks = () => gestureEvents.forEach(ev => window.addEventListener(ev, onGesture, { passive: true }));
+    const removeGestureFallbacks = () => gestureEvents.forEach(ev => window.removeEventListener(ev, onGesture));
+
+    function updateButton() {
+        if (!toggleBtn) return;
+        toggleBtn.classList.toggle("is-muted", muted);
+    }
+
+    if (toggleBtn) {
+        toggleBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            muted = !muted;
+            try { localStorage.setItem("ribasMuted", muted ? "1" : "0"); } catch (err) {}
+            updateButton();
+            if (muted) {
+                gsap.to([trackA, trackB], {
+                    volume: 0,
+                    duration: 0.6,
+                    ease: "power1.out",
+                    onComplete: () => { trackA.pause(); trackB.pause(); }
+                });
+                started = false;
+                crossfading = false;
+            } else {
+                tryPlay();
+            }
+        });
+    }
+
+    // Try to play immediately on load (if allowed) and register gesture listeners immediately
+    tryPlay();
+    addGestureFallbacks();
+
+    window.__ribasMusic = {
+        start() {
+            tryPlay();
+        }
+    };
+}
+
+/* =========================================================================
+   LEISURE TILES — mobile accordion (compact headers, tap to expand)
+   ========================================================================= */
+
+function initLeisureAccordion() {
+    const tiles = document.querySelectorAll("#screen-4 .bento-tile");
+    if (!tiles.length) return;
+
+    const isMobile = window.matchMedia("(max-width: 768px)");
+
+    tiles.forEach(tile => {
+        const header = tile.querySelector(".tile-header");
+        if (!header) return;
+        header.addEventListener("click", () => {
+            if (!isMobile.matches) return;
+            const wasOpen = tile.classList.contains("acc-open");
+            tiles.forEach(t => t.classList.remove("acc-open"));
+            if (!wasOpen) tile.classList.add("acc-open");
+        });
+    });
+
+    // Leaving mobile: make sure every tile is fully expanded again
+    isMobile.addEventListener("change", (e) => {
+        if (!e.matches) tiles.forEach(t => t.classList.remove("acc-open"));
+    });
+}

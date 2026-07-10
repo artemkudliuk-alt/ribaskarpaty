@@ -111,10 +111,20 @@
             </div>
         </nav>
         
-        <div class="lang-selector">
-            <button class="lang-btn active">UA</button>
-            <button class="lang-btn">EN</button>
-            <button class="lang-btn">RU</button>
+        <div class="header-right">
+            <div class="lang-selector">
+                <button class="lang-btn active">UA</button>
+                <button class="lang-btn">EN</button>
+                <button class="lang-btn">RU</button>
+            </div>
+            <button id="sound-toggle" class="sound-toggle" aria-label="Фонова музика: увімкнути / вимкнути">
+                <svg class="sound-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 5 6.5 8.5H3v7h3.5L11 19V5z"/>
+                    <path class="sound-wave" d="M15 9.5a4 4 0 0 1 0 5"/>
+                    <path class="sound-wave" d="M17.5 7a8 8 0 0 1 0 10"/>
+                    <line class="sound-mute-line" x1="4.5" y1="4.5" x2="19.5" y2="19.5"/>
+                </svg>
+            </button>
         </div>
     </header>
 
@@ -207,9 +217,9 @@
                         <br><br>
                         Просто повідомте адміністратора на рецепції — і ми доставимо її у ваш номер.
                     </p>
-                    <button class="gold-action-btn pillow-select-btn" id="pillow-card-action-btn">
+                    <a href="#" data-pdf="/files/Меню подушок.pdf" data-pdf-title="Меню подушок" class="gold-action-btn pillow-select-btn" id="pillow-card-action-btn">
                         <span>Обрати подушку</span>
-                    </button>
+                    </a>
                 </div>
             </div>
 
@@ -275,10 +285,10 @@
                     <!-- Food Slider -->
                     <div class="food-slider-container">
                         <div class="food-slider-wrapper">
-                            <div class="food-slide active"><img src="сніданок.png" alt="Сніданки — шведський стіл"><span class="slide-caption">Сніданки</span></div>
-                            <div class="food-slide"><img src="камінна зала.png" alt="Камінна зала"><span class="slide-caption">Камінна зала</span></div>
-                            <div class="food-slide"><img src="основні страви.png" alt="Локальні страви"><span class="slide-caption">Локальні страви</span></div>
-                            <div class="food-slide"><img src="десерти.png" alt="Десерти"><span class="slide-caption">Десерти</span></div>
+                            <div class="food-slide active"><img src="сніданок.webp" alt="Сніданки — шведський стіл" loading="lazy" decoding="async"><span class="slide-caption">Сніданки</span></div>
+                            <div class="food-slide"><img src="камінна зала.webp" alt="Камінна зала" loading="lazy" decoding="async"><span class="slide-caption">Камінна зала</span></div>
+                            <div class="food-slide"><img src="основні страви.webp" alt="Локальні страви" loading="lazy" decoding="async"><span class="slide-caption">Локальні страви</span></div>
+                            <div class="food-slide"><img src="десерти.webp" alt="Десерти" loading="lazy" decoding="async"><span class="slide-caption">Десерти</span></div>
                         </div>
                         <div class="slider-dots">
                             <span class="dot active" data-index="0"></span>
@@ -392,8 +402,11 @@
                         <div class="tile-header">
                             <svg class="tile-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 7.5 9.5h2L6 15h4.5v6h3v-6H18l-3.5-5.5h2L12 3z"/></svg>
                             <span>Літній відпочинок</span>
+                            <svg class="tile-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                         </div>
-                        <p class="tile-desc">Трекінг-маршрути, прокат велосипедів і квадроциклів, Озеро Молодості, етнопарк «Гуцул Ленд» та прогулянки серед карпатських краєвидів.</p>
+                        <div class="tile-body">
+                            <p class="tile-desc">Трекінг-маршрути, прокат велосипедів і квадроциклів, Озеро Молодості, етнопарк «Гуцул Ленд» та прогулянки серед карпатських краєвидів.</p>
+                        </div>
                     </div>
 
                     <!-- Winter Card -->
@@ -401,37 +414,70 @@
                         <div class="tile-header">
                             <svg class="tile-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M4 7l16 10M20 7 4 17"/><path d="m9 4 3 2 3-2M9 20l3-2 3 2"/></svg>
                             <span>Зимовий відпочинок</span>
+                            <svg class="tile-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                         </div>
-                        <p class="tile-desc">Актуальний статус підйомників, прокат гірськолижного спорядження, замовлення інструктора та партнерські умови: <strong>−10%</strong> на прокат спорядження.</p>
+                        <div class="tile-body">
+                            <p class="tile-desc">Актуальний статус підйомників, прокат гірськолижного спорядження, замовлення інструктора та партнерські умови: <strong>−10%</strong> на прокат спорядження.</p>
+                        </div>
                     </div>
 
                     <!-- Kids Room Card -->
-                    <div class="bento-tile glass-card double-width-tile">
+                    <div class="bento-tile glass-card">
                         <div class="tile-header">
                             <svg class="tile-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 14a4.5 4.5 0 0 0 7 0"/><path d="M9 9.5h.01M15 9.5h.01"/></svg>
                             <span>Дитяча кімната</span>
+                            <svg class="tile-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                         </div>
-                        <p class="tile-desc">У готелі є безкоштовна дитяча кімната, де маленькі гості можуть грати, відпочивати й проводити час у безпечному затишному просторі.</p>
+                        <div class="tile-body">
+                            <p class="tile-desc">У готелі є безкоштовна дитяча кімната, де маленькі гості можуть грати, відпочивати й проводити час у безпечному затишному просторі.</p>
+                        </div>
                     </div>
 
-                    <!-- Library & Games Card -->
-                    <div class="bento-tile glass-card double-width-tile">
+                    <!-- Mini Library Card -->
+                    <div class="bento-tile glass-card">
                         <div class="tile-header">
-                            <svg class="tile-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h7z"/></svg>
-                            <span>Книги &amp; Memo Games</span>
+                            <svg class="tile-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V2H6.5A2.5 2.5 0 0 0 4 4.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>
+                            <span>Мінібібліотека готелю</span>
+                            <svg class="tile-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                         </div>
-                        <p class="tile-desc">Оберіть книгу з нашого каталогу (безкоштовна доставка в номер) або візьміть настільні ігри для веселої компанії біля рецепції чи в камінній залі.</p>
-                        <div class="tile-actions">
-                            <a href="#" data-pdf="/files/memo-games.pdf" data-pdf-title="Список ігор Memo Games" class="bento-btn outline-btn small-btn">
-                                <svg class="btn-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 8h.01M16 8h.01M12 12h.01M8 16h.01M16 16h.01"/></svg>
-                                <span>Список ігор</span>
-                            </a>
-                            <button class="bento-btn outline-btn small-btn" id="view-books-btn">
-                                <svg class="btn-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V2H6.5A2.5 2.5 0 0 0 4 4.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>
-                                <span class="btn-text">Каталог книг</span>
-                            </button>
+                        <div class="tile-body">
+                            <p class="tile-desc">Хочете провести вечір із чашкою карпатського чаю та хорошою книгою? Оберіть книгу з нашого каталогу — і ми безкоштовно доставимо її у ваш номер.</p>
+                            <div class="tile-actions">
+                                <a href="#" data-pdf="/files/Book menu.pdf" data-pdf-title="PDF-меню книг" class="bento-btn outline-btn small-btn">
+                                    <svg class="btn-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h7z"/></svg>
+                                    <span>PDF-меню книг</span>
+                                </a>
+                            </div>
                         </div>
                     </div>
+
+                    <!-- Memo Games Card -->
+                    <div class="bento-tile glass-card double-width-tile">
+                        <div class="tile-header">
+                            <svg class="tile-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 8h.01M16 8h.01M12 12h.01M8 16h.01M16 16h.01"/></svg>
+                            <span>Memo Games</span>
+                            <svg class="tile-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                        </div>
+                        <div class="tile-body">
+                            <p class="tile-desc">Для затишних вечорів у номері, лобі чи камінній залі у нас є настільні ігри. Оберіть гру — і ми підкажемо, де її можна отримати.</p>
+                            <div class="tile-actions">
+                                <a href="#" data-pdf="/files/memo-games.pdf" data-pdf-title="Список ігор Memo Games" class="bento-btn outline-btn small-btn">
+                                    <svg class="btn-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 8h.01M16 8h.01M12 12h.01M8 16h.01M16 16h.01"/></svg>
+                                    <span>Переглянути настільні ігри</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Resort map + excursion/transfer -->
+                    <a href="#" data-pdf="/files/398_210мм_Karpaty.pdf.pdf" data-pdf-title="Карта курорту Буковель" class="bento-btn outline-btn grid-btn" id="resort-map-btn">
+                        <svg class="btn-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 4-6 2v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>
+                        <span>Карта курорту Буковель</span>
+                    </a>
+                    <button class="bento-btn outline-btn grid-btn" id="order-transfer-btn">
+                        <svg class="btn-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 16 6.5 9.5A2 2 0 0 1 8.5 8h7a2 2 0 0 1 2 1.5L19 16"/><rect x="3.5" y="16" width="17" height="4" rx="1.5"/><path d="M6.5 20v1.5M17.5 20v1.5"/></svg>
+                        <span>Екскурсія або трансфер</span>
+                    </button>
 
                     <!-- Video tour CTA lives in the grid, over the scenery -->
                     <button class="bento-btn gold-btn video-promo-btn" id="play-video-promo-btn">
@@ -515,13 +561,13 @@
 
     <!-- Footer Screen: End of Journey -->
     <div id="screen-footer" class="screen" style="display: none;">
-        <video id="video-transition-footer" class="screen-video" muted playsinline preload="auto">
+        <video id="video-transition-footer" class="screen-video" muted playsinline preload="none">
             <source src="footer.mp4" type="video/mp4">
         </video>
         <video id="video-transition-footer-reverse" class="screen-video" muted playsinline preload="auto" style="opacity: 0;">
             <source src="footer_reverse.mp4" type="video/mp4">
         </video>
-        <video id="video-footer-loop" class="screen-video" muted playsinline loop preload="auto" style="opacity: 0;">
+        <video id="video-footer-loop" class="screen-video" muted playsinline loop preload="none" style="opacity: 0;">
             <source src="footer.mp4" type="video/mp4">
         </video>
         <div class="screen-overlay"></div>

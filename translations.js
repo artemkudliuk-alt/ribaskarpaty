@@ -10,6 +10,8 @@ window.dynamicTranslations = {
         book_table_placeholder: "Вкажіть час бронювання та кількість осіб",
         book_spa_title: "Запис на масаж",
         book_spa_placeholder: "Вкажіть бажаний час та назву процедури (напр., Стоун-масаж)",
+        book_transfer_title: "Замовлення екскурсії або трансферу",
+        book_transfer_placeholder: "Вкажіть напрямок, дату, час та кількість осіб",
         request_sent: "✓ Запит відправлено!",
         send_request: "Надіслати запит"
     },
@@ -20,6 +22,8 @@ window.dynamicTranslations = {
         book_table_placeholder: "Specify booking time and number of persons",
         book_spa_title: "Massage Booking",
         book_spa_placeholder: "Specify desired time and name of treatment (e.g. Hot Stone)",
+        book_transfer_title: "Excursion / Transfer Request",
+        book_transfer_placeholder: "Specify destination, date, time and number of persons",
         request_sent: "✓ Request sent!",
         send_request: "Send request"
     },
@@ -30,6 +34,8 @@ window.dynamicTranslations = {
         book_table_placeholder: "Укажите время бронирования и количество человек",
         book_spa_title: "Запись на массаж",
         book_spa_placeholder: "Укажите желаемое время и название процедуры (напр., Стоун-массаж)",
+        book_transfer_title: "Заказ экскурсии или трансфера",
+        book_transfer_placeholder: "Укажите направление, дату, время и количество человек",
         request_sent: "✓ Запрос отправлен!",
         send_request: "Отправить запрос"
     }
@@ -113,10 +119,14 @@ window.translations = {
         ".leisure-bento-grid .bento-tile:nth-child(2) .tile-desc": "Актуальний статус підйомників, прокат гірськолижного спорядження, замовлення інструктора та партнерські умови: <strong>−10%</strong> на прокат спорядження.",
         ".leisure-bento-grid .bento-tile:nth-child(3) .tile-header span": "Дитяча кімната",
         ".leisure-bento-grid .bento-tile:nth-child(3) .tile-desc": "У готелі є безкоштовна дитяча кімната, де маленькі гості можуть грати, відпочивати й проводити час у безпечному затишному просторі.",
-        ".leisure-bento-grid .bento-tile:nth-child(4) .tile-header span": "Книги & Memo Games",
-        ".leisure-bento-grid .bento-tile:nth-child(4) .tile-desc": "Оберіть книгу з нашого каталогу (безкоштовна доставка в номер) або візьміть настільні ігри для веселої компанії біля рецепції чи в камінній залі.",
-        ".leisure-bento-grid .bento-tile:nth-child(4) .tile-actions a span": "Список ігор",
-        "#view-books-btn .btn-text": "Каталог книг",
+        ".leisure-bento-grid .bento-tile:nth-child(4) .tile-header span": "Мінібібліотека готелю",
+        ".leisure-bento-grid .bento-tile:nth-child(4) .tile-desc": "Хочете провести вечір із чашкою карпатського чаю та хорошою книгою? Оберіть книгу з нашого каталогу — і ми безкоштовно доставимо її у ваш номер.",
+        ".leisure-bento-grid .bento-tile:nth-child(4) .tile-actions a span": "PDF-меню книг",
+        ".leisure-bento-grid .bento-tile:nth-child(5) .tile-header span": "Memo Games",
+        ".leisure-bento-grid .bento-tile:nth-child(5) .tile-desc": "Для затишних вечорів у номері, лобі чи камінній залі у нас є настільні ігри. Оберіть гру — і ми підкажемо, де її можна отримати.",
+        ".leisure-bento-grid .bento-tile:nth-child(5) .tile-actions a span": "Переглянути настільні ігри",
+        "#resort-map-btn span": "Карта курорту Буковель",
+        "#order-transfer-btn span": "Екскурсія або трансфер",
         "#play-video-promo-btn span": "Переглянути відео-огляд готелю",
 
         // Screen 5
@@ -275,10 +285,14 @@ window.translations = {
         ".leisure-bento-grid .bento-tile:nth-child(2) .tile-desc": "Real-time ski lift updates, ski rentals, instructor bookings, and partner terms: <strong>−10%</strong> on gear rental.",
         ".leisure-bento-grid .bento-tile:nth-child(3) .tile-header span": "Kids Playroom",
         ".leisure-bento-grid .bento-tile:nth-child(3) .tile-desc": "We offer a complimentary kids room, where little guests can play, rest and spend time in a safe, comfy environment.",
-        ".leisure-bento-grid .bento-tile:nth-child(4) .tile-header span": "Books & Board Games",
-        ".leisure-bento-grid .bento-tile:nth-child(4) .tile-desc": "Pick a book from our catalog (free room delivery) or grab board games for a fun company at the reception or fireplace hall.",
-        ".leisure-bento-grid .bento-tile:nth-child(4) .tile-actions a span": "Game List",
-        "#view-books-btn .btn-text": "Book Catalog",
+        ".leisure-bento-grid .bento-tile:nth-child(4) .tile-header span": "Hotel Mini-Library",
+        ".leisure-bento-grid .bento-tile:nth-child(4) .tile-desc": "Fancy an evening with a cup of Carpathian tea and a good book? Pick one from our catalog — we will deliver it to your room for free.",
+        ".leisure-bento-grid .bento-tile:nth-child(4) .tile-actions a span": "Book Menu (PDF)",
+        ".leisure-bento-grid .bento-tile:nth-child(5) .tile-header span": "Memo Games",
+        ".leisure-bento-grid .bento-tile:nth-child(5) .tile-desc": "For cozy evenings in your room, the lobby or the fireplace hall we offer board games. Pick a game — and we will tell you where to get it.",
+        ".leisure-bento-grid .bento-tile:nth-child(5) .tile-actions a span": "Browse Board Games",
+        "#resort-map-btn span": "Bukovel Resort Map",
+        "#order-transfer-btn span": "Excursion or Transfer",
         "#play-video-promo-btn span": "Watch Hotel Video Tour",
 
         // Screen 5
@@ -437,10 +451,14 @@ window.translations = {
         ".leisure-bento-grid .bento-tile:nth-child(2) .tile-desc": "Актуальный статус подъемников, прокат горнолыжного снаряжения, заказ инструктора и партнерские условия: <strong>−10%</strong> на прокат снаряжения.",
         ".leisure-bento-grid .bento-tile:nth-child(3) .tile-header span": "Детская комната",
         ".leisure-bento-grid .bento-tile:nth-child(3) .tile-desc": "В отеле есть бесплатная детская комната, где маленькие гости могут играть, отдыхать и проводить время в безопасном уютном пространстве.",
-        ".leisure-bento-grid .bento-tile:nth-child(4) .tile-header span": "Книги & Memo Games",
-        ".leisure-bento-grid .bento-tile:nth-child(4) .tile-desc": "Выберите книгу из нашего каталога (бесплатная доставка в номер) или возьмите настольные игры для веселой компании возле рецепции или в каминном зале.",
-        ".leisure-bento-grid .bento-tile:nth-child(4) .tile-actions a span": "Список игр",
-        "#view-books-btn .btn-text": "Каталог книг",
+        ".leisure-bento-grid .bento-tile:nth-child(4) .tile-header span": "Минибиблиотека отеля",
+        ".leisure-bento-grid .bento-tile:nth-child(4) .tile-desc": "Хотите провести вечер с чашкой карпатского чая и хорошей книгой? Выберите книгу из нашего каталога — и мы бесплатно доставим её в ваш номер.",
+        ".leisure-bento-grid .bento-tile:nth-child(4) .tile-actions a span": "PDF-меню книг",
+        ".leisure-bento-grid .bento-tile:nth-child(5) .tile-header span": "Memo Games",
+        ".leisure-bento-grid .bento-tile:nth-child(5) .tile-desc": "Для уютных вечеров в номере, лобби или каминном зале у нас есть настольные игры. Выберите игру — и мы подскажем, где её получить.",
+        ".leisure-bento-grid .bento-tile:nth-child(5) .tile-actions a span": "Посмотреть настольные игры",
+        "#resort-map-btn span": "Карта курорта Буковель",
+        "#order-transfer-btn span": "Экскурсия или трансфер",
         "#play-video-promo-btn span": "Посмотреть видео-обзор отеля",
 
         // Screen 5
