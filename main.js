@@ -99,25 +99,17 @@ function initPreloader() {
         // Hide progress text once preloader starts playing
         gsap.to(progressText, { opacity: 0, duration: 0.3, delay: 0.2 });
 
-        // Step 3: Start preloading the main lobby video (1 screen.mp4) and music in parallel
-        return Promise.all([
-            preloadFile("1 screen.mp4", () => {}),
-            preloadFile("music.mp3", () => {})
-        ]);
+        // Step 3: Start preloading the main lobby video (1 screen.mp4) in the background
+        return preloadFile("1 screen.mp4", () => {});
     })
-    .then(([lobbyBlobUrl, musicBlobUrl]) => {
-        console.log("Lobby video and music preloaded!");
+    .then((lobbyBlobUrl) => {
+        console.log("Lobby video preloaded!");
         lobbyVideoBlobUrl = lobbyBlobUrl;
         mainVideoReady = true;
 
         // Assign Blob URL to both lobby video layers
         videoLobby1.src = lobbyVideoBlobUrl;
         videoLobby2.src = lobbyVideoBlobUrl;
-
-        // Pass the preloaded music blob URL to the music manager
-        if (window.__ribasMusic && window.__ribasMusic.setMusicSrc) {
-            window.__ribasMusic.setMusicSrc(musicBlobUrl);
-        }
 
         // Initialize lobby loop now
         initLobbySeamlessLoop();
@@ -133,11 +125,6 @@ function initPreloader() {
         preloaderVideo.src = "preloader.mp4";
         videoLobby1.src = "1 screen.mp4";
         videoLobby2.src = "1 screen.mp4";
-        
-        // Pass music fallback to music manager
-        if (window.__ribasMusic && window.__ribasMusic.setMusicSrc) {
-            window.__ribasMusic.setMusicSrc("music.mp3");
-        }
         
         preloaderVideo.play().catch(() => {});
         initLobbySeamlessLoop();
@@ -1627,41 +1614,26 @@ function initBackgroundMusic() {
     const FADE_IN = 2.5;
     const CROSSFADE = 1.6;
 
-    let trackA = null;
-    let trackB = null;
-    let active = null;
-    let standby = null;
+    const trackA = new Audio("music.mp3");
+    const trackB = new Audio("music.mp3");
+    trackA.preload = "auto";
+    trackB.preload = "auto";
+
+    let active = trackA;
+    let standby = trackB;
     let started = false;
     let crossfading = false;
     let muted = false;
     let preloaderDismissed = false;
-    let gestureFallbackAdded = false;
 
     try { muted = localStorage.getItem("ribasMuted") === "1"; } catch (e) {}
 
     updateButton();
 
-    function setupAudio(src) {
-        if (trackA) return; // Already initialized
-
-        trackA = new Audio(src);
-        trackB = new Audio(src);
-        trackA.preload = "auto";
-        trackB.preload = "auto";
-        active = trackA;
-        standby = trackB;
-
-        // Start watching for loop overlap
-        requestAnimationFrame(watchLoop);
-
-        // Try playing immediately
-        tryPlay();
-    }
-
     // Seamless loop: shortly before the active track ends, the standby copy
     // starts from zero and both are crossfaded (overlap looping).
     const watchLoop = () => {
-        if (started && !muted && !crossfading && active && active.duration &&
+        if (started && !muted && !crossfading && active.duration &&
             active.duration - active.currentTime <= CROSSFADE) {
             crossfading = true;
             standby.currentTime = 0;
@@ -1682,16 +1654,10 @@ function initBackgroundMusic() {
         }
         requestAnimationFrame(watchLoop);
     };
+    requestAnimationFrame(watchLoop);
 
-    const tryPlay = (isGesture = false) => {
-        if (muted) return;
-        if (!trackA) {
-            if (isGesture) {
-                setupAudio("music.mp3");
-            }
-            return;
-        }
-        if (started) return;
+    const tryPlay = () => {
+        if (started || muted) return;
 
         active.volume = 0;
         active.play().then(() => {
@@ -1704,17 +1670,9 @@ function initBackgroundMusic() {
     };
 
     const gestureEvents = ["pointerdown", "touchstart", "wheel", "keydown"];
-    const onGesture = () => tryPlay(true);
-    const addGestureFallbacks = () => {
-        if (gestureFallbackAdded) return;
-        gestureEvents.forEach(ev => window.addEventListener(ev, onGesture, { passive: true }));
-        gestureFallbackAdded = true;
-    };
-    const removeGestureFallbacks = () => {
-        if (!gestureFallbackAdded) return;
-        gestureEvents.forEach(ev => window.removeEventListener(ev, onGesture));
-        gestureFallbackAdded = false;
-    };
+    const onGesture = () => tryPlay();
+    const addGestureFallbacks = () => gestureEvents.forEach(ev => window.addEventListener(ev, onGesture, { passive: true }));
+    const removeGestureFallbacks = () => gestureEvents.forEach(ev => window.removeEventListener(ev, onGesture));
 
     function updateButton() {
         if (!toggleBtn) return;
@@ -1728,14 +1686,12 @@ function initBackgroundMusic() {
             try { localStorage.setItem("ribasMuted", muted ? "1" : "0"); } catch (err) {}
             updateButton();
             if (muted) {
-                if (trackA && trackB) {
-                    gsap.to([trackA, trackB], {
-                        volume: 0,
-                        duration: 0.6,
-                        ease: "power1.out",
-                        onComplete: () => { trackA.pause(); trackB.pause(); }
-                    });
-                }
+                gsap.to([trackA, trackB], {
+                    volume: 0,
+                    duration: 0.6,
+                    ease: "power1.out",
+                    onComplete: () => { trackA.pause(); trackB.pause(); }
+                });
                 started = false;
                 crossfading = false;
             } else {
@@ -1744,21 +1700,18 @@ function initBackgroundMusic() {
         });
     }
 
-    // Register gesture listeners immediately to wait for a gesture or preloader load completion
-    addGestureFallbacks();
+    // Try to play immediately on load (if allowed) and register gesture listeners immediately
     tryPlay();
+    addGestureFallbacks();
 
     window.__ribasMusic = {
         start() {
             preloaderDismissed = true;
-            if (started && !muted && active) {
+            if (started && !muted) {
                 gsap.to(active, { volume: TARGET_VOL, duration: FADE_IN, ease: "power1.out" });
             } else {
                 tryPlay();
             }
-        },
-        setMusicSrc(blobUrl) {
-            setupAudio(blobUrl);
         }
     };
 }
