@@ -156,53 +156,14 @@ function initPreloader() {
         }
     }
 
-    let preloaderDismissStarted = false;
-
     function checkReadyState() {
         if (preloaderVideoFinished && mainVideoReady) {
-            if (window.__ribasMusic) {
-                window.__ribasMusic.start().then(() => {
-                    // Autoplay allowed, dismiss automatically
-                    dismissPreloader();
-                }).catch(() => {
-                    // Autoplay blocked, show "Click to Enter" button on the progress label
-                    if (progressText) {
-                        progressText.textContent = "КЛІКНІТЬ ДЛЯ ВХОДУ / CLICK TO ENTER ♫";
-                        gsap.killTweensOf(progressText);
-                        gsap.set(progressText, { scale: 1 });
-                        gsap.to(progressText, { opacity: 1, duration: 0.4 });
-                        // Pulsing micro-animation
-                        gsap.to(progressText, {
-                            scale: 1.05,
-                            opacity: 0.85,
-                            repeat: -1,
-                            yoyo: true,
-                            duration: 0.8,
-                            ease: "power1.inOut"
-                        });
-                    }
-
-                    // Add global listener to preloader container to unlock sound on user gesture
-                    preloader.addEventListener("click", () => {
-                        if (preloaderDismissStarted) return;
-                        if (window.__ribasMusic) {
-                            window.__ribasMusic.start().finally(() => {
-                                dismissPreloader();
-                            });
-                        } else {
-                            dismissPreloader();
-                        }
-                    }, { once: true });
-                });
-            } else {
-                dismissPreloader();
-            }
+            dismissPreloader();
         }
     }
 
     function dismissPreloader() {
         if (preloader.classList.contains("dismissed")) return;
-        preloaderDismissStarted = true;
         preloader.classList.add("dismissed");
         clearTimeout(safetyTimeout);
 
@@ -220,7 +181,6 @@ function initPreloader() {
         });
 
         if (progressText) {
-            gsap.killTweensOf(progressText);
             gsap.to(progressText, { opacity: 0, duration: 0.5, ease: "power2.in" });
         }
 
