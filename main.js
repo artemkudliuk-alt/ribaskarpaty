@@ -49,8 +49,13 @@ function preloadFile(url, onProgress) {
 function preloadScrollingVideos() {
     const vScrolling = document.getElementById("video-scrolling");
     const vScrollingRev = document.getElementById("video-scrolling-reverse");
-    if (vScrolling) vScrolling.src = "scrolling video.mp4";
-    if (vScrollingRev) vScrollingRev.src = "scrolling video_reverse.mp4";
+    const isMobile = window.matchMedia("(max-width: 768px)").matches;
+    if (vScrolling) {
+        vScrolling.src = isMobile ? "scrolling video mob.mp4" : "scrolling video.mp4";
+    }
+    if (vScrollingRev) {
+        vScrollingRev.src = isMobile ? "scrolling video mob_reverse.mp4" : "scrolling video_reverse.mp4";
+    }
 }
 
 function initPreloader() {
