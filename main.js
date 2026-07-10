@@ -355,6 +355,7 @@ function initTransitionTrigger() {
     currentScreen = 1; // 1 = Lobby, 2 = Restaurant, 3 = SPA, 4 = Leisure, 5 = Info, 6 = Footer
     let isTransitioning = false;
     let touchTriggered = false;
+    let touchIsScrollingContent = false;
 
     // Elements mapping
     screens = [
@@ -487,6 +488,30 @@ function initTransitionTrigger() {
         const isScrollDown = deltaY > 0 || isTouchScrollDown;
         const isScrollUp = deltaY < 0 || isTouchScrollUp;
 
+        // When the screen content is taller than the viewport (stacked layouts
+        // on tablet/mobile), let it scroll natively to its edge first and only
+        // then switch screens on a subsequent swipe.
+        const activeContent = screens[currentScreen - 1].el.querySelector(".screen-content");
+        if (activeContent && activeContent.scrollHeight > activeContent.clientHeight + 40) {
+            const atTop = activeContent.scrollTop <= 5;
+            const atBottom = activeContent.scrollTop + activeContent.clientHeight >= activeContent.scrollHeight - 5;
+            
+            if ((isScrollDown && !atBottom) || (isScrollUp && !atTop)) {
+                if (isTouchEvent) {
+                    window.lastTouchY = e.touches[0].clientY;
+                    touchIsScrollingContent = true; // Mark that we did content scroll in this swipe
+                }
+                return;
+            }
+
+            // If we already scrolled content inside this specific touch gesture,
+            // block transitioning until they release and swipe again (prevents slipping)
+            if (isTouchEvent && touchIsScrollingContent) {
+                window.lastTouchY = e.touches[0].clientY;
+                return;
+            }
+        }
+
         if (isScrollDown && currentScreen < 6) {
             e.preventDefault();
             if (isTouchEvent) touchTriggered = true;
@@ -501,6 +526,7 @@ function initTransitionTrigger() {
     window.addEventListener("touchstart", (e) => {
         window.lastTouchY = e.touches[0].clientY;
         touchTriggered = false;
+        touchIsScrollingContent = false;
     }, { passive: true });
 
     const videoDuration = 7.6333;
