@@ -481,15 +481,7 @@ function initTransitionTrigger() {
         touchTriggered = false;
     }, { passive: true });
 
-    let videoDuration = 7.6333;
-    if (scrollingVideo) {
-        scrollingVideo.addEventListener("loadedmetadata", () => {
-            if (scrollingVideo.duration && !isNaN(scrollingVideo.duration)) {
-                videoDuration = scrollingVideo.duration;
-                console.log("Updated videoDuration to actual duration:", videoDuration);
-            }
-        });
-    }
+    const videoDuration = 7.6333;
 
     function animateVideoTime(nextScreenIndex, onComplete) {
         const targetTime = screenTimestamps[nextScreenIndex];
