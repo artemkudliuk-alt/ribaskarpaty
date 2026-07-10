@@ -759,11 +759,19 @@ function initTransitionTrigger() {
                 lobbyVideo.playbackRate = 0.35;
 
                 const doCrossfade = () => {
-                    sharedVideoBg.style.opacity = "0";
-                    gsap.to(lobbyVideo, { opacity: 1, duration: 0.4 });
-                    setTimeout(() => {
-                        sharedVideoBg.style.display = "none";
-                    }, 400);
+                    gsap.to(sharedVideoBg, {
+                        opacity: 0,
+                        duration: 0.4,
+                        ease: "power1.inOut",
+                        onComplete: () => {
+                            sharedVideoBg.style.display = "none";
+                        }
+                    });
+                    gsap.to(lobbyVideo, { 
+                        opacity: 1, 
+                        duration: 0.4, 
+                        ease: "power1.inOut" 
+                    });
                     finalizeTransition();
                 };
 
