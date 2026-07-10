@@ -2874,32 +2874,6 @@ body {
     transition: transform 0.3s ease;
 }
 
-.tile-body {
-    display: contents;
-}
-
-@media (max-width: 768px) {
-    .tile-chevron {
-        display: block;
-    }
-
-    .tile-header {
-        cursor: pointer;
-        margin-bottom: 0;
-    }
-
-    .tile-body {
-        display: block;
-        max-height: 0;
-        overflow: hidden;
-        transition: max-height 0.45s cubic-bezier(0.25, 1, 0.5, 1), margin-top 0.3s ease;
-    }
-
-    .bento-tile.acc-open .tile-body {
-        max-height: 440px;
-        margin-top: 12px;
-    }
-
 
 /* =========================================================================
    SOUND TOGGLE (under the language switcher) + LEISURE ACCORDION + GRID BTNS
