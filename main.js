@@ -1632,6 +1632,7 @@ function initBackgroundMusic() {
     let crossfading = false;
     let muted = false;
     let preloaderDismissed = false;
+    let audioUnlocked = false;
 
     try { muted = localStorage.getItem("ribasMuted") === "1"; } catch (e) {}
 
@@ -1688,7 +1689,7 @@ function initBackgroundMusic() {
 
     const tryPlay = () => {
         if (muted) return Promise.resolve();
-        if (active && !active.paused) return Promise.resolve();
+        if (audioUnlocked && active && !active.paused) return Promise.resolve();
 
         active.volume = preloaderDismissed ? TARGET_VOL : 0;
         
@@ -1701,6 +1702,7 @@ function initBackgroundMusic() {
 
         if (playPromise !== undefined && typeof playPromise.then === 'function') {
             return playPromise.then(() => {
+                audioUnlocked = true;
                 removeGestureFallbacks();
                 if (preloaderDismissed) {
                     gsap.to(active, { volume: TARGET_VOL, duration: FADE_IN, ease: "power1.out" });
@@ -1709,6 +1711,7 @@ function initBackgroundMusic() {
                 throw err;
             });
         } else {
+            audioUnlocked = true;
             removeGestureFallbacks();
             if (preloaderDismissed) {
                 gsap.to(active, { volume: TARGET_VOL, duration: FADE_IN, ease: "power1.out" });
@@ -1762,7 +1765,7 @@ function initBackgroundMusic() {
     window.__ribasMusic = {
         start() {
             preloaderDismissed = true;
-            if (active && !active.paused && !muted) {
+            if (audioUnlocked && active && !active.paused && !muted) {
                 gsap.to(active, { volume: TARGET_VOL, duration: FADE_IN, ease: "power1.out" });
                 return Promise.resolve();
             } else {
@@ -1771,7 +1774,7 @@ function initBackgroundMusic() {
         },
         _trackA: trackA,
         _trackB: trackB,
-        getStarted() { return active && !active.paused; },
+        getStarted() { return audioUnlocked && active && !active.paused; },
         getMuted() { return muted; },
         getPreloaderDismissed() { return preloaderDismissed; },
         getActive() { return active; }
