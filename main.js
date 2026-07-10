@@ -739,20 +739,28 @@ function initTransitionTrigger() {
             scrollingVideo.pause();
             scrollingVideoReverse.pause();
             animateVideoTime(1, () => {
-                sharedVideoBg.style.opacity = "0";
-                setTimeout(() => {
-                    sharedVideoBg.style.display = "none";
-                }, 400);
-
                 const lobbyVideo = v1;
+                gsap.set(v2, { opacity: 0 });
+                v2.pause();
+
                 lobbyVideo.currentTime = 0;
                 lobbyVideo.playbackRate = 0.35;
-                lobbyVideo.play().then(() => {
+
+                const doCrossfade = () => {
+                    sharedVideoBg.style.opacity = "0";
                     gsap.to(lobbyVideo, { opacity: 1, duration: 0.4 });
+                    setTimeout(() => {
+                        sharedVideoBg.style.display = "none";
+                    }, 400);
+                    finalizeTransition();
+                };
+
+                lobbyVideo.play().then(() => {
+                    doCrossfade();
                 }).catch(() => {
                     gsap.set(lobbyVideo, { opacity: 1 });
+                    doCrossfade();
                 });
-                finalizeTransition();
             });
         } else if (currentScreen === 1) {
             // Transitioning from screen 1 to screen 2+
