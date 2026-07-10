@@ -1277,40 +1277,10 @@ function initBookingForm() {
 
 function initSpaActions() {
     const bookSpaBtn = document.getElementById("book-spa-btn");
-    const viewSpaMenuBtn = document.getElementById("view-spa-menu-btn");
-    const spaMenuModal = document.getElementById("spa-menu-modal");
-    const closeSpaMenuBtn = document.getElementById("close-spa-menu-modal");
 
     if (bookSpaBtn) {
         bookSpaBtn.addEventListener("click", () => {
             openBookingModal("book_spa");
-        });
-    }
-
-    if (viewSpaMenuBtn && spaMenuModal && closeSpaMenuBtn) {
-        const openModal = () => {
-            spaMenuModal.style.display = "flex";
-            gsap.fromTo(spaMenuModal, { opacity: 0 }, { opacity: 1, duration: 0.3 });
-            gsap.fromTo(spaMenuModal.querySelector(".mobile-modal-content"), 
-                { scale: 0.92, y: 24 }, 
-                { scale: 1, y: 0, duration: 0.4, ease: "power3.out" }
-            );
-        };
-
-        const closeModal = () => {
-            gsap.to(spaMenuModal, {
-                opacity: 0,
-                duration: 0.3,
-                onComplete: () => {
-                    spaMenuModal.style.display = "none";
-                }
-            });
-        };
-
-        viewSpaMenuBtn.addEventListener("click", openModal);
-        closeSpaMenuBtn.addEventListener("click", closeModal);
-        spaMenuModal.addEventListener("click", (e) => {
-            if (e.target === spaMenuModal) closeModal();
         });
     }
 }
@@ -1483,8 +1453,16 @@ function initPdfModal() {
     function openPdf(src, label) {
         iframe.src = src;
         title.textContent = label || "Документ";
-        downloadBtn.href = src;
-        downloadBtn.download = src.split("/").pop();
+        
+        // Hide download button for web pages (e.g. bukovel map)
+        if (src.startsWith("http://") || src.startsWith("https://") || !src.toLowerCase().endsWith(".pdf")) {
+            downloadBtn.style.display = "none";
+        } else {
+            downloadBtn.style.display = "flex";
+            downloadBtn.href = src;
+            downloadBtn.download = src.split("/").pop();
+        }
+        
         modal.classList.add("is-open");
         document.body.style.overflow = "hidden";
     }
@@ -1511,6 +1489,13 @@ function initPdfModal() {
         e.stopPropagation();
 
         let src = trigger.dataset.pdf;
+
+        // Dynamic localized swap for Bukovel Resort Map URL
+        if (src.includes("summer-map")) {
+            src = currentLanguage === "en" 
+                ? "https://bukovel.com/en/summer-map" 
+                : "https://bukovel.com/uk/summer-map";
+        }
 
         // Dynamic responsive swap for Memo Games PDF
         if (src === "/files/memo-games.pdf" || src.includes("MemoGames") || src.includes("memo-games")) {
