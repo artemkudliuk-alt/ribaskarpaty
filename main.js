@@ -1720,7 +1720,7 @@ function initBackgroundMusic() {
         }
     };
 
-    const gestureEvents = ["pointerdown", "touchstart", "keydown"];
+    const gestureEvents = ["pointerdown", "mousedown", "click", "touchstart", "keydown"];
     const onGesture = () => tryPlay();
     const addGestureFallbacks = () => {
         gestureEvents.forEach(ev => {
