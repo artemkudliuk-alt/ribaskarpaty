@@ -487,21 +487,6 @@ function initTransitionTrigger() {
         const isScrollDown = deltaY > 0 || isTouchScrollDown;
         const isScrollUp = deltaY < 0 || isTouchScrollUp;
 
-        // When the screen content is taller than the viewport (stacked layouts
-        // on tablet/mobile), let it scroll natively to its edge first and only
-        // then switch screens.
-        const activeContent = screens[currentScreen - 1].el.querySelector(".screen-content");
-        if (activeContent && activeContent.scrollHeight > activeContent.clientHeight + 2) {
-            const atTop = activeContent.scrollTop <= 2;
-            const atBottom = activeContent.scrollTop + activeContent.clientHeight >= activeContent.scrollHeight - 2;
-            if ((isScrollDown && !atBottom) || (isScrollUp && !atTop)) {
-                if (isTouchEvent) {
-                    window.lastTouchY = e.touches[0].clientY;
-                }
-                return;
-            }
-        }
-
         if (isScrollDown && currentScreen < 6) {
             e.preventDefault();
             if (isTouchEvent) touchTriggered = true;
