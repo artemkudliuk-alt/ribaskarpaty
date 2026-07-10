@@ -90,6 +90,10 @@ function initPreloader() {
         preloaderVideo.src = preloaderBlobUrl;
         preloaderVideo.play().then(() => {
             preloaderVideo.addEventListener("timeupdate", checkPreloaderVideoProgress);
+            preloaderVideo.addEventListener("ended", () => {
+                preloaderVideoFinished = true;
+                checkReadyState();
+            });
         }).catch(err => {
             console.log("Preloader video autoplay blocked, bypass waiting.", err);
             preloaderVideoFinished = true;
@@ -152,14 +156,53 @@ function initPreloader() {
         }
     }
 
+    let preloaderDismissStarted = false;
+
     function checkReadyState() {
         if (preloaderVideoFinished && mainVideoReady) {
-            dismissPreloader();
+            if (window.__ribasMusic) {
+                window.__ribasMusic.start().then(() => {
+                    // Autoplay allowed, dismiss automatically
+                    dismissPreloader();
+                }).catch(() => {
+                    // Autoplay blocked, show "Click to Enter" button on the progress label
+                    if (progressText) {
+                        progressText.textContent = "КЛІКНІТЬ ДЛЯ ВХОДУ / CLICK TO ENTER ♫";
+                        gsap.killTweensOf(progressText);
+                        gsap.set(progressText, { scale: 1 });
+                        gsap.to(progressText, { opacity: 1, duration: 0.4 });
+                        // Pulsing micro-animation
+                        gsap.to(progressText, {
+                            scale: 1.05,
+                            opacity: 0.85,
+                            repeat: -1,
+                            yoyo: true,
+                            duration: 0.8,
+                            ease: "power1.inOut"
+                        });
+                    }
+
+                    // Add global listener to preloader container to unlock sound on user gesture
+                    preloader.addEventListener("click", () => {
+                        if (preloaderDismissStarted) return;
+                        if (window.__ribasMusic) {
+                            window.__ribasMusic.start().finally(() => {
+                                dismissPreloader();
+                            });
+                        } else {
+                            dismissPreloader();
+                        }
+                    }, { once: true });
+                });
+            } else {
+                dismissPreloader();
+            }
         }
     }
 
     function dismissPreloader() {
         if (preloader.classList.contains("dismissed")) return;
+        preloaderDismissStarted = true;
         preloader.classList.add("dismissed");
         clearTimeout(safetyTimeout);
 
@@ -175,6 +218,11 @@ function initPreloader() {
             duration: 1.0,
             ease: "power3.in"
         });
+
+        if (progressText) {
+            gsap.killTweensOf(progressText);
+            gsap.to(progressText, { opacity: 0, duration: 0.5, ease: "power2.in" });
+        }
 
         gsap.to(preloaderVideo, {
             opacity: 0,
@@ -1621,7 +1669,6 @@ function initBackgroundMusic() {
 
     let active = trackA;
     let standby = trackB;
-    let started = false;
     let crossfading = false;
     let muted = false;
     let preloaderDismissed = false;
@@ -1633,12 +1680,35 @@ function initBackgroundMusic() {
     // Seamless loop: shortly before the active track ends, the standby copy
     // starts from zero and both are crossfaded (overlap looping).
     const watchLoop = () => {
-        if (started && !muted && !crossfading && active.duration &&
+        if (active && !active.paused && !muted && !crossfading && active.duration &&
             active.duration - active.currentTime <= CROSSFADE) {
             crossfading = true;
             standby.currentTime = 0;
             standby.volume = 0;
-            standby.play().then(() => {
+            
+            let playPromise;
+            try {
+                playPromise = standby.play();
+            } catch (e) {
+                crossfading = false;
+                return;
+            }
+
+            if (playPromise !== undefined && typeof playPromise.then === 'function') {
+                playPromise.then(() => {
+                    gsap.to(standby, { volume: TARGET_VOL, duration: CROSSFADE, ease: "none" });
+                    gsap.to(active, {
+                        volume: 0,
+                        duration: CROSSFADE,
+                        ease: "none",
+                        onComplete: () => {
+                            active.pause();
+                            const t = active; active = standby; standby = t;
+                            crossfading = false;
+                        }
+                    });
+                }).catch(() => { crossfading = false; });
+            } else {
                 gsap.to(standby, { volume: TARGET_VOL, duration: CROSSFADE, ease: "none" });
                 gsap.to(active, {
                     volume: 0,
@@ -1650,23 +1720,41 @@ function initBackgroundMusic() {
                         crossfading = false;
                     }
                 });
-            }).catch(() => { crossfading = false; });
+            }
         }
         requestAnimationFrame(watchLoop);
     };
     requestAnimationFrame(watchLoop);
 
     const tryPlay = () => {
-        if (started || muted) return;
+        if (muted) return Promise.resolve();
+        if (active && !active.paused) return Promise.resolve();
 
-        active.volume = 0;
-        active.play().then(() => {
-            started = true;
+        active.volume = preloaderDismissed ? TARGET_VOL : 0;
+        
+        let playPromise;
+        try {
+            playPromise = active.play();
+        } catch (e) {
+            return Promise.reject(e);
+        }
+
+        if (playPromise !== undefined && typeof playPromise.then === 'function') {
+            return playPromise.then(() => {
+                removeGestureFallbacks();
+                if (preloaderDismissed) {
+                    gsap.to(active, { volume: TARGET_VOL, duration: FADE_IN, ease: "power1.out" });
+                }
+            }).catch((err) => {
+                throw err;
+            });
+        } else {
             removeGestureFallbacks();
             if (preloaderDismissed) {
                 gsap.to(active, { volume: TARGET_VOL, duration: FADE_IN, ease: "power1.out" });
             }
-        }).catch(() => { /* autoplay blocked — a gesture listener will retry */ });
+            return Promise.resolve();
+        }
     };
 
     const gestureEvents = ["pointerdown", "touchstart", "wheel", "keydown"];
@@ -1692,7 +1780,6 @@ function initBackgroundMusic() {
                     ease: "power1.out",
                     onComplete: () => { trackA.pause(); trackB.pause(); }
                 });
-                started = false;
                 crossfading = false;
             } else {
                 tryPlay();
@@ -1707,15 +1794,16 @@ function initBackgroundMusic() {
     window.__ribasMusic = {
         start() {
             preloaderDismissed = true;
-            if (started && !muted) {
+            if (active && !active.paused && !muted) {
                 gsap.to(active, { volume: TARGET_VOL, duration: FADE_IN, ease: "power1.out" });
+                return Promise.resolve();
             } else {
-                tryPlay();
+                return tryPlay();
             }
         },
         _trackA: trackA,
         _trackB: trackB,
-        getStarted() { return started; },
+        getStarted() { return active && !active.paused; },
         getMuted() { return muted; },
         getPreloaderDismissed() { return preloaderDismissed; },
         getActive() { return active; }
