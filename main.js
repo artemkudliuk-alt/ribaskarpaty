@@ -50,12 +50,37 @@ function preloadScrollingVideos() {
     const vScrolling = document.getElementById("video-scrolling");
     const vScrollingRev = document.getElementById("video-scrolling-reverse");
     const isMobile = window.matchMedia("(max-width: 768px)").matches;
-    if (vScrolling) {
-        vScrolling.src = isMobile ? "scrolling video mob.mp4" : "scrolling video.mp4";
-    }
-    if (vScrollingRev) {
-        vScrollingRev.src = isMobile ? "scrolling video mob_reverse.mp4" : "scrolling video_reverse.mp4";
-    }
+
+    const pairs = [
+        [vScrolling, isMobile ? "scrolling video mob.mp4" : "scrolling video.mp4"],
+        [vScrollingRev, isMobile ? "scrolling video mob_reverse.mp4" : "scrolling video_reverse.mp4"]
+    ];
+
+    pairs.forEach(([video, src]) => {
+        if (!video) return;
+
+        // Streaming source right away so the very first scroll always works
+        video.preload = "auto";
+        video.src = src;
+        video.load();
+
+        // Meanwhile fully download the clip (same blob engine as the
+        // preloader) and swap it in: after that transitions never touch the
+        // network — no buffering stalls mid-scroll, stable on mobile too.
+        preloadFile(src, () => {}).then(blobUrl => {
+            const swap = () => {
+                if (!video.paused) {          // mid-transition — retry shortly
+                    setTimeout(swap, 500);
+                    return;
+                }
+                const t = video.currentTime;  // keep the parked checkpoint frame
+                video.src = blobUrl;
+                video.load();
+                video.currentTime = t;
+            };
+            swap();
+        }).catch(() => { /* streaming source stays as fallback */ });
+    });
 }
 
 function initPreloader() {
@@ -375,9 +400,8 @@ function initTransitionTrigger() {
 
     if (!flashOverlay) return;
 
-    // Preload scrolling video and loop videos
-    if (scrollingVideo && typeof scrollingVideo.load === "function") scrollingVideo.load();
-    if (scrollingVideoReverse && typeof scrollingVideoReverse.load === "function") scrollingVideoReverse.load();
+    // Preload per-screen loop/transition videos (scroll videos are handled
+    // by preloadScrollingVideos with the blob engine)
     screens.forEach(s => {
         if (s.transitionVideo && typeof s.transitionVideo.load === "function") {
             s.transitionVideo.preload = "auto";
