@@ -773,7 +773,14 @@ function initTransitionTrigger() {
             const overlay = toScreen.el.querySelector(".screen-overlay");
             if (toContent) gsap.set(toContent, { opacity: 0 });
             if (toHeader) gsap.set(toHeader, { opacity: 0 });
-            if (overlay) gsap.set(overlay, { opacity: 0 });
+            if (overlay) {
+                const isHeroOrFooter = toScreen.el.id === "screen-1" || toScreen.el.id === "screen-footer";
+                if (isHeroOrFooter) {
+                    gsap.set(overlay, { opacity: 1 });
+                } else {
+                    gsap.set(overlay, { opacity: 0 });
+                }
+            }
 
             scrollingVideo.pause();
             scrollingVideoReverse.pause();
@@ -815,7 +822,14 @@ function initTransitionTrigger() {
         const overlay = toScreen.el.querySelector(".screen-overlay");
         if (toContent) gsap.set(toContent, { opacity: 0 });
         if (toHeader) gsap.set(toHeader, { opacity: 0 });
-        if (overlay) gsap.set(overlay, { opacity: 0 });
+        if (overlay) {
+            const isHeroOrFooter = toScreen.el.id === "screen-1" || toScreen.el.id === "screen-footer";
+            if (isHeroOrFooter) {
+                gsap.set(overlay, { opacity: 1 });
+            } else {
+                gsap.set(overlay, { opacity: 0 });
+            }
+        }
 
         animateScreenExit(fromScreen.el);
 
@@ -906,13 +920,18 @@ function animateScreenExit(screenEl) {
 
     const overlay = screenEl.querySelector(".screen-overlay");
     if (overlay) {
-        gsap.to(overlay, {
-            opacity: 0,
-            duration: 0.5,
-            delay: 0.05,
-            ease: "power2.inOut",
-            overwrite: "auto"
-        });
+        const isHeroOrFooter = screenEl.id === "screen-1" || screenEl.id === "screen-footer";
+        if (isHeroOrFooter) {
+            gsap.set(overlay, { opacity: 1 });
+        } else {
+            gsap.to(overlay, {
+                opacity: 0,
+                duration: 0.5,
+                delay: 0.05,
+                ease: "power2.inOut",
+                overwrite: "auto"
+            });
+        }
     }
 
     const movers = screenEl.querySelectorAll(".welcome-text-side, .leisure-bento-grid, .welcome-pillow-card");
@@ -946,7 +965,14 @@ function animateScreenEntrance(screenEl) {
 
     // Initialize all to starting state: everything rises softly into place
     gsap.set([toContent, toHeader], { opacity: 1 });
-    if (overlay) gsap.set(overlay, { opacity: 0 });
+    if (overlay) {
+        const isHeroOrFooter = screenEl.id === "screen-1" || screenEl.id === "screen-footer";
+        if (isHeroOrFooter) {
+            gsap.set(overlay, { opacity: 1 });
+        } else {
+            gsap.set(overlay, { opacity: 0 });
+        }
+    }
     if (toHeader) gsap.set(toHeader, { y: -30, opacity: 0 });
     if (labelTag) gsap.set(labelTag, { y: 24, opacity: 0 });
     if (title) gsap.set(title, { y: 30, opacity: 0 });
@@ -958,12 +984,17 @@ function animateScreenEntrance(screenEl) {
     if (scrollMouse) gsap.set(scrollMouse, { y: 10, opacity: 0 });
 
     if (overlay) {
-        gsap.to(overlay, {
-            opacity: 1,
-            duration: 0.6,
-            ease: "power2.out",
-            overwrite: "auto"
-        });
+        const isHeroOrFooter = screenEl.id === "screen-1" || screenEl.id === "screen-footer";
+        if (isHeroOrFooter) {
+            gsap.set(overlay, { opacity: 1 });
+        } else {
+            gsap.to(overlay, {
+                opacity: 1,
+                duration: 0.6,
+                ease: "power2.out",
+                overwrite: "auto"
+            });
+        }
     }
 
     // Info blocks settle in ~0.5s after the scene stops (owner request)
