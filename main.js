@@ -417,6 +417,14 @@ function initTransitionTrigger() {
         5: 7.58
     };
 
+    const screenTimestampsReverse = {
+        1: 7.5999,
+        2: 6.2000,
+        3: 4.3332,
+        4: 1.8332,
+        5: 0.0000
+    };
+
     if (!flashOverlay) return;
 
     // Preload per-screen loop/transition videos (scroll videos are handled
@@ -538,6 +546,7 @@ function initTransitionTrigger() {
 
     function animateVideoTime(nextScreenIndex, onComplete) {
         const targetTime = screenTimestamps[nextScreenIndex];
+        const targetTimeReverse = screenTimestampsReverse[nextScreenIndex];
         const currentForwardTime = scrollingVideo.currentTime;
         const isForward = targetTime > currentForwardTime;
         const timeDiff = Math.abs(targetTime - currentForwardTime);
@@ -546,7 +555,9 @@ function initTransitionTrigger() {
             scrollingVideo.pause();
             scrollingVideoReverse.pause();
             scrollingVideo.currentTime = targetTime;
-            scrollingVideoReverse.currentTime = videoDuration - targetTime;
+            scrollingVideoReverse.currentTime = targetTimeReverse;
+            scrollingVideo.style.opacity = "1";
+            scrollingVideoReverse.style.opacity = "0";
             if (onComplete) onComplete();
             return;
         }
@@ -557,10 +568,6 @@ function initTransitionTrigger() {
         scrollingVideo._seekAnimationFrame = null;
         scrollingVideoReverse._seekAnimationFrame = null;
 
-        // Double-buffered layer swap: the incoming layer becomes visible only
-        // AFTER its playback has actually begun (play() promise + one painted
-        // frame via rAF). Flipping opacity earlier paints a stale frame — the
-        // blink/flash the audit hunted down.
         const swapLayers = (showEl, hideEl) => {
             requestAnimationFrame(() => {
                 showEl.style.opacity = "1";
@@ -572,6 +579,9 @@ function initTransitionTrigger() {
         if (isForward) {
             const targetTimeForward = targetTime;
 
+            // Pre-seek reverse video in the background while forward plays
+            scrollingVideoReverse.currentTime = targetTimeReverse;
+
             scrollingVideo.playbackRate = 1.0;
             scrollingVideo.play().then(() => {
                 swapLayers(scrollingVideo, scrollingVideoReverse);
@@ -579,7 +589,6 @@ function initTransitionTrigger() {
                     if (scrollingVideo.currentTime >= targetTimeForward - 0.02) {
                         scrollingVideo.pause();
                         scrollingVideo.currentTime = targetTimeForward;
-                        scrollingVideoReverse.currentTime = videoDuration - targetTimeForward;
                         scrollingVideo._seekAnimationFrame = null;
                         if (onComplete) onComplete();
                     } else {
@@ -591,11 +600,11 @@ function initTransitionTrigger() {
                 console.log("Native forward play failed, seeking instantly:", err);
                 swapLayers(scrollingVideo, scrollingVideoReverse);
                 scrollingVideo.currentTime = targetTimeForward;
-                scrollingVideoReverse.currentTime = videoDuration - targetTimeForward;
                 if (onComplete) onComplete();
             });
         } else {
-            const targetTimeReverse = videoDuration - targetTime;
+            // Pre-seek forward video in the background while reverse plays
+            scrollingVideo.currentTime = targetTime;
 
             scrollingVideoReverse.playbackRate = 1.0;
             scrollingVideoReverse.play().then(() => {
@@ -604,7 +613,9 @@ function initTransitionTrigger() {
                     if (scrollingVideoReverse.currentTime >= targetTimeReverse - 0.02) {
                         scrollingVideoReverse.pause();
                         scrollingVideoReverse.currentTime = targetTimeReverse;
-                        scrollingVideo.currentTime = targetTime;
+                        // Swap back to make forward video visible now that seek is complete
+                        scrollingVideo.style.opacity = "1";
+                        scrollingVideoReverse.style.opacity = "0";
                         scrollingVideoReverse._seekAnimationFrame = null;
                         if (onComplete) onComplete();
                     } else {
@@ -614,9 +625,10 @@ function initTransitionTrigger() {
                 scrollingVideoReverse._seekAnimationFrame = requestAnimationFrame(checkTime);
             }).catch(err => {
                 console.log("Native reverse play failed, seeking instantly:", err);
-                swapLayers(scrollingVideoReverse, scrollingVideo);
                 scrollingVideoReverse.currentTime = targetTimeReverse;
-                scrollingVideo.currentTime = targetTime;
+                scrollingVideo.style.opacity = "1";
+                scrollingVideoReverse.style.opacity = "0";
+                scrollingVideoReverse.pause();
                 if (onComplete) onComplete();
             });
         }
@@ -715,7 +727,7 @@ function initTransitionTrigger() {
             scrollingVideo.pause();
             scrollingVideoReverse.pause();
             scrollingVideo.currentTime = screenTimestamps[5];
-            scrollingVideoReverse.currentTime = videoDuration - screenTimestamps[5];
+            scrollingVideoReverse.currentTime = screenTimestampsReverse[5];
             // Make sure the forward layer (holding the screen-5 frame) is the
             // visible one — the reverse copy may still sit on top after an
             // earlier upward transition
@@ -800,7 +812,7 @@ function initTransitionTrigger() {
             scrollingVideo.pause();
             scrollingVideoReverse.pause();
             scrollingVideo.currentTime = 0.0;
-            scrollingVideoReverse.currentTime = videoDuration;
+            scrollingVideoReverse.currentTime = screenTimestampsReverse[1];
 
             // Directly reveal the shared background and fade out the lobby video
             sharedVideoBg.style.transition = "";
