@@ -77,6 +77,15 @@ function preloadScrollingVideos() {
             if (video.paused) video.play().then(() => video.pause()).catch(() => {});
         }, { once: true });
 
+        // On Save-Data or a flagged slow connection (roaming 2G/3G), skip the
+        // full background blob download — it competes for the same limited
+        // bandwidth the streaming playback above needs and was the likely
+        // cause of the reported stall on real mobile networks. The streaming
+        // <video> src plus the stall watchdog in animateVideoTime is enough.
+        const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        const isSlowConnection = conn && (conn.saveData || /(^|-)2g$/.test(conn.effectiveType || ""));
+        if (isSlowConnection) return;
+
         // Fully download in the background (with retries) and swap in while
         // parked — transitions then never touch the network
         preloadFile(src, () => {}).then(blobUrl => {
@@ -120,58 +129,62 @@ function initPreloader() {
         dismissPreloader();
     }, 15000);
 
-    // Step 1: Preload preloader.webm
-    preloadFile("preloader.webm", (percent) => {
-        if (progressText) {
-            progressText.textContent = `${Math.round(percent)}%`;
-        }
+    // Step 1: play preloader.webm as a stream immediately — no blob wait.
+    // It used to block on a full XHR download before the first frame, which
+    // on a slow/roaming connection is exactly the "black screen before
+    // anything happens" the audit was chasing. The logo fill bar now tracks
+    // the video's own buffered ranges instead of an XHR progress event.
+    preloaderVideo.src = "preloader.webm";
+    preloaderVideo.addEventListener("progress", () => {
+        if (!progressText || !preloaderVideo.duration) return;
+        const buf = preloaderVideo.buffered;
+        const bufferedEnd = buf.length ? buf.end(buf.length - 1) : 0;
+        const percent = Math.min(100, Math.round((bufferedEnd / preloaderVideo.duration) * 100));
+        progressText.textContent = `${percent}%`;
         logoFill.style.clipPath = `inset(${100 - percent}% 0 0 0)`;
-    })
-    .then((preloaderBlobUrl) => {
-        // Step 2: Play the preloader video
-        preloaderVideo.src = preloaderBlobUrl;
-        preloaderVideo.play().then(() => {
-            // Softly fade in preloader video from black
-            gsap.to(preloaderVideo, {
-                opacity: 1,
-                duration: 1.2,
-                ease: "power2.out"
-            });
-            // Hide progress text and fade out the 50% scale logo silhouette
-            gsap.to(progressText, { opacity: 0, duration: 0.3 });
-            gsap.to(logoContainer, {
-                opacity: 0,
-                duration: 0.3,
-                onComplete: () => {
-                    // Instantly scale to 1.0 (normal size) while invisible
-                    gsap.set(logoContainer, { scale: 1.0, filter: "none" });
-                    // Very slow, elegant fade-in over 2.4 seconds
-                    gsap.to(logoContainer, {
-                        opacity: 1,
-                        duration: 2.4,
-                        ease: "power2.out"
-                    });
-                }
-            });
+    });
+    preloaderVideo.play().then(() => {
+        // Softly fade in preloader video from black
+        gsap.to(preloaderVideo, {
+            opacity: 1,
+            duration: 1.2,
+            ease: "power2.out"
+        });
+        // Hide progress text and fade out the 50% scale logo silhouette
+        gsap.to(progressText, { opacity: 0, duration: 0.3 });
+        gsap.to(logoContainer, {
+            opacity: 0,
+            duration: 0.3,
+            onComplete: () => {
+                // Instantly scale to 1.0 (normal size) while invisible
+                gsap.set(logoContainer, { scale: 1.0, filter: "none" });
+                // Very slow, elegant fade-in over 2.4 seconds
+                gsap.to(logoContainer, {
+                    opacity: 1,
+                    duration: 2.4,
+                    ease: "power2.out"
+                });
+            }
+        });
 
-            preloaderVideo.addEventListener("timeupdate", checkPreloaderVideoProgress);
-            preloaderVideo.addEventListener("ended", () => {
-                preloaderVideoFinished = true;
-                checkReadyState();
-            });
-        }).catch(err => {
-            console.log("Preloader video autoplay blocked, bypass waiting.", err);
+        preloaderVideo.addEventListener("timeupdate", checkPreloaderVideoProgress);
+        preloaderVideo.addEventListener("ended", () => {
             preloaderVideoFinished = true;
             checkReadyState();
         });
+    }).catch(err => {
+        console.log("Preloader video autoplay blocked, bypass waiting.", err);
+        preloaderVideoFinished = true;
+        checkReadyState();
+    });
 
-        // Step 3: only the lobby loop gates the dismissal. The heavy scrolling
-        // clips are lazy-loaded AFTER the preloader is gone (preloadScrollingVideos),
-        // so they never compete for bandwidth/CPU during the intro.
-        return preloadFile("1 screen.webm", () => {}).catch(err => {
-            console.warn("Lobby video preload failed, falling back to streaming:", err);
-            return "1 screen.webm";
-        });
+    // Step 2: only the lobby loop gates the dismissal. The heavy scrolling
+    // clips are lazy-loaded AFTER the preloader is gone (preloadScrollingVideos),
+    // so they never compete for bandwidth/CPU during the intro.
+    preloadFile("1 screen.webm", () => {})
+    .catch(err => {
+        console.warn("Lobby video preload failed, falling back to streaming:", err);
+        return "1 screen.webm";
     })
     .then((lobbyBlobUrl) => {
         console.log("Lobby video preloaded!");
@@ -593,6 +606,45 @@ function initTransitionTrigger() {
             });
         };
 
+        // ponytail: one watchdog for both directions instead of two duplicated
+        // rAF loops. On a slow/roaming mobile connection the browser can stall
+        // mid-buffer without ever rejecting play() — currentTime just stops
+        // advancing and the old per-branch loops spun forever with
+        // isTransitioning stuck true (the reported freeze/black-screen on
+        // first swipe). STALL_MS of no progress force-completes the seek.
+        const STALL_MS = 1200;
+
+        // play() itself can sit pending forever on some mobile browsers when
+        // buffering never starts (bad roaming handoff) — race it against the
+        // same stall budget so the .catch() fallback below always fires.
+        const playSafely = (video) => Promise.race([
+            video.play(),
+            new Promise((_, reject) => setTimeout(() => reject(new Error("play() timed out")), STALL_MS))
+        ]);
+
+        const seekToTarget = (video, target, done) => {
+            let lastTime = video.currentTime;
+            let lastProgressAt = performance.now();
+            const tick = () => {
+                const now = performance.now();
+                if (video.currentTime > lastTime) {
+                    lastTime = video.currentTime;
+                    lastProgressAt = now;
+                }
+                const arrived = video.currentTime >= target - 0.02;
+                const stalled = now - lastProgressAt > STALL_MS;
+                if (arrived || stalled) {
+                    video.pause();
+                    video.currentTime = target;
+                    video._seekAnimationFrame = null;
+                    done();
+                } else {
+                    video._seekAnimationFrame = requestAnimationFrame(tick);
+                }
+            };
+            video._seekAnimationFrame = requestAnimationFrame(tick);
+        };
+
         if (isForward) {
             const targetTimeForward = targetTime;
 
@@ -600,19 +652,9 @@ function initTransitionTrigger() {
             scrollingVideoReverse.currentTime = targetTimeReverse;
 
             scrollingVideo.playbackRate = 1.0;
-            scrollingVideo.play().then(() => {
+            playSafely(scrollingVideo).then(() => {
                 swapLayers(scrollingVideo, scrollingVideoReverse);
-                const checkTime = () => {
-                    if (scrollingVideo.currentTime >= targetTimeForward - 0.02) {
-                        scrollingVideo.pause();
-                        scrollingVideo.currentTime = targetTimeForward;
-                        scrollingVideo._seekAnimationFrame = null;
-                        if (onComplete) onComplete();
-                    } else {
-                        scrollingVideo._seekAnimationFrame = requestAnimationFrame(checkTime);
-                    }
-                };
-                scrollingVideo._seekAnimationFrame = requestAnimationFrame(checkTime);
+                seekToTarget(scrollingVideo, targetTimeForward, () => onComplete && onComplete());
             }).catch(err => {
                 console.log("Native forward play failed, seeking instantly:", err);
                 swapLayers(scrollingVideo, scrollingVideoReverse);
@@ -624,22 +666,14 @@ function initTransitionTrigger() {
             scrollingVideo.currentTime = targetTime;
 
             scrollingVideoReverse.playbackRate = 1.0;
-            scrollingVideoReverse.play().then(() => {
+            playSafely(scrollingVideoReverse).then(() => {
                 swapLayers(scrollingVideoReverse, scrollingVideo);
-                const checkTime = () => {
-                    if (scrollingVideoReverse.currentTime >= targetTimeReverse - 0.02) {
-                        scrollingVideoReverse.pause();
-                        scrollingVideoReverse.currentTime = targetTimeReverse;
-                        // Swap back to make forward video visible now that seek is complete
-                        scrollingVideo.style.opacity = "1";
-                        scrollingVideoReverse.style.opacity = "0";
-                        scrollingVideoReverse._seekAnimationFrame = null;
-                        if (onComplete) onComplete();
-                    } else {
-                        scrollingVideoReverse._seekAnimationFrame = requestAnimationFrame(checkTime);
-                    }
-                };
-                scrollingVideoReverse._seekAnimationFrame = requestAnimationFrame(checkTime);
+                seekToTarget(scrollingVideoReverse, targetTimeReverse, () => {
+                    // Swap back to make forward video visible now that seek is complete
+                    scrollingVideo.style.opacity = "1";
+                    scrollingVideoReverse.style.opacity = "0";
+                    if (onComplete) onComplete();
+                });
             }).catch(err => {
                 console.log("Native reverse play failed, seeking instantly:", err);
                 scrollingVideoReverse.currentTime = targetTimeReverse;
