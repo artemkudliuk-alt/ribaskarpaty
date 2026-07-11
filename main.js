@@ -772,8 +772,8 @@ function initTransitionTrigger() {
             if (toContent) gsap.set(toContent, { opacity: 0 });
             if (toHeader) gsap.set(toHeader, { opacity: 0 });
             if (overlay) {
-                const isHeroOrFooter = toScreen.el.id === "screen-1" || toScreen.el.id === "screen-footer";
-                if (isHeroOrFooter) {
+                const isFooter = toScreen.el.id === "screen-footer";
+                if (isFooter) {
                     gsap.set(overlay, { opacity: 1 });
                 } else {
                     gsap.set(overlay, { opacity: 0 });
@@ -834,8 +834,8 @@ function initTransitionTrigger() {
         if (toContent) gsap.set(toContent, { opacity: 0 });
         if (toHeader) gsap.set(toHeader, { opacity: 0 });
         if (overlay) {
-            const isHeroOrFooter = toScreen.el.id === "screen-1" || toScreen.el.id === "screen-footer";
-            if (isHeroOrFooter) {
+            const isFooter = toScreen.el.id === "screen-footer";
+            if (isFooter) {
                 gsap.set(overlay, { opacity: 1 });
             } else {
                 gsap.set(overlay, { opacity: 0 });
@@ -945,11 +945,8 @@ function animateScreenExit(screenEl) {
     const overlay = screenEl.querySelector(".screen-overlay");
     if (overlay) {
         const isFooter = screenEl.id === "screen-footer";
-        const isHero = screenEl.id === "screen-1";
         if (isFooter) {
             gsap.set(overlay, { opacity: 1 });
-        } else if (isHero) {
-            gsap.set(overlay, { opacity: 0 }); // Hero overlay goes to 0 instantly on exit so scrolling video is bright
         } else {
             gsap.to(overlay, {
                 opacity: 0,
@@ -993,8 +990,8 @@ function animateScreenEntrance(screenEl) {
     // Initialize all to starting state: everything rises softly into place
     gsap.set([toContent, toHeader], { opacity: 1 });
     if (overlay) {
-        const isHeroOrFooter = screenEl.id === "screen-1" || screenEl.id === "screen-footer";
-        if (isHeroOrFooter) {
+        const isFooter = screenEl.id === "screen-footer";
+        if (isFooter) {
             gsap.set(overlay, { opacity: 1 });
         } else {
             gsap.set(overlay, { opacity: 0 });
@@ -1011,8 +1008,8 @@ function animateScreenEntrance(screenEl) {
     if (scrollMouse) gsap.set(scrollMouse, { y: 10, opacity: 0 });
 
     if (overlay) {
-        const isHeroOrFooter = screenEl.id === "screen-1" || screenEl.id === "screen-footer";
-        if (isHeroOrFooter) {
+        const isFooter = screenEl.id === "screen-footer";
+        if (isFooter) {
             gsap.set(overlay, { opacity: 1 });
         } else {
             gsap.to(overlay, {
