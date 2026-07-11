@@ -871,13 +871,21 @@ function initTransitionTrigger() {
    ────────────────────────────────────────────────────────────────────────── */
 function animateScreenExit(screenEl) {
     const content = screenEl.querySelector(".screen-content");
-    if (content) gsap.to(content, { opacity: 0, duration: 0.35, ease: "power2.in" });
+    if (content) gsap.to(content, { opacity: 0, duration: 0.3, ease: "power2.in", overwrite: "auto" });
 
     const overlay = screenEl.querySelector(".screen-overlay");
-    if (overlay) gsap.to(overlay, { opacity: 0, duration: 0.35, ease: "power2.in" });
+    if (overlay) {
+        gsap.to(overlay, {
+            opacity: 0,
+            duration: 0.5,
+            delay: 0.05,
+            ease: "power2.inOut",
+            overwrite: "auto"
+        });
+    }
 
     const movers = screenEl.querySelectorAll(".welcome-text-side, .leisure-bento-grid, .welcome-pillow-card");
-    if (movers.length) gsap.to(movers, { y: -20, duration: 0.35, ease: "power2.in", overwrite: "auto" });
+    if (movers.length) gsap.to(movers, { y: -20, duration: 0.3, ease: "power2.in", overwrite: "auto" });
 }
 
 /* ── Generic Staggered Screen Entrance Animation ─────────────────────────────
@@ -918,13 +926,18 @@ function animateScreenEntrance(screenEl) {
     if (card) gsap.set(card, { scale: 0.97, y: 30, opacity: 0 });
     if (scrollMouse) gsap.set(scrollMouse, { y: 10, opacity: 0 });
 
+    if (overlay) {
+        gsap.to(overlay, {
+            opacity: 1,
+            duration: 0.6,
+            ease: "power2.out",
+            overwrite: "auto"
+        });
+    }
+
     // Info blocks settle in ~0.5s after the scene stops (owner request)
     const tl = gsap.timeline({ delay: 0.5, defaults: { ease: "power3.out" } });
 
-    // 0. Dark Overlay fades in
-    if (overlay) {
-        tl.to(overlay, { opacity: 1, duration: 0.4 }, 0.05);
-    }
     // 1. Header
     if (toHeader) {
         tl.to(toHeader, { y: 0, opacity: 1, duration: 0.4, ease: "power2.out" }, 0.05);
@@ -970,6 +983,7 @@ function animateScreenEntrance(screenEl) {
 function initWelcomeScreen() {
     // Hide Screen 1 content elements initially for a staggered GSAP entrance
     gsap.set(".main-header", { y: -50, opacity: 0 });
+    gsap.set("#screen-1 .screen-overlay", { opacity: 0 });
     gsap.set("#screen-1 .screen-label-tag", { y: 15, opacity: 0 });
     gsap.set("#screen-1 .welcome-title", { y: 25, opacity: 0 });
     gsap.set("#screen-1 .welcome-divider", { scaleX: 0, transformOrigin: "left" });
@@ -979,6 +993,16 @@ function initWelcomeScreen() {
 
 function animateWelcomeScreenEntrance() {
     console.log("Starting Screen 1 Staggered Entrance Animation...");
+    const overlay = document.querySelector("#screen-1 .screen-overlay");
+    if (overlay) {
+        gsap.to(overlay, {
+            opacity: 1,
+            duration: 0.8,
+            delay: 0.1,
+            ease: "power2.out"
+        });
+    }
+
     const entranceTl = gsap.timeline();
 
     // 1. Header (Logo, Menu, Languages) fades and slides down
