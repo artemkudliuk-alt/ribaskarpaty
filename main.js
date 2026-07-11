@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
 let currentScreen = 1;
 let screens = [];
 
-function preloadFile(url, onProgress) {
+function preloadFile(url, onProgress, attempt = 0) {
     return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.open('GET', url, true);
@@ -44,6 +44,14 @@ function preloadFile(url, onProgress) {
 
         xhr.onerror = () => reject(new Error(`Network error loading ${url}`));
         xhr.send();
+    }).catch(err => {
+        // ponytail: 2 retries with linear backoff; no connection-quality
+        // heuristics — the streaming <video> src remains the ultimate fallback
+        if (attempt < 2) {
+            return new Promise(r => setTimeout(r, 1500 * (attempt + 1)))
+                .then(() => preloadFile(url, onProgress, attempt + 1));
+        }
+        throw err;
     });
 }
 
@@ -52,25 +60,36 @@ function preloadScrollingVideos() {
     const vScrollingRev = document.getElementById("video-scrolling-reverse");
     const isMobile = window.matchMedia("(max-width: 768px)").matches;
 
-    // vScrolling is already preloaded as a blob URL during the preloader step.
-    // If for some reason it didn't get loaded, we assign the streaming source.
-    if (vScrolling && !vScrolling.src) {
-        vScrolling.preload = "auto";
-        vScrolling.src = isMobile ? "scrolling video mob.webm" : "scrolling video.webm";
-        vScrolling.load();
-        vScrolling.addEventListener("canplay", () => {
-            if (vScrolling.paused) vScrolling.play().then(() => vScrolling.pause()).catch(() => {});
-        }, { once: true });
-    }
+    const pairs = [
+        [vScrolling, isMobile ? "scrolling video mob.webm" : "scrolling video.webm"],
+        [vScrollingRev, isMobile ? "scrolling video mob_reverse.webm" : "scrolling video_reverse.webm"]
+    ];
 
-    if (vScrollingRev) {
-        vScrollingRev.preload = "auto";
-        vScrollingRev.src = isMobile ? "scrolling video mob_reverse.webm" : "scrolling video_reverse.webm";
-        vScrollingRev.load();
-        vScrollingRev.addEventListener("canplay", () => {
-            if (vScrollingRev.paused) vScrollingRev.play().then(() => vScrollingRev.pause()).catch(() => {});
+    pairs.forEach(([video, src]) => {
+        if (!video) return;
+
+        // Streaming source right away: the first scroll never waits
+        video.preload = "auto";
+        video.src = src;
+        video.load();
+        video.addEventListener("canplay", () => {
+            // Warm up the decoder so the first frame is ready to paint
+            if (video.paused) video.play().then(() => video.pause()).catch(() => {});
         }, { once: true });
-    }
+
+        // Fully download in the background (with retries) and swap in while
+        // parked — transitions then never touch the network
+        preloadFile(src, () => {}).then(blobUrl => {
+            const swap = () => {
+                if (!video.paused) { setTimeout(swap, 500); return; }
+                const t = video.currentTime;
+                video.src = blobUrl;
+                video.load();
+                video.currentTime = t;
+            };
+            swap();
+        }).catch(() => { /* streaming source stays as fallback */ });
+    });
 }
 
 
@@ -124,23 +143,16 @@ function initPreloader() {
         // Hide progress text once preloader starts playing
         gsap.to(progressText, { opacity: 0, duration: 0.3, delay: 0.2 });
 
-        // Step 3: Start preloading both the main lobby video (1 screen.webm) AND the active scrolling video in parallel
-        const isMobile = window.matchMedia("(max-width: 768px)").matches;
-        const scrollVideoSrc = isMobile ? "scrolling video mob.webm" : "scrolling video.webm";
-
-        return Promise.all([
-            preloadFile("1 screen.webm", () => {}).catch(err => {
-                console.warn("Lobby video preload failed, falling back to streaming:", err);
-                return "1 screen.webm";
-            }),
-            preloadFile(scrollVideoSrc, () => {}).catch(err => {
-                console.warn("Scrolling video preload failed, falling back to streaming:", err);
-                return scrollVideoSrc;
-            })
-        ]);
+        // Step 3: only the lobby loop gates the dismissal. The heavy scrolling
+        // clips are lazy-loaded AFTER the preloader is gone (preloadScrollingVideos),
+        // so they never compete for bandwidth/CPU during the intro.
+        return preloadFile("1 screen.webm", () => {}).catch(err => {
+            console.warn("Lobby video preload failed, falling back to streaming:", err);
+            return "1 screen.webm";
+        });
     })
-    .then(([lobbyBlobUrl, scrollBlobUrl]) => {
-        console.log("Lobby and scrolling videos preloaded!");
+    .then((lobbyBlobUrl) => {
+        console.log("Lobby video preloaded!");
         lobbyVideoBlobUrl = lobbyBlobUrl;
         mainVideoReady = true;
 
@@ -150,17 +162,6 @@ function initPreloader() {
 
         // Initialize lobby loop now
         initLobbySeamlessLoop();
-
-        // Assign Blob URL to scrolling video layer so it is ready immediately on first scroll
-        const vScrolling = document.getElementById("video-scrolling");
-        if (vScrolling) {
-            vScrolling.preload = "auto";
-            vScrolling.src = scrollBlobUrl;
-            vScrolling.load();
-            vScrolling.addEventListener("canplay", () => {
-                if (vScrolling.paused) vScrolling.play().then(() => vScrolling.pause()).catch(() => {});
-            }, { once: true });
-        }
 
         if (waitingForMain) {
             waitingForMain = false;
@@ -216,6 +217,10 @@ function initPreloader() {
         // Lounge soundtrack fades in together with the first screen
         if (window.__ribasMusic) window.__ribasMusic.start();
 
+        // Kick off the deferred scrolling-video downloads right now — tying
+        // this to the fade tween's onComplete stalls it in throttled tabs
+        preloadScrollingVideos();
+
         gsap.to(logoContainer, {
             opacity: 0,
             filter: "blur(18px)",
@@ -244,7 +249,6 @@ function initPreloader() {
             ease: "power2.out",
             onComplete: () => {
                 preloader.style.display = "none";
-                preloadScrollingVideos();
             }
         });
 
@@ -553,16 +557,24 @@ function initTransitionTrigger() {
         scrollingVideo._seekAnimationFrame = null;
         scrollingVideoReverse._seekAnimationFrame = null;
 
-        if (isForward) {
-            // FADE IN FORWARD VIDEO, FADE OUT REVERSE VIDEO INSTANTLY
-            scrollingVideo.style.opacity = "1";
-            scrollingVideoReverse.style.opacity = "0";
-            scrollingVideoReverse.pause();
+        // Double-buffered layer swap: the incoming layer becomes visible only
+        // AFTER its playback has actually begun (play() promise + one painted
+        // frame via rAF). Flipping opacity earlier paints a stale frame — the
+        // blink/flash the audit hunted down.
+        const swapLayers = (showEl, hideEl) => {
+            requestAnimationFrame(() => {
+                showEl.style.opacity = "1";
+                hideEl.style.opacity = "0";
+                hideEl.pause();
+            });
+        };
 
+        if (isForward) {
             const targetTimeForward = targetTime;
-            
+
             scrollingVideo.playbackRate = 1.0;
             scrollingVideo.play().then(() => {
+                swapLayers(scrollingVideo, scrollingVideoReverse);
                 const checkTime = () => {
                     if (scrollingVideo.currentTime >= targetTimeForward - 0.02) {
                         scrollingVideo.pause();
@@ -577,20 +589,17 @@ function initTransitionTrigger() {
                 scrollingVideo._seekAnimationFrame = requestAnimationFrame(checkTime);
             }).catch(err => {
                 console.log("Native forward play failed, seeking instantly:", err);
+                swapLayers(scrollingVideo, scrollingVideoReverse);
                 scrollingVideo.currentTime = targetTimeForward;
                 scrollingVideoReverse.currentTime = videoDuration - targetTimeForward;
                 if (onComplete) onComplete();
             });
         } else {
-            // FADE IN REVERSE VIDEO, FADE OUT FORWARD VIDEO INSTANTLY
-            scrollingVideoReverse.style.opacity = "1";
-            scrollingVideo.style.opacity = "0";
-            scrollingVideo.pause();
-
             const targetTimeReverse = videoDuration - targetTime;
-            
+
             scrollingVideoReverse.playbackRate = 1.0;
             scrollingVideoReverse.play().then(() => {
+                swapLayers(scrollingVideoReverse, scrollingVideo);
                 const checkTime = () => {
                     if (scrollingVideoReverse.currentTime >= targetTimeReverse - 0.02) {
                         scrollingVideoReverse.pause();
@@ -605,6 +614,7 @@ function initTransitionTrigger() {
                 scrollingVideoReverse._seekAnimationFrame = requestAnimationFrame(checkTime);
             }).catch(err => {
                 console.log("Native reverse play failed, seeking instantly:", err);
+                swapLayers(scrollingVideoReverse, scrollingVideo);
                 scrollingVideoReverse.currentTime = targetTimeReverse;
                 scrollingVideo.currentTime = targetTime;
                 if (onComplete) onComplete();
@@ -1112,6 +1122,7 @@ function initMobileActions() {
 
                 // Show modal overlay with GSAP transition
                 modal.style.display = "flex";
+                document.body.style.overflow = "hidden";
                 gsap.fromTo(modal, { opacity: 0 }, { opacity: 1, duration: 0.3 });
                 gsap.fromTo(".mobile-modal-content", 
                     { scale: 0.92, y: 24 }, 
@@ -1122,6 +1133,7 @@ function initMobileActions() {
     });
 
     const closeModal = () => {
+        document.body.style.overflow = "";
         gsap.to(modal, {
             opacity: 0,
             duration: 0.3,
@@ -1135,6 +1147,11 @@ function initMobileActions() {
     closeBtn.addEventListener("click", closeModal);
     modal.addEventListener("click", (e) => {
         if (e.target === modal) {
+            closeModal();
+        }
+    });
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && modal.style.display === "flex") {
             closeModal();
         }
     });
@@ -1323,6 +1340,7 @@ function openBookingModal(key) {
     textarea.placeholder = t[key + "_placeholder"];
 
     modal.style.display = "flex";
+    document.body.style.overflow = "hidden";
     gsap.fromTo(modal, { opacity: 0 }, { opacity: 1, duration: 0.3 });
     gsap.fromTo(modal.querySelector(".mobile-modal-content"), 
         { scale: 0.92, y: 24 }, 
@@ -1339,6 +1357,7 @@ function initBookingForm() {
     if (!form || !modal || !closeBtn || !submitBtn) return;
 
     const closeModal = () => {
+        document.body.style.overflow = "";
         gsap.to(modal, {
             opacity: 0,
             duration: 0.3,
@@ -1354,6 +1373,11 @@ function initBookingForm() {
     closeBtn.addEventListener("click", closeModal);
     modal.addEventListener("click", (e) => {
         if (e.target === modal) closeModal();
+    });
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && modal.style.display === "flex") {
+            closeModal();
+        }
     });
 
     form.addEventListener("submit", (e) => {
@@ -1413,6 +1437,7 @@ function initLeisureActions() {
             playerContainer.innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/ODR5b6kcyis?autoplay=1" title="Ribas Karpaty Promo Video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen style="border: none;"></iframe>`;
             
             youtubeModal.style.display = "flex";
+            document.body.style.overflow = "hidden";
             gsap.fromTo(youtubeModal, { opacity: 0 }, { opacity: 1, duration: 0.3 });
             gsap.fromTo(youtubeModal.querySelector(".mobile-modal-content"), 
                 { scale: 0.92, y: 24 }, 
@@ -1421,6 +1446,7 @@ function initLeisureActions() {
         };
 
         const closeVideo = () => {
+            document.body.style.overflow = "";
             gsap.to(youtubeModal, {
                 opacity: 0,
                 duration: 0.3,
@@ -1436,11 +1462,17 @@ function initLeisureActions() {
         youtubeModal.addEventListener("click", (e) => {
             if (e.target === youtubeModal) closeVideo();
         });
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && youtubeModal.style.display === "flex") {
+                closeVideo();
+            }
+        });
     }
 
     if (viewBooksBtn && booksModal && closeBooksBtn) {
         const openBooks = () => {
             booksModal.style.display = "flex";
+            document.body.style.overflow = "hidden";
             gsap.fromTo(booksModal, { opacity: 0 }, { opacity: 1, duration: 0.3 });
             gsap.fromTo(booksModal.querySelector(".mobile-modal-content"), 
                 { scale: 0.92, y: 24 }, 
@@ -1449,6 +1481,7 @@ function initLeisureActions() {
         };
 
         const closeBooks = () => {
+            document.body.style.overflow = "";
             gsap.to(booksModal, {
                 opacity: 0,
                 duration: 0.3,
@@ -1462,6 +1495,11 @@ function initLeisureActions() {
         closeBooksBtn.addEventListener("click", closeBooks);
         booksModal.addEventListener("click", (e) => {
             if (e.target === booksModal) closeBooks();
+        });
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && booksModal.style.display === "flex") {
+                closeBooks();
+            }
         });
     }
 }
@@ -1483,6 +1521,7 @@ function initUsefulInfoActions() {
     if (safeBtn && safeModal && closeSafeBtn) {
         const openSafe = () => {
             safeModal.style.display = "flex";
+            document.body.style.overflow = "hidden";
             gsap.fromTo(safeModal, { opacity: 0 }, { opacity: 1, duration: 0.3 });
             gsap.fromTo(safeModal.querySelector(".mobile-modal-content"), 
                 { scale: 0.92, y: 24 }, 
@@ -1491,6 +1530,7 @@ function initUsefulInfoActions() {
         };
 
         const closeSafe = () => {
+            document.body.style.overflow = "";
             gsap.to(safeModal, {
                 opacity: 0,
                 duration: 0.3,
@@ -1505,11 +1545,17 @@ function initUsefulInfoActions() {
         safeModal.addEventListener("click", (e) => {
             if (e.target === safeModal) closeSafe();
         });
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && safeModal.style.display === "flex") {
+                closeSafe();
+            }
+        });
     }
 
     if (baggageBtn && baggageModal && closeBaggageBtn) {
         const openBaggage = () => {
             baggageModal.style.display = "flex";
+            document.body.style.overflow = "hidden";
             gsap.fromTo(baggageModal, { opacity: 0 }, { opacity: 1, duration: 0.3 });
             gsap.fromTo(baggageModal.querySelector(".mobile-modal-content"), 
                 { scale: 0.92, y: 24 }, 
@@ -1518,6 +1564,7 @@ function initUsefulInfoActions() {
         };
 
         const closeBaggage = () => {
+            document.body.style.overflow = "";
             gsap.to(baggageModal, {
                 opacity: 0,
                 duration: 0.3,
@@ -1531,6 +1578,11 @@ function initUsefulInfoActions() {
         closeBaggageBtn.addEventListener("click", closeBaggage);
         baggageModal.addEventListener("click", (e) => {
             if (e.target === baggageModal) closeBaggage();
+        });
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && baggageModal.style.display === "flex") {
+                closeBaggage();
+            }
         });
     }
 }
@@ -1710,7 +1762,7 @@ window.currentScreen = currentScreen;
 function initBackgroundMusic() {
     const toggleBtn = document.getElementById("sound-toggle");
     const TARGET_VOL = 0.3;
-    const FADE_IN = 2.5;
+    const FADE_IN = 5;
     const CROSSFADE = 1.6;
 
     const trackA = new Audio("music.mp3");
@@ -1782,7 +1834,9 @@ function initBackgroundMusic() {
         if (muted) return Promise.resolve();
         if (audioUnlocked && active && !active.paused) return Promise.resolve();
 
-        active.volume = preloaderDismissed ? TARGET_VOL : 0;
+        // Always start silent — the fade below (or __ribasMusic.start after the
+        // preloader) ramps to TARGET_VOL over FADE_IN seconds
+        active.volume = 0;
         
         let playPromise;
         try {
@@ -1835,6 +1889,7 @@ function initBackgroundMusic() {
             muted = !muted;
             try { localStorage.setItem("ribasMuted", muted ? "1" : "0"); } catch (err) {}
             updateButton();
+            gsap.killTweensOf([trackA, trackB]); // no dueling fade tweens on rapid toggling
             if (muted) {
                 gsap.to([trackA, trackB], {
                     volume: 0,

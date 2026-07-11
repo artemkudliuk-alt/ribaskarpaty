@@ -61,6 +61,18 @@ window.translations = {
         ".menu-dropdown .dropdown-desc": "Вишукані страви карпатської та європейської кухні від нашого шеф-кухаря.",
         "#view-menu-btn span": "Переглянути меню",
         
+        // Mobile Menu Overlay
+        "#mobile-menu-overlay .wifi-section .mobile-section-title span": "Wi-Fi в готелі",
+        "#mobile-menu-overlay .wifi-section .mobile-field:nth-child(1) strong": "Мережа:",
+        "#mobile-menu-overlay .wifi-section .mobile-field:nth-child(2) strong": "Пароль:",
+        "#mobile-copy-wifi-btn .btn-text": "Скопіювати пароль",
+        "#mobile-menu-overlay .reception-section .mobile-section-title span": "Рецепція",
+        "#mobile-menu-overlay .reception-section .mobile-section-desc": "Швидкий дзвінок з мобільного або внутрішнього телефону.",
+        "#mobile-menu-overlay .reception-section a": "Подзвонити 101",
+        "#mobile-menu-overlay .chat-section .mobile-section-title span": "Написати нам",
+        "#mobile-menu-overlay .menu-section .mobile-section-title span": "Ресторан",
+        "#mobile-view-menu-btn": "Переглянути меню",
+        
         // Screen 1
         "#screen-1 .screen-label-tag": "01 / Welcome",
         "#screen-1 .welcome-title": "Ласкаво просимо<br class=\"desktop-only\"> до відпочинку<br class=\"desktop-only\"> серед гір",
@@ -227,6 +239,18 @@ window.translations = {
         ".menu-dropdown .dropdown-desc": "Exquisite Carpathian and European cuisine from our Chef.",
         "#view-menu-btn span": "View Menu",
         
+        // Mobile Menu Overlay
+        "#mobile-menu-overlay .wifi-section .mobile-section-title span": "Hotel Wi-Fi",
+        "#mobile-menu-overlay .wifi-section .mobile-field:nth-child(1) strong": "Network:",
+        "#mobile-menu-overlay .wifi-section .mobile-field:nth-child(2) strong": "Password:",
+        "#mobile-copy-wifi-btn .btn-text": "Copy Password",
+        "#mobile-menu-overlay .reception-section .mobile-section-title span": "Reception",
+        "#mobile-menu-overlay .reception-section .mobile-section-desc": "Quick call from mobile or in-room phone.",
+        "#mobile-menu-overlay .reception-section a": "Call 101",
+        "#mobile-menu-overlay .chat-section .mobile-section-title span": "Message Us",
+        "#mobile-menu-overlay .menu-section .mobile-section-title span": "Restaurant",
+        "#mobile-view-menu-btn": "View Menu",
+        
         // Screen 1
         "#screen-1 .screen-label-tag": "01 / Welcome",
         "#screen-1 .welcome-title": "Welcome<br class=\"desktop-only\"> to relaxation<br class=\"desktop-only\"> among the mountains",
@@ -392,6 +416,18 @@ window.translations = {
         ".menu-dropdown .dropdown-title": "Меню ресторана",
         ".menu-dropdown .dropdown-desc": "Изысканные блюда карпатской и европейской кухни от нашего шеф-повара.",
         "#view-menu-btn span": "Посмотреть меню",
+        
+        // Mobile Menu Overlay
+        "#mobile-menu-overlay .wifi-section .mobile-section-title span": "Wi-Fi в отеле",
+        "#mobile-menu-overlay .wifi-section .mobile-field:nth-child(1) strong": "Сеть:",
+        "#mobile-menu-overlay .wifi-section .mobile-field:nth-child(2) strong": "Пароль:",
+        "#mobile-copy-wifi-btn .btn-text": "Скопировать пароль",
+        "#mobile-menu-overlay .reception-section .mobile-section-title span": "Рецепция",
+        "#mobile-menu-overlay .reception-section .mobile-section-desc": "Быстрый звонок с мобильного или внутреннего телефона.",
+        "#mobile-menu-overlay .reception-section a": "Позвонить 101",
+        "#mobile-menu-overlay .chat-section .mobile-section-title span": "Написать нам",
+        "#mobile-menu-overlay .menu-section .mobile-section-title span": "Ресторан",
+        "#mobile-view-menu-btn": "Посмотреть меню",
         
         // Screen 1
         "#screen-1 .screen-label-tag": "01 / Welcome",

@@ -874,7 +874,7 @@ body {
     width: 100%;
     flex-shrink: 0;
     cursor: pointer;
-    transition: flex-direction 0.3s ease, align-items 0.3s ease, border-bottom 0.3s ease, padding-bottom 0.3s ease, margin-bottom 0.3s ease;
+    transition: border-bottom 0.3s ease, padding-bottom 0.3s ease, margin-bottom 0.3s ease;
 }
 
 .floating-pillow-tab:hover .tab-header,
@@ -3190,4 +3190,20 @@ body {
         padding: 14px;
         gap: 10px;
     }
+}
+
+
+/* =========================================================================
+   GPU LAYER ISOLATION — promote backdrop-filter surfaces to their own
+   compositor layers so blur never shares a canvas with the video planes
+   (prevents the grayscale / color-drop rendering glitch)
+   ========================================================================= */
+
+.quick-nav,
+.welcome-pillow-card,
+.bento-tile,
+.mobile-modal-content,
+.footer-social-link,
+.sound-toggle {
+    transform: translateZ(0);
 }
