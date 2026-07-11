@@ -705,6 +705,7 @@ function initTransitionTrigger() {
             if (fromScreen.id !== nextScreenIndex) {
                 gsap.set(fromScreen.el, { opacity: 0, display: "none" });
                 fromScreen.el.style.pointerEvents = "none";
+                fromScreen.el.style.zIndex = ""; // restore its normal z-index for next time
             }
 
             if (!skipEntranceInFinalize) {
@@ -719,13 +720,13 @@ function initTransitionTrigger() {
         // ── SLIDE TRANSITION (Footer sliding up or down) ──
         if (toScreen.slideTransition) {
             // ── SLIDE FOOTER UP ──
-            toScreen.el.style.display = "block";
-            gsap.set(toScreen.el, { y: "100vh", opacity: 1 });
-
             const toContent = toScreen.el.querySelector(".screen-content");
             const toHeader = toScreen.el.querySelector(".main-header");
             if (toContent) gsap.set(toContent, { opacity: 0 });
             if (toHeader) gsap.set(toHeader, { opacity: 0 });
+
+            toScreen.el.style.display = "block";
+            gsap.set(toScreen.el, { y: "100vh", opacity: 1 });
 
             animateScreenExit(fromScreen.el);
 
@@ -764,10 +765,7 @@ function initTransitionTrigger() {
             // ── SLIDE FOOTER DOWN (returning to Screen 5) ──
             animateScreenExit(fromScreen.el);
 
-            gsap.set(toScreen.el, { display: "block", opacity: 1 });
-            gsap.set(sharedVideoBg, { display: "block", opacity: 1 });
-            
-            // Hide incoming screen content at start
+            // Hide incoming screen content at start BEFORE setting container display
             const toContent = toScreen.el.querySelector(".screen-content");
             const toHeader = toScreen.el.querySelector(".main-header");
             const overlay = toScreen.el.querySelector(".screen-overlay");
@@ -781,6 +779,9 @@ function initTransitionTrigger() {
                     gsap.set(overlay, { opacity: 0 });
                 }
             }
+
+            gsap.set(toScreen.el, { display: "block", opacity: 1 });
+            gsap.set(sharedVideoBg, { display: "block", opacity: 1 });
 
             scrollingVideo.pause();
             scrollingVideoReverse.pause();
@@ -813,10 +814,20 @@ function initTransitionTrigger() {
         // ── SCROLLING VIDEO TRANSITIONS (Screens 1 to 5) ──
         const targetTime = screenTimestamps[nextScreenIndex];
 
-        // Hide incoming content at start; entrance animation runs in finalizeTransition when video pauses.
-        skipEntranceInFinalize = false;
-        gsap.set(toScreen.el, { display: "block", opacity: 1 });
-        
+        // Screens 2-5 are transparent windows onto the single shared video
+        // (z-index 5, sits behind every .screen). Screen 1 and the footer
+        // carry their own opaque video instead. Both fromScreen and toScreen
+        // stay display:block for the whole transition, and with everyone at
+        // the same z-index the browser only falls back to DOM order — so
+        // whichever opaque screen was left behind could paint through toScreen's
+        // still-transparent overlay/content, read as "the dark hero blinking
+        // through" or "another screen flashing" mid-scroll. Pinning fromScreen
+        // under the shared video for the duration removes it from the stack
+        // entirely instead of relying on timing; finalizeTransition restores it.
+        fromScreen.el.style.zIndex = "1";
+        toScreen.el.style.zIndex = "";
+
+        // Hide incoming content at start BEFORE setting container display
         const toContent = toScreen.el.querySelector(".screen-content");
         const toHeader = toScreen.el.querySelector(".main-header");
         const overlay = toScreen.el.querySelector(".screen-overlay");
@@ -830,6 +841,10 @@ function initTransitionTrigger() {
                 gsap.set(overlay, { opacity: 0 });
             }
         }
+
+        // Hide incoming content at start; entrance animation runs in finalizeTransition when video pauses.
+        skipEntranceInFinalize = false;
+        gsap.set(toScreen.el, { display: "block", opacity: 1 });
 
         animateScreenExit(fromScreen.el);
 
@@ -879,6 +894,15 @@ function initTransitionTrigger() {
             scrollingVideo.currentTime = 0.0;
             scrollingVideoReverse.currentTime = screenTimestampsReverse[1];
 
+            // Hide the scrolling video layers themselves before the shared
+            // container is revealed — their own opacity can be left over from
+            // an earlier visit, and revealing an opaque container around an
+            // already-visible layer flashes its static frame 0 for an instant.
+            // animateVideoTime's swapLayers fades the right layer back in once
+            // playback has actually started.
+            scrollingVideo.style.opacity = "0";
+            scrollingVideoReverse.style.opacity = "0";
+
             // Directly reveal the shared background and fade out the lobby video
             sharedVideoBg.style.transition = "";
             sharedVideoBg.style.display = "block";
@@ -920,9 +944,12 @@ function animateScreenExit(screenEl) {
 
     const overlay = screenEl.querySelector(".screen-overlay");
     if (overlay) {
-        const isHeroOrFooter = screenEl.id === "screen-1" || screenEl.id === "screen-footer";
-        if (isHeroOrFooter) {
+        const isFooter = screenEl.id === "screen-footer";
+        const isHero = screenEl.id === "screen-1";
+        if (isFooter) {
             gsap.set(overlay, { opacity: 1 });
+        } else if (isHero) {
+            gsap.set(overlay, { opacity: 0 }); // Hero overlay goes to 0 instantly on exit so scrolling video is bright
         } else {
             gsap.to(overlay, {
                 opacity: 0,
@@ -1045,7 +1072,8 @@ function animateScreenEntrance(screenEl) {
 function initWelcomeScreen() {
     // Hide Screen 1 content elements initially for a staggered GSAP entrance
     gsap.set(".main-header", { y: -50, opacity: 0 });
-    gsap.set("#screen-1 .screen-overlay", { opacity: 0 });
+    // Hero overlay stays dark at all times (owner requirement) — no light-in fade
+    gsap.set("#screen-1 .screen-overlay", { opacity: 1 });
     gsap.set("#screen-1 .screen-label-tag", { y: 15, opacity: 0 });
     gsap.set("#screen-1 .welcome-title", { y: 25, opacity: 0 });
     gsap.set("#screen-1 .welcome-divider", { scaleX: 0, transformOrigin: "left" });
@@ -1055,15 +1083,7 @@ function initWelcomeScreen() {
 
 function animateWelcomeScreenEntrance() {
     console.log("Starting Screen 1 Staggered Entrance Animation...");
-    const overlay = document.querySelector("#screen-1 .screen-overlay");
-    if (overlay) {
-        gsap.to(overlay, {
-            opacity: 1,
-            duration: 0.8,
-            delay: 0.1,
-            ease: "power2.out"
-        });
-    }
+    // Overlay is already dark from initWelcomeScreen and stays that way — nothing to animate here.
 
     const entranceTl = gsap.timeline();
 
