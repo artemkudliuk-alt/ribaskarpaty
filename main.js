@@ -824,8 +824,13 @@ function initTransitionTrigger() {
         // through" or "another screen flashing" mid-scroll. Pinning fromScreen
         // under the shared video for the duration removes it from the stack
         // entirely instead of relying on timing; finalizeTransition restores it.
-        fromScreen.el.style.zIndex = "1";
         toScreen.el.style.zIndex = "";
+        // Keep the outgoing screen on top during its exit fade-out (0.5s), then push it down
+        setTimeout(() => {
+            if (isTransitioning) {
+                fromScreen.el.style.zIndex = "1";
+            }
+        }, 500);
 
         // Hide incoming content at start BEFORE setting container display
         const toContent = toScreen.el.querySelector(".screen-content");
