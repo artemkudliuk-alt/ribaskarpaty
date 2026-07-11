@@ -80,6 +80,10 @@ body {
     overflow: hidden;
 }
 
+#preloader video {
+    opacity: 0;
+}
+
 .preloader-content {
     position: relative;
     z-index: 15;
@@ -96,7 +100,7 @@ body {
     max-width: 450px;
     min-width: 220px;
     opacity: 1;
-    transform: scale(1);
+    transform: scale(0.5); /* 2x smaller on black progress screen */
     will-change: opacity, transform;
 }
 

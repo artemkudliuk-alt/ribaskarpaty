@@ -93,6 +93,8 @@ function preloadScrollingVideos() {
 }
 
 
+let introFadeTriggered = false;
+
 function initPreloader() {
     const preloader = document.getElementById("preloader");
     const logoContainer = document.querySelector(".preloader-logo-container");
@@ -104,8 +106,8 @@ function initPreloader() {
 
     if (!preloader || !logoContainer || !logoFill || !preloaderVideo || !videoLobby1 || !videoLobby2) return;
 
-    // Show logo silhouette immediately
-    gsap.set(logoContainer, { opacity: 1, scale: 1 });
+    // Show logo silhouette immediately (scaled down to 0.5 on black preloader)
+    gsap.set(logoContainer, { opacity: 1, scale: 0.5 });
 
     let mainVideoReady = false;
     let preloaderVideoFinished = false;
@@ -129,6 +131,19 @@ function initPreloader() {
         // Step 2: Play the preloader video
         preloaderVideo.src = preloaderBlobUrl;
         preloaderVideo.play().then(() => {
+            // Softly fade in preloader video from black
+            gsap.to(preloaderVideo, {
+                opacity: 1,
+                duration: 1.2,
+                ease: "power2.out"
+            });
+            // Smoothly scale up logo container to full size
+            gsap.to(logoContainer, {
+                scale: 1.0,
+                duration: 1.2,
+                ease: "power2.out"
+            });
+
             preloaderVideo.addEventListener("timeupdate", checkPreloaderVideoProgress);
             preloaderVideo.addEventListener("ended", () => {
                 preloaderVideoFinished = true;
@@ -187,6 +202,27 @@ function initPreloader() {
         const currentTime = preloaderVideo.currentTime;
 
         if (duration) {
+            // Trigger logo fade out and video darkening (fade to black) 1.0s before end
+            if (currentTime >= duration - 1.0 && !introFadeTriggered && mainVideoReady) {
+                introFadeTriggered = true;
+                
+                // Fade out logo with blur and scale
+                gsap.to(logoContainer, {
+                    opacity: 0,
+                    scale: 0.95,
+                    filter: "blur(10px)",
+                    duration: 0.8,
+                    ease: "power2.inOut"
+                });
+
+                // Fade preloader video to black (container has black background)
+                gsap.to(preloaderVideo, {
+                    opacity: 0,
+                    duration: 0.9,
+                    ease: "power2.inOut"
+                });
+            }
+
             if (currentTime >= duration - 0.25 && !mainVideoReady) {
                 preloaderVideo.pause();
                 preloaderVideo.currentTime = duration - 0.25;
@@ -217,41 +253,25 @@ function initPreloader() {
         // Lounge soundtrack fades in together with the first screen
         if (window.__ribasMusic) window.__ribasMusic.start();
 
-        // Kick off the deferred scrolling-video downloads right now — tying
-        // this to the fade tween's onComplete stalls it in throttled tabs
         preloadScrollingVideos();
 
-        gsap.to(logoContainer, {
-            opacity: 0,
-            filter: "blur(18px)",
-            scale: 1.05,
-            duration: 1.0,
-            ease: "power3.in"
-        });
+        preloaderVideo.pause();
 
         if (progressText) {
-            gsap.to(progressText, { opacity: 0, duration: 0.5, ease: "power2.in" });
+            gsap.to(progressText, { opacity: 0, duration: 0.3 });
         }
 
-        gsap.to(preloaderVideo, {
-            opacity: 0,
-            duration: 1.2,
-            ease: "power2.inOut",
-            onComplete: () => {
-                preloaderVideo.pause();
-            }
-        });
-
+        // Fade out preloader overlay (already black, so it reveals the Hero video softly)
         gsap.to(preloader, {
             opacity: 0,
-            duration: 1.5,
-            delay: 0.5,
+            duration: 1.0,
             ease: "power2.out",
             onComplete: () => {
                 preloader.style.display = "none";
             }
         });
 
+        // Softly fade in welcome screen content
         gsap.set("#screen-1", { display: "block", opacity: 0 });
         gsap.to("#screen-1", {
             opacity: 1,
