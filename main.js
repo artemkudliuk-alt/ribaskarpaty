@@ -137,11 +137,21 @@ function initPreloader() {
                 duration: 1.2,
                 ease: "power2.out"
             });
-            // Smoothly scale up logo container to full size
+            // Hide progress text and fade out the 50% scale logo silhouette
+            gsap.to(progressText, { opacity: 0, duration: 0.3 });
             gsap.to(logoContainer, {
-                scale: 1.0,
-                duration: 1.2,
-                ease: "power2.out"
+                opacity: 0,
+                duration: 0.3,
+                onComplete: () => {
+                    // Instantly scale to 1.0 (normal size) while invisible
+                    gsap.set(logoContainer, { scale: 1.0, filter: "none" });
+                    // Very slow, elegant fade-in over 2.4 seconds
+                    gsap.to(logoContainer, {
+                        opacity: 1,
+                        duration: 2.4,
+                        ease: "power2.out"
+                    });
+                }
             });
 
             preloaderVideo.addEventListener("timeupdate", checkPreloaderVideoProgress);
@@ -154,9 +164,6 @@ function initPreloader() {
             preloaderVideoFinished = true;
             checkReadyState();
         });
-
-        // Hide progress text once preloader starts playing
-        gsap.to(progressText, { opacity: 0, duration: 0.3, delay: 0.2 });
 
         // Step 3: only the lobby loop gates the dismissal. The heavy scrolling
         // clips are lazy-loaded AFTER the preloader is gone (preloadScrollingVideos),
@@ -202,23 +209,14 @@ function initPreloader() {
         const currentTime = preloaderVideo.currentTime;
 
         if (duration) {
-            // Trigger logo fade out and video darkening (fade to black) 1.0s before end
+            // Trigger logo fade out 1.0s before end
             if (currentTime >= duration - 1.0 && !introFadeTriggered && mainVideoReady) {
                 introFadeTriggered = true;
                 
-                // Fade out logo with blur and scale
+                // Fade out logo slowly without scale changes
                 gsap.to(logoContainer, {
                     opacity: 0,
-                    scale: 0.95,
-                    filter: "blur(10px)",
                     duration: 0.8,
-                    ease: "power2.inOut"
-                });
-
-                // Fade preloader video to black (container has black background)
-                gsap.to(preloaderVideo, {
-                    opacity: 0,
-                    duration: 0.9,
                     ease: "power2.inOut"
                 });
             }
@@ -255,19 +253,18 @@ function initPreloader() {
 
         preloadScrollingVideos();
 
-        preloaderVideo.pause();
-
         if (progressText) {
             gsap.to(progressText, { opacity: 0, duration: 0.3 });
         }
 
-        // Fade out preloader overlay (already black, so it reveals the Hero video softly)
+        // Dissolve/crossfade the preloader overlay over the playing lobby video
         gsap.to(preloader, {
             opacity: 0,
-            duration: 1.0,
+            duration: 1.2,
             ease: "power2.out",
             onComplete: () => {
                 preloader.style.display = "none";
+                preloaderVideo.pause();
             }
         });
 
