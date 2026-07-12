@@ -181,14 +181,15 @@ function initPreloader() {
     // anything happens" the audit was chasing. The logo fill bar now tracks
     // the video's own buffered ranges instead of an XHR progress event.
     preloaderVideo.src = "preloader.webm";
-    preloaderVideo.addEventListener("progress", () => {
+    const onPreloaderProgress = () => {
         if (!progressText || !preloaderVideo.duration) return;
         const buf = preloaderVideo.buffered;
         const bufferedEnd = buf.length ? buf.end(buf.length - 1) : 0;
         const percent = Math.min(100, Math.round((bufferedEnd / preloaderVideo.duration) * 100));
         progressText.textContent = `${percent}%`;
         logoFill.style.clipPath = `inset(${100 - percent}% 0 0 0)`;
-    });
+    };
+    preloaderVideo.addEventListener("progress", onPreloaderProgress);
     // Step 2: the hero loop's own download only STARTS once the preloader
     // clip has actually begun playing (not the instant its src is assigned).
     // Firing both fetches at t=0 splits the same pipe from byte zero — on a
@@ -264,6 +265,7 @@ function initPreloader() {
     }, 3000);
 
     preloaderVideo.play().then(() => {
+        preloaderVideo.removeEventListener("progress", onPreloaderProgress);
         // Softly fade in preloader video from black
         gsap.to(preloaderVideo, {
             opacity: 1,
@@ -278,6 +280,8 @@ function initPreloader() {
             onComplete: () => {
                 // Instantly scale to 1.0 (normal size) while invisible
                 gsap.set(logoContainer, { scale: 1.0, filter: "none" });
+                // Force solid logo fill to be fully visible (no clipping)
+                gsap.set(logoFill, { clipPath: "inset(0% 0 0 0)" });
                 // Very slow, elegant fade-in over 2.4 seconds
                 gsap.to(logoContainer, {
                     opacity: 1,
