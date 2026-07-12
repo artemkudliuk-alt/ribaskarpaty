@@ -2367,11 +2367,50 @@ body {
     }
 
     .main-header {
-        padding: 20px 30px;
+        position: fixed;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 15px 30px;
+        height: 80px;
+        box-sizing: border-box;
+        z-index: 10001; /* sits above overlay wrapper if needed */
+    }
+
+    .logo {
+        margin: 0 auto;
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
 
     .header-logo-img {
-        height: 48px;
+        height: 55px !important; /* ~15% increase from 48px */
+        width: auto;
+    }
+
+    .lang-selector {
+        display: none !important; /* Hide lang selector in header on mobile */
+    }
+
+    .header-right {
+        position: absolute;
+        left: 30px;
+        right: 30px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: calc(100% - 60px);
+        display: flex;
+        flex-direction: row !important; /* Force row layout */
+        justify-content: space-between !important;
+        align-items: center;
+        gap: 0;
+        pointer-events: none;
+    }
+
+    .header-right #sound-toggle,
+    .header-right #mobile-menu-toggle {
+        pointer-events: auto; /* Re-enable clicks */
     }
 
     .welcome-container {
@@ -2499,11 +2538,18 @@ body {
     }
     
     .main-header {
-        padding: 20px;
+        padding: 10px 15px;
+        height: 70px;
     }
     
     .header-logo-img {
-        height: 44px;
+        height: 50px !important; /* ~15% increase from 44px */
+    }
+
+    .header-right {
+        left: 15px;
+        right: 15px;
+        width: calc(100% - 30px);
     }
     
     .quick-nav {
@@ -3094,6 +3140,25 @@ body {
     display: flex;
     flex-direction: column;
     gap: 14px;
+}
+
+.mobile-menu-section.lang-section .lang-selector {
+    display: flex;
+    gap: 20px;
+    justify-content: flex-start;
+    align-items: center;
+    margin-top: 5px;
+}
+
+.mobile-menu-section.lang-section .lang-btn {
+    display: block !important; /* Make sure it shows inside menu */
+    color: rgba(245, 239, 230, 0.5);
+    font-size: 1.0rem; /* slightly larger for touch targets */
+    font-weight: 600;
+}
+
+.mobile-menu-section.lang-section .lang-btn.active {
+    color: var(--color-text-primary);
 }
 
 .mobile-section-title {

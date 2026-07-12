@@ -1959,9 +1959,14 @@ function initLanguageSelector() {
             const selectedLang = btn.textContent.trim().toLowerCase();
             if (selectedLang === currentLanguage) return;
 
-            // Update active state
-            langButtons.forEach(b => b.classList.remove("active"));
-            btn.classList.add("active");
+            // Update active state on ALL matching language buttons
+            langButtons.forEach(b => {
+                if (b.textContent.trim().toLowerCase() === selectedLang) {
+                    b.classList.add("active");
+                } else {
+                    b.classList.remove("active");
+                }
+            });
 
             currentLanguage = selectedLang;
             localStorage.setItem("ribas_lang", currentLanguage);
@@ -2236,8 +2241,9 @@ function initMobileMenu() {
         }
     });
 
-    // Close menu when a link inside it is clicked
+    // Close menu when a link inside it is clicked (except language switch buttons)
     menuLinks.forEach(link => {
+        if (link.classList.contains("lang-btn")) return;
         link.addEventListener("click", () => {
             closeMenu();
         });
