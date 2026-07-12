@@ -633,15 +633,18 @@ function initTransitionTrigger() {
         if (isTouchEvent && touchTriggered) return;
 
         const deltaY = e.deltaY;
-        const isTouchScrollDown = isTouchEvent && e.touches[0].clientY < window.lastTouchY;
-        const isTouchScrollUp = isTouchEvent && e.touches[0].clientY > window.lastTouchY;
+        // Positive = finger moved up = scroll-down intent (also the raw pixel
+        // amount to apply to scrollTop directly, see below).
+        const touchDelta = isTouchEvent ? (window.lastTouchY - e.touches[0].clientY) : 0;
+        const isTouchScrollDown = isTouchEvent && touchDelta > 0;
+        const isTouchScrollUp = isTouchEvent && touchDelta < 0;
 
         const isScrollDown = deltaY > 0 || isTouchScrollDown;
         const isScrollUp = deltaY < 0 || isTouchScrollUp;
 
         // When the screen content is taller than the viewport (stacked layouts
-        // on tablet/mobile), let it scroll natively to its edge first and only
-        // then switch screens on a subsequent swipe.
+        // on tablet/mobile), scroll it to its edge first and only then switch
+        // screens on a subsequent swipe.
         const activeContent = screens[currentScreen - 1].el.querySelector(".screen-content");
         if (activeContent && activeContent.scrollHeight > activeContent.clientHeight + 40 && blockedSwipeStreak < 2) {
             const atTop = activeContent.scrollTop <= 5;
@@ -652,6 +655,14 @@ function initTransitionTrigger() {
 
             if (!bypassContentScroll) {
                 if ((isScrollDown && !atBottom) || (isScrollUp && !atTop)) {
+                    // Drive scrollTop ourselves instead of returning and hoping
+                    // the browser's own native touch-scroll picks it up — on
+                    // some real phones it silently never does (the address bar
+                    // collapsing mid-gesture, momentum scroll swallowing
+                    // touchmove, etc.), which just ate every swipe without the
+                    // content ever actually scrolling into view.
+                    e.preventDefault();
+                    activeContent.scrollTop += isTouchEvent ? touchDelta : deltaY;
                     gestureWasBlocked = true;
                     if (isTouchEvent) {
                         window.lastTouchY = e.touches[0].clientY;
@@ -730,11 +741,12 @@ function initTransitionTrigger() {
         scrollingVideo._seekAnimationFrame = null;
         scrollingVideoReverse._seekAnimationFrame = null;
 
-        const swapLayers = (showEl, hideEl) => {
+        const swapLayers = (showEl, hideEl, then) => {
             requestAnimationFrame(() => {
                 showEl.style.opacity = "1";
                 hideEl.style.opacity = "0";
                 hideEl.pause();
+                if (then) then();
             });
         };
 
@@ -794,12 +806,19 @@ function initTransitionTrigger() {
                 if (onComplete) onComplete();
             });
         } else {
-            // Pre-seek forward video in the background while reverse plays
-            scrollingVideo.currentTime = targetTime;
-
             scrollingVideoReverse.playbackRate = 1.0;
             playSafely(scrollingVideoReverse).then(() => {
-                swapLayers(scrollingVideoReverse, scrollingVideo);
+                // Pre-seek the forward layer to its target only AFTER it's
+                // actually hidden (inside swapLayers' own rAF, right after the
+                // opacity flip lands) — doing this hard, instant jump while
+                // scrollingVideo was still the visible layer flashed the
+                // destination's exact paused frame for a moment before the
+                // reverse scrub became visible (only ever noticeable on the
+                // backward direction, since the forward branch's equivalent
+                // pre-seek always targets the already-hidden reverse layer).
+                swapLayers(scrollingVideoReverse, scrollingVideo, () => {
+                    scrollingVideo.currentTime = targetTime;
+                });
                 seekToTarget(scrollingVideoReverse, targetTimeReverse, () => {
                     // Swap back to make forward video visible now that seek is complete
                     scrollingVideo.style.opacity = "1";
@@ -808,6 +827,7 @@ function initTransitionTrigger() {
                 });
             }).catch(err => {
                 console.log("Native reverse play failed, seeking instantly:", err);
+                scrollingVideo.currentTime = targetTime;
                 scrollingVideoReverse.currentTime = targetTimeReverse;
                 scrollingVideo.style.opacity = "1";
                 scrollingVideoReverse.style.opacity = "0";
