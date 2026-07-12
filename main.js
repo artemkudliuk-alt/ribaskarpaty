@@ -615,6 +615,17 @@ function initTransitionTrigger() {
         }
     }
 
+    // Safety net: on some real mobile devices/browsers the inner content
+    // scroll (below) never actually advances scrollTop for reasons we can't
+    // reproduce or diagnose remotely (momentum scroll skipping touchmove,
+    // dynamic viewport-height changes as the address bar collapses, etc.) —
+    // when that happens the "wait for internal scroll" gate never opens and
+    // the user is stuck on that screen forever. After a couple of full swipe
+    // gestures that got blocked without ever completing, stop trusting the
+    // scroll-position heuristic and just let the screen transition through.
+    let blockedSwipeStreak = 0;
+    let gestureWasBlocked = false;
+
     function handleScroll(e) {
         if (isTransitioning) return;
 
@@ -632,15 +643,16 @@ function initTransitionTrigger() {
         // on tablet/mobile), let it scroll natively to its edge first and only
         // then switch screens on a subsequent swipe.
         const activeContent = screens[currentScreen - 1].el.querySelector(".screen-content");
-        if (activeContent && activeContent.scrollHeight > activeContent.clientHeight + 40) {
+        if (activeContent && activeContent.scrollHeight > activeContent.clientHeight + 40 && blockedSwipeStreak < 2) {
             const atTop = activeContent.scrollTop <= 5;
             const atBottom = activeContent.scrollTop + activeContent.clientHeight >= activeContent.scrollHeight - 5;
-            
+
             // Bypass internal content scroll blocking if the touch gesture started directly at the corresponding edge
             const bypassContentScroll = (isScrollDown && window.touchStartedAtBottom) || (isScrollUp && window.touchStartedAtTop);
 
             if (!bypassContentScroll) {
                 if ((isScrollDown && !atBottom) || (isScrollUp && !atTop)) {
+                    gestureWasBlocked = true;
                     if (isTouchEvent) {
                         window.lastTouchY = e.touches[0].clientY;
                         touchIsScrollingContent = true; // Mark that we did content scroll in this swipe
@@ -651,6 +663,7 @@ function initTransitionTrigger() {
                 // If we already scrolled content inside this specific touch gesture,
                 // block transitioning until they release and swipe again (prevents slipping)
                 if (isTouchEvent && touchIsScrollingContent) {
+                    gestureWasBlocked = true;
                     window.lastTouchY = e.touches[0].clientY;
                     return;
                 }
@@ -660,15 +673,22 @@ function initTransitionTrigger() {
         if (isScrollDown && currentScreen < 6) {
             e.preventDefault();
             if (isTouchEvent) touchTriggered = true;
+            blockedSwipeStreak = 0;
             transitionTo(currentScreen + 1);
         } else if (isScrollUp && currentScreen > 1) {
             e.preventDefault();
             if (isTouchEvent) touchTriggered = true;
+            blockedSwipeStreak = 0;
             transitionTo(currentScreen - 1);
         }
     }
 
     window.addEventListener("touchstart", (e) => {
+        // A gesture that ends (next touchstart fires) without ever completing
+        // a transition counts toward the streak that eventually forces one through.
+        blockedSwipeStreak = gestureWasBlocked ? blockedSwipeStreak + 1 : 0;
+        gestureWasBlocked = false;
+
         window.lastTouchY = e.touches[0].clientY;
         touchTriggered = false;
         touchIsScrollingContent = false;
