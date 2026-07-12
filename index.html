@@ -13,10 +13,13 @@
     <!-- CSS -->
     <link rel="stylesheet" href="style.css">
     
-    <!-- GSAP -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" defer></script>
-    
+    <!-- GSAP: self-hosted, not loaded from a 3rd-party CDN. On weak/roaming
+         mobile connections a CDN hiccup used to throw a ReferenceError on the
+         first gsap.* call and kill DOMContentLoaded entirely — permanent
+         black screen with zero fallback. ScrollTrigger was never actually
+         used anywhere in main.js/style.css, so it's dropped, not vendored. -->
+    <script src="gsap.min.js" defer></script>
+
     <!-- JS -->
     <script src="translations.js" defer></script>
     <script src="main.js" defer></script>
@@ -627,7 +630,7 @@
         <video id="video-transition-footer" class="screen-video" muted playsinline preload="none">
             <source src="footer.webm" type="video/webm">
         </video>
-        <video id="video-transition-footer-reverse" class="screen-video" muted playsinline preload="auto" style="opacity: 0;">
+        <video id="video-transition-footer-reverse" class="screen-video" muted playsinline preload="none" style="opacity: 0;">
             <source src="footer_reverse.webm" type="video/webm">
         </video>
         <video id="video-footer-loop" class="screen-video" muted playsinline loop preload="none" style="opacity: 0;">

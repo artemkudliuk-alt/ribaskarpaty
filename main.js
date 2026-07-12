@@ -143,6 +143,59 @@ function initPreloader() {
         progressText.textContent = `${percent}%`;
         logoFill.style.clipPath = `inset(${100 - percent}% 0 0 0)`;
     });
+    // Step 2: the hero loop's own download only STARTS once the preloader
+    // clip has actually begun playing (not the instant its src is assigned).
+    // Firing both fetches at t=0 splits the same pipe from byte zero — on a
+    // fast connection that's free parallelism, but on a slow/roaming mobile
+    // link it can make the preloader's OWN playback (the thing the user is
+    // actively watching) stutter while a background XHR eats the bandwidth.
+    // A short, sequential head start gives the preloader clip priority; the
+    // existing pause-at-98% logic below already absorbs any extra wait if
+    // the hero clip needs more time after that.
+    let lobbyPreloadStarted = false;
+    function startLobbyPreload() {
+        if (lobbyPreloadStarted) return;
+        lobbyPreloadStarted = true;
+
+        preloadFile("1 screen.webm", () => {})
+        .catch(err => {
+            console.warn("Lobby video preload failed, falling back to streaming:", err);
+            return "1 screen.webm";
+        })
+        .then((lobbyBlobUrl) => {
+            console.log("Lobby video preloaded!");
+            lobbyVideoBlobUrl = lobbyBlobUrl;
+            mainVideoReady = true;
+
+            // Assign Blob URL to both lobby video layers
+            videoLobby1.src = lobbyVideoBlobUrl;
+            videoLobby2.src = lobbyVideoBlobUrl;
+
+            // Initialize lobby loop now
+            initLobbySeamlessLoop();
+
+            if (waitingForMain) {
+                waitingForMain = false;
+                preloaderVideo.play().catch(() => {});
+            }
+            checkReadyState();
+        })
+        .catch((err) => {
+            console.error("Preload engine error, running fallback...", err);
+            videoLobby1.src = "1 screen.webm";
+            videoLobby2.src = "1 screen.webm";
+
+            initLobbySeamlessLoop();
+
+            mainVideoReady = true;
+            checkReadyState();
+        });
+    }
+    // Bounded fallback: guarantees the hero clip starts downloading even if
+    // preloaderVideo.play() itself never settles (mirrors the setTimeout
+    // fallback pattern already used for initTransitionTrigger below).
+    setTimeout(startLobbyPreload, 3000);
+
     preloaderVideo.play().then(() => {
         // Softly fade in preloader video from black
         gsap.to(preloaderVideo, {
@@ -172,49 +225,13 @@ function initPreloader() {
             preloaderVideoFinished = true;
             checkReadyState();
         });
+
+        startLobbyPreload();
     }).catch(err => {
         console.log("Preloader video autoplay blocked, bypass waiting.", err);
         preloaderVideoFinished = true;
         checkReadyState();
-    });
-
-    // Step 2: only the lobby loop gates the dismissal. The heavy scrolling
-    // clips are lazy-loaded AFTER the preloader is gone (preloadScrollingVideos),
-    // so they never compete for bandwidth/CPU during the intro.
-    preloadFile("1 screen.webm", () => {})
-    .catch(err => {
-        console.warn("Lobby video preload failed, falling back to streaming:", err);
-        return "1 screen.webm";
-    })
-    .then((lobbyBlobUrl) => {
-        console.log("Lobby video preloaded!");
-        lobbyVideoBlobUrl = lobbyBlobUrl;
-        mainVideoReady = true;
-
-        // Assign Blob URL to both lobby video layers
-        videoLobby1.src = lobbyVideoBlobUrl;
-        videoLobby2.src = lobbyVideoBlobUrl;
-
-        // Initialize lobby loop now
-        initLobbySeamlessLoop();
-
-        if (waitingForMain) {
-            waitingForMain = false;
-            preloaderVideo.play().catch(() => {});
-        }
-        checkReadyState();
-    })
-    .catch((err) => {
-        console.error("Preload engine error, running fallback...", err);
-        preloaderVideo.src = "preloader.webm";
-        videoLobby1.src = "1 screen.webm";
-        videoLobby2.src = "1 screen.webm";
-        
-        preloaderVideo.play().catch(() => {});
-        initLobbySeamlessLoop();
-        
-        mainVideoReady = true;
-        checkReadyState();
+        startLobbyPreload();
     });
 
     function checkPreloaderVideoProgress() {
@@ -283,21 +300,38 @@ function initPreloader() {
 
         // Softly fade in welcome screen content
         gsap.set("#screen-1", { display: "block", opacity: 0 });
+
+        // initTransitionTrigger() wires up every scroll/touch/wheel listener
+        // and populates screens[] — nothing on the site responds to input
+        // until it runs. It used to fire only from this tween's onComplete;
+        // on a struggling low-end phone (heavy video decode fighting the rAF
+        // ticker) that callback can lag far behind its nominal 1.3s, during
+        // which the site looks fully loaded but a swipe does nothing at all —
+        // the exact "hangs on the hero" symptom. activateSite() now also
+        // fires from a flat timer so a slow tween can never block it.
+        let siteActivated = false;
+        const activateSite = () => {
+            if (siteActivated) return;
+            siteActivated = true;
+            console.log("Welcome screen active.");
+            initTransitionTrigger();
+
+            const pillowTab = document.getElementById("floating-pillow-tab");
+            if (pillowTab) {
+                pillowTab.classList.add("is-visible");
+            }
+        };
+
         gsap.to("#screen-1", {
             opacity: 1,
             duration: 1.2,
             delay: 0.1,
             ease: "power2.out",
-            onComplete: () => {
-                console.log("Welcome screen active.");
-                initTransitionTrigger();
-
-                const pillowTab = document.getElementById("floating-pillow-tab");
-                if (pillowTab) {
-                    pillowTab.classList.add("is-visible");
-                }
-            }
+            onComplete: activateSite
         });
+        // setTimeout (not rAF-driven like the tween above) guarantees this
+        // fires even if GSAP's ticker is starved by a slow device
+        setTimeout(activateSite, 2000);
 
         animateWelcomeScreenEntrance();
     }
@@ -448,7 +482,11 @@ function initTransitionTrigger() {
     };
 
     const screenTimestampsReverse = {
-        1: 7.5999,
+        // Same margin-from-the-end fix as screenTimestamps[5] above: the reverse
+        // clip's real duration is 7.633-7.634s, so 7.5999 left only ~33ms —
+        // on some devices/decoders that's close enough to tip the <video>
+        // into the "ended" state and paint black. 7.55 keeps a safe margin.
+        1: 7.55,
         2: 6.2000,
         3: 4.3332,
         4: 1.8332,
@@ -772,8 +810,8 @@ function initTransitionTrigger() {
             if (toContent) gsap.set(toContent, { opacity: 0 });
             if (toHeader) gsap.set(toHeader, { opacity: 0 });
             if (overlay) {
-                const isFooter = toScreen.el.id === "screen-footer";
-                if (isFooter) {
+                const isHeroOrFooter = toScreen.el.id === "screen-1" || toScreen.el.id === "screen-footer";
+                if (isHeroOrFooter) {
                     gsap.set(overlay, { opacity: 1 });
                 } else {
                     gsap.set(overlay, { opacity: 0 });
@@ -825,12 +863,22 @@ function initTransitionTrigger() {
         // under the shared video for the duration removes it from the stack
         // entirely instead of relying on timing; finalizeTransition restores it.
         toScreen.el.style.zIndex = "";
-        // Keep the outgoing screen on top during its exit fade-out (0.5s), then push it down
-        setTimeout(() => {
-            if (isTransitioning) {
-                fromScreen.el.style.zIndex = "1";
-            }
-        }, 500);
+        // Screen 1 (hero) is the only OPAQUE fromScreen this branch ever sees
+        // (2-5 are all transparent to the same shared video, so timing never
+        // matters between them) — it must sink out of the stack immediately,
+        // not after a delay, or its permanently-dark overlay paints through
+        // toScreen's still-transparent gaps for that whole window (the exact
+        // blink/flash bug this z-index scheme exists to prevent).
+        if (fromScreen.el.id === "screen-1") {
+            fromScreen.el.style.zIndex = "1";
+        } else {
+            // Keep the outgoing screen on top during its exit fade-out (0.5s), then push it down
+            setTimeout(() => {
+                if (isTransitioning) {
+                    fromScreen.el.style.zIndex = "1";
+                }
+            }, 500);
+        }
 
         // Hide incoming content at start BEFORE setting container display
         const toContent = toScreen.el.querySelector(".screen-content");
@@ -839,8 +887,8 @@ function initTransitionTrigger() {
         if (toContent) gsap.set(toContent, { opacity: 0 });
         if (toHeader) gsap.set(toHeader, { opacity: 0 });
         if (overlay) {
-            const isFooter = toScreen.el.id === "screen-footer";
-            if (isFooter) {
+            const isHeroOrFooter = toScreen.el.id === "screen-1" || toScreen.el.id === "screen-footer";
+            if (isHeroOrFooter) {
                 gsap.set(overlay, { opacity: 1 });
             } else {
                 gsap.set(overlay, { opacity: 0 });
@@ -949,8 +997,8 @@ function animateScreenExit(screenEl) {
 
     const overlay = screenEl.querySelector(".screen-overlay");
     if (overlay) {
-        const isFooter = screenEl.id === "screen-footer";
-        if (isFooter) {
+        const isHeroOrFooter = screenEl.id === "screen-1" || screenEl.id === "screen-footer";
+        if (isHeroOrFooter) {
             gsap.set(overlay, { opacity: 1 });
         } else {
             gsap.to(overlay, {
@@ -995,8 +1043,8 @@ function animateScreenEntrance(screenEl) {
     // Initialize all to starting state: everything rises softly into place
     gsap.set([toContent, toHeader], { opacity: 1 });
     if (overlay) {
-        const isFooter = screenEl.id === "screen-footer";
-        if (isFooter) {
+        const isHeroOrFooter = screenEl.id === "screen-1" || screenEl.id === "screen-footer";
+        if (isHeroOrFooter) {
             gsap.set(overlay, { opacity: 1 });
         } else {
             gsap.set(overlay, { opacity: 0 });
@@ -1013,8 +1061,8 @@ function animateScreenEntrance(screenEl) {
     if (scrollMouse) gsap.set(scrollMouse, { y: 10, opacity: 0 });
 
     if (overlay) {
-        const isFooter = screenEl.id === "screen-footer";
-        if (isFooter) {
+        const isHeroOrFooter = screenEl.id === "screen-1" || screenEl.id === "screen-footer";
+        if (isHeroOrFooter) {
             gsap.set(overlay, { opacity: 1 });
         } else {
             gsap.to(overlay, {
@@ -1856,9 +1904,11 @@ function initLanguageSelector() {
             const content = activeScreenEl.querySelector(".screen-content");
             const overlay = activeScreenEl.querySelector(".screen-overlay");
             
+            const isHeroOrFooter = activeScreenEl.id === "screen-1" || activeScreenEl.id === "screen-footer";
+
             const tl = gsap.timeline();
             if (content) tl.to(content, { opacity: 0, duration: 0.2, ease: "power2.in" });
-            if (overlay) tl.to(overlay, { opacity: 0, duration: 0.2, ease: "power2.in" }, 0);
+            if (overlay && !isHeroOrFooter) tl.to(overlay, { opacity: 0, duration: 0.2, ease: "power2.in" }, 0);
             
             tl.call(() => {
                 applyTranslations(currentLanguage);
@@ -1905,10 +1955,14 @@ function initBackgroundMusic() {
     const FADE_IN = 5;
     const CROSSFADE = 1.6;
 
+    // preload:"none" — the site doesn't need this fetched until the user
+    // actually unmutes/interacts; "auto" was pulling two full copies of
+    // music.mp3 over the network from page load, competing for the same
+    // limited bandwidth as the preloader/hero video on a slow connection.
     const trackA = new Audio("music.mp3");
     const trackB = new Audio("music.mp3");
-    trackA.preload = "auto";
-    trackB.preload = "auto";
+    trackA.preload = "none";
+    trackB.preload = "none";
 
     let active = trackA;
     let standby = trackB;
