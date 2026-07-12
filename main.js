@@ -636,19 +636,24 @@ function initTransitionTrigger() {
             const atTop = activeContent.scrollTop <= 5;
             const atBottom = activeContent.scrollTop + activeContent.clientHeight >= activeContent.scrollHeight - 5;
             
-            if ((isScrollDown && !atBottom) || (isScrollUp && !atTop)) {
-                if (isTouchEvent) {
-                    window.lastTouchY = e.touches[0].clientY;
-                    touchIsScrollingContent = true; // Mark that we did content scroll in this swipe
-                }
-                return;
-            }
+            // Bypass internal content scroll blocking if the touch gesture started directly at the corresponding edge
+            const bypassContentScroll = (isScrollDown && window.touchStartedAtBottom) || (isScrollUp && window.touchStartedAtTop);
 
-            // If we already scrolled content inside this specific touch gesture,
-            // block transitioning until they release and swipe again (prevents slipping)
-            if (isTouchEvent && touchIsScrollingContent) {
-                window.lastTouchY = e.touches[0].clientY;
-                return;
+            if (!bypassContentScroll) {
+                if ((isScrollDown && !atBottom) || (isScrollUp && !atTop)) {
+                    if (isTouchEvent) {
+                        window.lastTouchY = e.touches[0].clientY;
+                        touchIsScrollingContent = true; // Mark that we did content scroll in this swipe
+                    }
+                    return;
+                }
+
+                // If we already scrolled content inside this specific touch gesture,
+                // block transitioning until they release and swipe again (prevents slipping)
+                if (isTouchEvent && touchIsScrollingContent) {
+                    window.lastTouchY = e.touches[0].clientY;
+                    return;
+                }
             }
         }
 
@@ -667,6 +672,16 @@ function initTransitionTrigger() {
         window.lastTouchY = e.touches[0].clientY;
         touchTriggered = false;
         touchIsScrollingContent = false;
+
+        const activeContent = screens[currentScreen - 1] ? screens[currentScreen - 1].el.querySelector(".screen-content") : null;
+        if (activeContent) {
+            // Check if the scroll container is parked at either boundary (using 15px safe margin)
+            window.touchStartedAtBottom = activeContent.scrollTop + activeContent.clientHeight >= activeContent.scrollHeight - 15;
+            window.touchStartedAtTop = activeContent.scrollTop <= 15;
+        } else {
+            window.touchStartedAtBottom = true;
+            window.touchStartedAtTop = true;
+        }
     }, { passive: true });
 
     const videoDuration = 7.6333;
