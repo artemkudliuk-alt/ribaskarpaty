@@ -83,8 +83,12 @@ function preloadScrollingVideos() {
         // cause of the reported stall on real mobile networks. The streaming
         // <video> src plus the stall watchdog in animateVideoTime is enough.
         const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-        const isSlowConnection = conn && (conn.saveData || /(^|-)2g$/.test(conn.effectiveType || ""));
-        if (isSlowConnection) return;
+        const isSlowConnection = conn && (conn.saveData || /(^|-)2g|3g$/.test(conn.effectiveType || ""));
+        const isMobileOrTablet = window.matchMedia("(max-width: 1024px)").matches;
+        if (isSlowConnection || isMobileOrTablet) {
+            console.log("Mobile/Slow network detected: Skipping scrolling video blob preload, streaming directly.");
+            return;
+        }
 
         // Fully download in the background (with retries) and swap in while
         // parked — transitions then never touch the network
@@ -156,6 +160,24 @@ function initPreloader() {
     function startLobbyPreload() {
         if (lobbyPreloadStarted) return;
         lobbyPreloadStarted = true;
+
+        const isMobileOrTablet = window.matchMedia("(max-width: 1024px)").matches;
+        const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        const isSlowConnection = conn && (conn.saveData || /(^|-)2g|3g$/.test(conn.effectiveType || ""));
+
+        if (isMobileOrTablet || isSlowConnection) {
+            console.log("Mobile/Slow network detected: Skipping Lobby video blob preload, streaming directly.");
+            videoLobby1.src = "1 screen.webm";
+            videoLobby2.src = "1 screen.webm";
+            initLobbySeamlessLoop();
+            mainVideoReady = true;
+            if (waitingForMain) {
+                waitingForMain = false;
+                preloaderVideo.play().catch(() => {});
+            }
+            checkReadyState();
+            return;
+        }
 
         preloadFile("1 screen.webm", () => {})
         .catch(err => {
