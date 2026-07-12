@@ -1963,7 +1963,7 @@ window.currentScreen = currentScreen;
 
 function initBackgroundMusic() {
     const toggleBtn = document.getElementById("sound-toggle");
-    const TARGET_VOL = 0.3;
+    const TARGET_VOL = 0.55;
     const FADE_IN = 5;
     const CROSSFADE = 1.6;
 
@@ -2110,19 +2110,20 @@ function initBackgroundMusic() {
         });
     }
 
-    // Try to play immediately on load (if allowed) and register gesture listeners immediately
-    tryPlay();
+    // Music never attempts to autoplay — only an explicit tap/click/keydown
+    // (via the gesture listeners below) is allowed to start it, on desktop
+    // or mobile alike.
     addGestureFallbacks();
 
     window.__ribasMusic = {
         start() {
             preloaderDismissed = true;
+            // Only resumes the fade-in if a gesture already started playback
+            // earlier (e.g. a tap during the preloader) — never starts it here.
             if (audioUnlocked && active && !active.paused && !muted) {
                 gsap.to(active, { volume: TARGET_VOL, duration: FADE_IN, ease: "power1.out" });
-                return Promise.resolve();
-            } else {
-                return tryPlay();
             }
+            return Promise.resolve();
         },
         _trackA: trackA,
         _trackB: trackB,
