@@ -55,53 +55,95 @@ function preloadFile(url, onProgress, attempt = 0) {
     });
 }
 
-function preloadScrollingVideos() {
+let forwardScrollPreloadStarted = false;
+function startForwardScrollPreload() {
+    if (forwardScrollPreloadStarted) return;
+    forwardScrollPreloadStarted = true;
+
     const vScrolling = document.getElementById("video-scrolling");
+    if (!vScrolling) return;
+
+    const isMobile = window.matchMedia("(max-width: 1024px)").matches;
+    const src = isMobile ? "scrolling video mob.webm" : "scrolling video.webm";
+
+    console.log("Preloading forward scrolling video:", src);
+    vScrolling.preload = "auto";
+    vScrolling.src = src;
+    vScrolling.load();
+    vScrolling.addEventListener("canplay", () => {
+        if (vScrolling.paused) vScrolling.play().then(() => vScrolling.pause()).catch(() => {});
+    }, { once: true });
+
+    const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    const isSlowConnection = conn && (conn.saveData || /(^|-)2g|3g$/.test(conn.effectiveType || ""));
+    if (isSlowConnection || isMobile) return;
+
+    preloadFile(src, () => {}).then(blobUrl => {
+        const swap = () => {
+            if (!vScrolling.paused) { setTimeout(swap, 500); return; }
+            const t = vScrolling.currentTime;
+            vScrolling.src = blobUrl;
+            vScrolling.load();
+            vScrolling.currentTime = t;
+        };
+        swap();
+    }).catch(() => {});
+}
+
+let reverseScrollPreloadStarted = false;
+function startReverseScrollPreload() {
+    if (reverseScrollPreloadStarted) return;
+    reverseScrollPreloadStarted = true;
+
     const vScrollingRev = document.getElementById("video-scrolling-reverse");
-    const isMobile = window.matchMedia("(max-width: 768px)").matches;
+    if (!vScrollingRev) return;
 
-    const pairs = [
-        [vScrolling, isMobile ? "scrolling video mob.webm" : "scrolling video.webm"],
-        [vScrollingRev, isMobile ? "scrolling video mob_reverse.webm" : "scrolling video_reverse.webm"]
-    ];
+    const isMobile = window.matchMedia("(max-width: 1024px)").matches;
+    const src = isMobile ? "scrolling video mob_reverse.webm" : "scrolling video_reverse.webm";
 
-    pairs.forEach(([video, src]) => {
-        if (!video) return;
+    console.log("Preloading reverse scrolling video:", src);
+    vScrollingRev.preload = "auto";
+    vScrollingRev.src = src;
+    vScrollingRev.load();
+    vScrollingRev.addEventListener("canplay", () => {
+        if (vScrollingRev.paused) vScrollingRev.play().then(() => vScrollingRev.pause()).catch(() => {});
+    }, { once: true });
 
-        // Streaming source right away: the first scroll never waits
-        video.preload = "auto";
-        video.src = src;
-        video.load();
-        video.addEventListener("canplay", () => {
-            // Warm up the decoder so the first frame is ready to paint
-            if (video.paused) video.play().then(() => video.pause()).catch(() => {});
-        }, { once: true });
+    const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    const isSlowConnection = conn && (conn.saveData || /(^|-)2g|3g$/.test(conn.effectiveType || ""));
+    if (isSlowConnection || isMobile) return;
 
-        // On Save-Data or a flagged slow connection (roaming 2G/3G), skip the
-        // full background blob download — it competes for the same limited
-        // bandwidth the streaming playback above needs and was the likely
-        // cause of the reported stall on real mobile networks. The streaming
-        // <video> src plus the stall watchdog in animateVideoTime is enough.
-        const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-        const isSlowConnection = conn && (conn.saveData || /(^|-)2g|3g$/.test(conn.effectiveType || ""));
-        const isMobileOrTablet = window.matchMedia("(max-width: 1024px)").matches;
-        if (isSlowConnection || isMobileOrTablet) {
-            console.log("Mobile/Slow network detected: Skipping scrolling video blob preload, streaming directly.");
-            return;
+    preloadFile(src, () => {}).then(blobUrl => {
+        const swap = () => {
+            if (!vScrollingRev.paused) { setTimeout(swap, 500); return; }
+            const t = vScrollingRev.currentTime;
+            vScrollingRev.src = blobUrl;
+            vScrollingRev.load();
+            vScrollingRev.currentTime = t;
+        };
+        swap();
+    }).catch(() => {});
+}
+
+let remainingAssetsLoaded = false;
+function preloadRemainingAssets() {
+    if (remainingAssetsLoaded) return;
+    remainingAssetsLoaded = true;
+
+    console.log("Lazy loading remaining screen loops, transitions, and footer videos...");
+    screens.forEach(s => {
+        if (s.transitionVideo && typeof s.transitionVideo.load === "function") {
+            s.transitionVideo.preload = "auto";
+            s.transitionVideo.load();
         }
-
-        // Fully download in the background (with retries) and swap in while
-        // parked — transitions then never touch the network
-        preloadFile(src, () => {}).then(blobUrl => {
-            const swap = () => {
-                if (!video.paused) { setTimeout(swap, 500); return; }
-                const t = video.currentTime;
-                video.src = blobUrl;
-                video.load();
-                video.currentTime = t;
-            };
-            swap();
-        }).catch(() => { /* streaming source stays as fallback */ });
+        if (s.reverseVideo && typeof s.reverseVideo.load === "function") {
+            s.reverseVideo.preload = "auto";
+            s.reverseVideo.load();
+        }
+        if (s.loopVideo && !s.isDualLoop && typeof s.loopVideo.load === "function") {
+            s.loopVideo.preload = "auto";
+            s.loopVideo.load();
+        }
     });
 }
 
@@ -216,7 +258,10 @@ function initPreloader() {
     // Bounded fallback: guarantees the hero clip starts downloading even if
     // preloaderVideo.play() itself never settles (mirrors the setTimeout
     // fallback pattern already used for initTransitionTrigger below).
-    setTimeout(startLobbyPreload, 3000);
+    setTimeout(() => {
+        startLobbyPreload();
+        startForwardScrollPreload();
+    }, 3000);
 
     preloaderVideo.play().then(() => {
         // Softly fade in preloader video from black
@@ -249,11 +294,13 @@ function initPreloader() {
         });
 
         startLobbyPreload();
+        startForwardScrollPreload();
     }).catch(err => {
         console.log("Preloader video autoplay blocked, bypass waiting.", err);
         preloaderVideoFinished = true;
         checkReadyState();
         startLobbyPreload();
+        startForwardScrollPreload();
     });
 
     function checkPreloaderVideoProgress() {
@@ -303,7 +350,8 @@ function initPreloader() {
         // Lounge soundtrack fades in together with the first screen
         if (window.__ribasMusic) window.__ribasMusic.start();
 
-        preloadScrollingVideos();
+        startReverseScrollPreload();
+        setTimeout(preloadRemainingAssets, 3000);
 
         if (progressText) {
             gsap.to(progressText, { opacity: 0, duration: 0.3 });
@@ -517,22 +565,7 @@ function initTransitionTrigger() {
 
     if (!flashOverlay) return;
 
-    // Preload per-screen loop/transition videos (scroll videos are handled
-    // by preloadScrollingVideos with the blob engine)
-    screens.forEach(s => {
-        if (s.transitionVideo && typeof s.transitionVideo.load === "function") {
-            s.transitionVideo.preload = "auto";
-            s.transitionVideo.load();
-        }
-        if (s.reverseVideo && typeof s.reverseVideo.load === "function") {
-            s.reverseVideo.preload = "auto";
-            s.reverseVideo.load();
-        }
-        if (s.loopVideo && !s.isDualLoop && typeof s.loopVideo.load === "function") {
-            s.loopVideo.preload = "auto";
-            s.loopVideo.load();
-        }
-    });
+    // Screens loops and transitions are preloaded lazily via preloadRemainingAssets() 3 seconds after dismissPreloader.
 
     // Wire restaurant click in header menu to go directly to screen 2
     const viewMenuBtn = document.getElementById("view-menu-btn");
