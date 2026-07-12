@@ -1922,9 +1922,30 @@ body {
     transition: all 0.3s ease;
 }
 
-.social-btn:hover {
-    border-color: var(--color-gold);
-    color: var(--color-gold);
+@media (hover: hover) and (pointer: fine) {
+    .social-btn.telegram:hover {
+        border-color: #24a1de;
+        color: #24a1de;
+        background: rgba(36, 161, 222, 0.08);
+    }
+    
+    .social-btn.viber:hover {
+        border-color: #7360f2;
+        color: #7360f2;
+        background: rgba(115, 96, 242, 0.08);
+    }
+}
+
+.social-btn.telegram:active {
+    border-color: #24a1de;
+    color: #24a1de;
+    background: rgba(36, 161, 222, 0.12);
+}
+
+.social-btn.viber:active {
+    border-color: #7360f2;
+    color: #7360f2;
+    background: rgba(115, 96, 242, 0.12);
 }
 
 /* Copied checkmark state animation */
