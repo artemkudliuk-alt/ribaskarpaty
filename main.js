@@ -862,13 +862,25 @@ function initTransitionTrigger() {
         // through" or "another screen flashing" mid-scroll. Pinning fromScreen
         // under the shared video for the duration removes it from the stack
         // entirely instead of relying on timing; finalizeTransition restores it.
-        toScreen.el.style.zIndex = "";
-        // Screen 1 (hero) is the only OPAQUE fromScreen this branch ever sees
-        // (2-5 are all transparent to the same shared video, so timing never
-        // matters between them) — it must sink out of the stack immediately,
-        // not after a delay, or its permanently-dark overlay paints through
-        // toScreen's still-transparent gaps for that whole window (the exact
-        // blink/flash bug this z-index scheme exists to prevent).
+        // Screen 1 (hero) is the only OPAQUE screen this branch ever sees on
+        // either side (2-5 are all transparent to the same shared video, so
+        // stacking never matters between them). Two symmetric cases:
+        //  - hero is fromScreen (e.g. 1→2): it must sink below the shared
+        //    video immediately, or its permanently-dark overlay paints
+        //    through toScreen's still-transparent gaps.
+        //  - hero is toScreen (e.g. 2→1, scrolling back up): resetting it to
+        //    the same default z-index as fromScreen isn't enough — with
+        //    fromScreen kept on top for its 0.5s exit fade (below) and later
+        //    in DOM order, fromScreen would win the tie and sit OVER the
+        //    already-dark hero for that whole window, read as "a flash of
+        //    the other screen" right as the reverse scroll starts. Hero must
+        //    explicitly outrank fromScreen from frame one when it's arriving.
+        if (toScreen.el.id === "screen-1") {
+            toScreen.el.style.zIndex = "11";
+        } else {
+            toScreen.el.style.zIndex = "";
+        }
+
         if (fromScreen.el.id === "screen-1") {
             fromScreen.el.style.zIndex = "1";
         } else {
