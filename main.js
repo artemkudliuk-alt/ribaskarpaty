@@ -703,12 +703,27 @@ function initTransitionTrigger() {
             }
         }
 
+        const totalTouchDeltaY = isTouchEvent ? (window.touchStartY - e.touches[0].clientY) : 0;
+        const swipeThreshold = 55; // minimum swipe distance of 55px to trigger a screen transition
+
         if (isScrollDown && currentScreen < 6) {
+            if (isTouchEvent && Math.abs(totalTouchDeltaY) < swipeThreshold) {
+                // Ignore small wiggles at the boundary; keep preventing default browser scroll
+                e.preventDefault();
+                gestureWasBlocked = true;
+                return;
+            }
             e.preventDefault();
             if (isTouchEvent) touchTriggered = true;
             blockedSwipeStreak = 0;
             transitionTo(currentScreen + 1);
         } else if (isScrollUp && currentScreen > 1) {
+            if (isTouchEvent && Math.abs(totalTouchDeltaY) < swipeThreshold) {
+                // Ignore small wiggles at the boundary; keep preventing default browser scroll
+                e.preventDefault();
+                gestureWasBlocked = true;
+                return;
+            }
             e.preventDefault();
             if (isTouchEvent) touchTriggered = true;
             blockedSwipeStreak = 0;
@@ -727,6 +742,7 @@ function initTransitionTrigger() {
         gestureWasBlocked = false;
 
         window.lastTouchY = e.touches[0].clientY;
+        window.touchStartY = e.touches[0].clientY; // Save start position to calculate swipe distance
         touchTriggered = false;
         touchIsScrollingContent = false;
 
