@@ -250,7 +250,15 @@
                 <!-- White filled logo — the only logo in the preloader -->
                 <img src="Ribas_logo_white.png" alt="Ribas Karpaty" class="preloader-logo logo-fill">
             </div>
-            <div class="preloader-progress">0%</div>
+            <div class="preloader-progress-container">
+                <svg class="progress-circle" width="58" height="58" viewBox="0 0 58 58">
+                    <!-- Background track -->
+                    <circle class="progress-track" cx="29" cy="29" r="26" fill="none" stroke="rgba(255, 255, 255, 0.08)" stroke-width="1.5"></circle>
+                    <!-- Active indicator. 2 * PI * 26 = 163.36 circumference -->
+                    <circle class="progress-bar" cx="29" cy="29" r="26" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-dasharray="163.36" stroke-dashoffset="163.36" transform="rotate(-90 29 29)"></circle>
+                </svg>
+                <div class="preloader-progress">0%</div>
+            </div>
         </div>
     </div>
 

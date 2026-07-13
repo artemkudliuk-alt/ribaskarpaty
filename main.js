@@ -66,12 +66,10 @@ function startForwardScrollPreload() {
     const isMobile = window.matchMedia("(max-width: 1024px)").matches;
     const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
     const isSlowConnection = conn && (conn.saveData || /(^|-)2g|3g$/.test(conn.effectiveType || ""));
-    // ponytail: a confirmed slow connection gets a much smaller (~1.2MB vs
-    // 3.2MB) dedicated encode instead of the regular mobile file — a screen
-    // recording on real weak mobile internet showed this video staying
-    // solid black for ~21s waiting to buffer; the file itself was the
-    // bottleneck, no amount of timeout-tuning fixes raw download time.
-    const src = isSlowConnection ? "scrolling video_weak.webm" : (isMobile ? "scrolling video mob.webm" : "scrolling video.webm");
+    // Always load widescreen on desktop; weak/mobile vertical videos are only for actual mobile browsers
+    const src = isMobile
+        ? (isSlowConnection ? "scrolling video_weak.webm" : "scrolling video mob.webm")
+        : "scrolling video.webm";
 
     console.log("Preloading forward scrolling video:", src);
     vScrolling.preload = "auto";
@@ -106,7 +104,9 @@ function startReverseScrollPreload() {
     const isMobile = window.matchMedia("(max-width: 1024px)").matches;
     const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
     const isSlowConnection = conn && (conn.saveData || /(^|-)2g|3g$/.test(conn.effectiveType || ""));
-    const src = isSlowConnection ? "scrolling video_weak_reverse.webm" : (isMobile ? "scrolling video mob_reverse.webm" : "scrolling video_reverse.webm");
+    const src = isMobile
+        ? (isSlowConnection ? "scrolling video_weak_reverse.webm" : "scrolling video mob_reverse.webm")
+        : "scrolling video_reverse.webm";
 
     console.log("Preloading reverse scrolling video:", src);
     vScrollingRev.preload = "auto";
@@ -173,14 +173,15 @@ let introFadeTriggered = false;
 function initPreloader() {
     const isMobileOrTablet = window.matchMedia("(max-width: 1024px)").matches;
 
-    const preloader        = document.getElementById("preloader");
-    const logoContainer    = document.querySelector(".preloader-logo-container");
-    const logoFill         = document.querySelector(".preloader-logo.logo-fill");
-    const logoSilhouette   = document.querySelector(".preloader-logo.logo-silhouette");
-    const preloaderVideo   = preloader ? preloader.querySelector("video") : null;
-    const progressText     = preloader ? preloader.querySelector(".preloader-progress") : null;
-    const videoLobby1      = document.getElementById("video-lobby-1");
-    const videoLobby2      = document.getElementById("video-lobby-2");
+    const preloader         = document.getElementById("preloader");
+    const logoContainer     = document.querySelector(".preloader-logo-container");
+    const logoFill          = document.querySelector(".preloader-logo.logo-fill");
+    const preloaderVideo    = preloader ? preloader.querySelector("video") : null;
+    const progressText      = preloader ? preloader.querySelector(".preloader-progress") : null;
+    const progressContainer = preloader ? preloader.querySelector(".preloader-progress-container") : null;
+    const progressBar       = preloader ? preloader.querySelector(".progress-bar") : null;
+    const videoLobby1       = document.getElementById("video-lobby-1");
+    const videoLobby2       = document.getElementById("video-lobby-2");
 
     if (!preloader || !logoContainer || !logoFill || !preloaderVideo || !videoLobby1 || !videoLobby2) return;
 
@@ -204,7 +205,7 @@ function initPreloader() {
     introContainer.style.cssText = "position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9998;background:#000;opacity:0;pointer-events:none;";
     preloader.parentNode.insertBefore(introContainer, preloader);
     introContainer.appendChild(preloaderVideo);
-    // Explicitly set centering and cover transform, exactly matching the screen-video class layout to fix the split screen
+    // Centered and fullscreen video coverage without shifting
     preloaderVideo.style.cssText = "position:absolute;top:50%;left:50%;width:100%;height:100%;object-fit:cover;transform:translate(-50%, -50%);";
 
     // ── State ─────────────────────────────────────────────────────────────
@@ -216,7 +217,7 @@ function initPreloader() {
 
     // ── Logo slow pulsing animation during Phase 1 ────────────────────────
     const logoPulse = gsap.to(logoContainer, {
-        scale: 1.04,
+        scale: 1.03,
         duration: 2.5,
         repeat: -1,
         yoyo: true,
@@ -236,13 +237,24 @@ function initPreloader() {
         onComplete: runDismiss
     });
 
+    // SVG Circumference for r=26 is 163.36
+    const circumference = 163.36;
+
+    const updateProgressBar = (val) => {
+        if (progressText) progressText.textContent = `${val}%`;
+        if (progressBar) {
+            const offset = circumference - (val / 100) * circumference;
+            progressBar.style.strokeDashoffset = offset;
+        }
+    };
+
     // 1. 0% -> 98% over 3.2 seconds
     loadingTimeline.to(progressObj, {
         val: 98,
         duration: 3.2,
         ease: "power1.out",
         onUpdate: () => {
-            if (progressText) progressText.textContent = `${Math.round(progressObj.val)}%`;
+            updateProgressBar(Math.round(progressObj.val));
         }
     });
 
@@ -255,7 +267,7 @@ function initPreloader() {
         duration: 0.6,
         ease: "power1.in",
         onUpdate: () => {
-            if (progressText) progressText.textContent = `${Math.round(progressObj.val)}%`;
+            updateProgressBar(Math.round(progressObj.val));
         }
     });
 
@@ -269,7 +281,7 @@ function initPreloader() {
 
 
     function runDismiss() {
-        if (logoPulse) logoPulse.kill(); // Stop pulsing for Phase 2
+        if (logoPulse) logoPulse.kill(); // Stop pulsing
         preloader.classList.add("dismissed");
         clearTimeout(safetyTimeout);
 
@@ -277,43 +289,48 @@ function initPreloader() {
         startReverseScrollPreload();
         setTimeout(preloadRemainingAssets, 3000);
 
-        // ① Fade out black preloader overlay (logo + % fade with it)
+        // ① Immediately fade out progress container (so it doesn't show over intro video)
+        if (progressContainer) {
+            gsap.to(progressContainer, { opacity: 0, duration: 0.3 });
+        }
+
+        // ② Fade out only preloader black background (reveal intro video container behind it)
+        // This keeps the logo in place and perfectly centered in preloader
         gsap.to(preloader, {
-            opacity: 0,
+            backgroundColor: "rgba(5, 5, 5, 0)",
             duration: 1.0,
-            ease: "power2.inOut",
-            onComplete: () => { preloader.style.display = "none"; }
+            ease: "power2.inOut"
         });
 
-        // ② Reveal intro video container (fades in from black)
+        // ③ Reveal intro video container (fades in from black)
         gsap.to(introContainer, { opacity: 1, duration: 0.8, ease: "power2.out" });
 
-        // ③ Play intro video from the start
+        // ④ Play intro video from the start
         preloaderVideo.currentTime = 0;
         preloaderVideo.play().then(() => {
-
-            // ④ Logo: simple opacity fade-in over the intro video (no clip-path, no silhouette)
-            Object.assign(logoContainer.style, {
-                position:  "absolute",
-                top:       "50%",
-                left:      "50%",
-                transform: "translate(-50%, -50%)",
-                zIndex:    "2"
+            // Fade out logo, then fade it back in slowly over the clouds video
+            gsap.to(logoContainer, {
+                opacity: 0,
+                duration: 0.4,
+                onComplete: () => {
+                    gsap.set(logoContainer, { scale: 1.0, filter: "none" });
+                    gsap.to(logoContainer, { opacity: 1, duration: 2.6, ease: "power2.out" });
+                }
             });
-            gsap.set(logoContainer, { opacity: 0, scale: 1.0, filter: "none" });
-            introContainer.appendChild(logoContainer);
-            gsap.to(logoContainer, { opacity: 1, duration: 2.6, delay: 0.5, ease: "power2.out" });
 
-            // ⑤ Intro ends → hero screen
+            // ⑤ Intro ends → fade out both preloader (with logo) and intro video
             let heroShown = false;
             function onIntroEnd() {
                 if (heroShown) return;
                 heroShown = true;
-                gsap.to(introContainer, {
+                gsap.to([preloader, introContainer], {
                     opacity: 0,
                     duration: 0.8,
                     ease: "power2.inOut",
-                    onComplete: () => { if (introContainer.parentNode) introContainer.remove(); }
+                    onComplete: () => {
+                        preloader.style.display = "none";
+                        if (introContainer.parentNode) introContainer.remove();
+                    }
                 });
                 showHeroScreen();
             }
