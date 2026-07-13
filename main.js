@@ -662,11 +662,27 @@ function initTransitionTrigger() {
                     // touchmove, etc.), which just ate every swipe without the
                     // content ever actually scrolling into view.
                     e.preventDefault();
-                    activeContent.scrollTop += isTouchEvent ? touchDelta : deltaY;
                     gestureWasBlocked = true;
                     if (isTouchEvent) {
+                        activeContent.scrollTop += touchDelta;
                         window.lastTouchY = e.touches[0].clientY;
                         touchIsScrollingContent = true; // Mark that we did content scroll in this swipe
+                    } else {
+                        // Premium smooth scrolling for mouse wheel on desktop
+                        if (activeContent._targetScrollTop === undefined || Math.abs(activeContent._targetScrollTop - activeContent.scrollTop) > 5) {
+                            activeContent._targetScrollTop = activeContent.scrollTop;
+                        }
+                        let targetVal = activeContent._targetScrollTop + deltaY;
+                        const maxScroll = activeContent.scrollHeight - activeContent.clientHeight;
+                        targetVal = Math.max(0, Math.min(maxScroll, targetVal));
+                        activeContent._targetScrollTop = targetVal;
+
+                        gsap.to(activeContent, {
+                            scrollTop: targetVal,
+                            duration: 0.5,
+                            ease: "power2.out",
+                            overwrite: "auto"
+                        });
                     }
                     return;
                 }
@@ -1172,7 +1188,10 @@ function animateScreenEntrance(screenEl) {
     const scrollMouse = screenEl.querySelector(".scroll-indicator-mouse");
 
     // Fresh screens always start scrolled to the top (matters on stacked layouts)
-    if (toContent) toContent.scrollTop = 0;
+    if (toContent) {
+        toContent.scrollTop = 0;
+        toContent._targetScrollTop = 0;
+    }
 
     // Reset any leftover exit offsets from a previous departure
     const movers = screenEl.querySelectorAll(".welcome-text-side, .leisure-bento-grid, .welcome-pillow-card");
