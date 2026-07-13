@@ -204,7 +204,8 @@ function initPreloader() {
     introContainer.style.cssText = "position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9998;background:#000;opacity:0;pointer-events:none;";
     preloader.parentNode.insertBefore(introContainer, preloader);
     introContainer.appendChild(preloaderVideo);
-    preloaderVideo.style.cssText = "position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;";
+    // Explicitly set centering and cover transform, exactly matching the screen-video class layout to fix the split screen
+    preloaderVideo.style.cssText = "position:absolute;top:50%;left:50%;width:100%;height:100%;object-fit:cover;transform:translate(-50%, -50%);";
 
     // ── State ─────────────────────────────────────────────────────────────
     let heroVideoReady      = false;
@@ -212,6 +213,15 @@ function initPreloader() {
 
     // ── PHASE 1: Logo static on black screen ──────────────────────────────
     gsap.set(logoContainer, { opacity: 1, scale: 1.0 });
+
+    // ── Logo slow pulsing animation during Phase 1 ────────────────────────
+    const logoPulse = gsap.to(logoContainer, {
+        scale: 1.04,
+        duration: 2.5,
+        repeat: -1,
+        yoyo: true,
+        ease: "power1.inOut"
+    });
 
     // ── Safety timeout: 15 s absolute cap ────────────────────────────────
     const safetyTimeout = setTimeout(() => {
@@ -259,6 +269,7 @@ function initPreloader() {
 
 
     function runDismiss() {
+        if (logoPulse) logoPulse.kill(); // Stop pulsing for Phase 2
         preloader.classList.add("dismissed");
         clearTimeout(safetyTimeout);
 
