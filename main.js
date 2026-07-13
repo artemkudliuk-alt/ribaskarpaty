@@ -346,6 +346,16 @@ function initPreloader() {
 
     function showHeroScreen() {
         gsap.set("#screen-1", { display: "block", opacity: 0 });
+
+        // Ensure lobby background video plays immediately when hero screen is revealed
+        const vLobby1 = document.getElementById("video-lobby-1");
+        if (vLobby1) {
+            vLobby1.playbackRate = 0.35;
+            if (vLobby1.paused) {
+                vLobby1.play().catch(e => console.log("Lobby video autoplay blocked in showHeroScreen, waiting for action:", e));
+            }
+        }
+
         let siteActivated = false;
         const activateSite = () => {
             if (siteActivated) return;
