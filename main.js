@@ -2326,33 +2326,4 @@ function initMobileMenu() {
     }
 }
 
-// ── Live Debugger Overlay Logic ──────────────────────────────────────────
-setInterval(() => {
-    const dbg = document.getElementById("debug-videos");
-    if (!dbg) return;
-    const vLobby1 = document.getElementById("video-lobby-1");
-    const vLobby2 = document.getElementById("video-lobby-2");
-    const vScroll = document.getElementById("video-scrolling");
-    const vScrollRev = document.getElementById("video-scrolling-reverse");
-    const preloader = document.getElementById("preloader");
 
-    let errorsHtml = "";
-    if (window.__errors && window.__errors.length > 0) {
-        errorsHtml = `<div style="color:#ff5555;font-weight:bold;margin-top:5px;border-top:1px solid #444;">ERRORS:<br>${window.__errors.map((e, idx) => `${idx+1}. ${e.message} (${e.lineno}:${e.colno})`).join('<br>')}</div>`;
-    }
-
-    dbg.innerHTML = `
-        Preloader: display=${preloader ? preloader.style.display : 'N/A'} bg="${preloader ? preloader.style.backgroundColor : 'N/A'}"<br>
-        Lobby1: src="${vLobby1 ? vLobby1.getAttribute('src') || '' : 'none'}" ready=${vLobby1 ? vLobby1.readyState : 'N/A'} paused=${vLobby1 ? vLobby1.paused : 'N/A'} time=${vLobby1 ? vLobby1.currentTime.toFixed(2) : 'N/A'}<br>
-        Lobby2: src="${vLobby2 ? vLobby2.getAttribute('src') || '' : 'none'}" ready=${vLobby2 ? vLobby2.readyState : 'N/A'} paused=${vLobby2 ? vLobby2.paused : 'N/A'} time=${vLobby2 ? vLobby2.currentTime.toFixed(2) : 'N/A'}<br>
-        Scroll: src="${vScroll ? vScroll.getAttribute('src') || '' : 'none'}" ready=${vScroll ? vScroll.readyState : 'N/A'} seek=${vScroll ? vScroll.seeking : 'N/A'} err=${vScroll && vScroll.error ? vScroll.error.code : 0} paused=${vScroll ? vScroll.paused : 'N/A'} time=${vScroll ? vScroll.currentTime.toFixed(2) : 'N/A'}<br>
-        ScrollRev: src="${vScrollRev ? vScrollRev.getAttribute('src') || '' : 'none'}" ready=${vScrollRev ? vScrollRev.readyState : 'N/A'} seek=${vScrollRev ? vScrollRev.seeking : 'N/A'} err=${vScrollRev && vScrollRev.error ? vScrollRev.error.code : 0} paused=${vScrollRev ? vScrollRev.paused : 'N/A'} time=${vScrollRev ? vScrollRev.currentTime.toFixed(2) : 'N/A'}
-        ${errorsHtml}
-    `;
-
-    const logsDiv = document.getElementById("debug-logs");
-    if (logsDiv && window.__logs) {
-        logsDiv.innerHTML = window.__logs.slice(-20).map(l => `[${l.type}] ${l.text}`).join('<br>');
-        logsDiv.scrollTop = logsDiv.scrollHeight;
-    }
-}, 500);
