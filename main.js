@@ -274,9 +274,10 @@ function initPreloader() {
     });
     startLobbyPreload();
 
-    // ── Gate: hero ready + 3 s timer → dismiss ───────────────────────────
+    // ── Gate: only 3 s timer needed — hero loads in background during the intro video
+    // The intro clip runs 15–20 s, giving the hero video ample time to buffer.
     function checkReadyState() {
-        if (heroVideoReady && artificialTimerComplete) {
+        if (artificialTimerComplete) {
             dismissPreloader();
         }
     }
