@@ -107,11 +107,12 @@ body {
     position: relative;
     width: 58px;
     height: 58px;
-    margin-top: 22px; /* Raised closer to the logo */
+    margin-top: 12px; /* Visually raised closer to the logo */
     display: flex;
     align-items: center;
     justify-content: center;
-    will-change: opacity;
+    transform: translateX(-6px); /* Shifts the progress circle left to align perfectly with RIBAS HOTEL visual center */
+    will-change: opacity, transform;
 }
 
 .progress-circle {
