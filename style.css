@@ -72,7 +72,7 @@ body {
     left: 0;
     width: 100vw;
     height: 100vh;
-    z-index: 9999;
+    z-index: 20000;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -576,6 +576,7 @@ body {
     z-index: 1000;
     pointer-events: auto;
     background: linear-gradient(to bottom, rgba(9, 9, 11, 0.5), transparent);
+    opacity: 0;
 }
 
 .logo {
