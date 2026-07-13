@@ -302,6 +302,13 @@ function initPreloader() {
                 onComplete: () => {
                     gsap.set(logoContainer, { scale: 1.0, filter: "none" });
                     gsap.to(logoContainer, { opacity: 1, duration: 2.6, ease: "power2.out" });
+                    
+                    // Gradually scale up the logo by 15% (to 1.15) over the course of the intro video (~3.6s remaining)
+                    gsap.to(logoContainer, {
+                        scale: 1.15,
+                        duration: 3.6,
+                        ease: "sine.out"
+                    });
                 }
             });
 

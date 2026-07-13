@@ -96,9 +96,9 @@ body {
 
 .preloader-logo-container {
     position: relative;
-    width: 22vw;
-    max-width: 260px;
-    min-width: 160px;
+    width: 24.2vw;
+    max-width: 286px;
+    min-width: 176px;
     opacity: 1;
     will-change: opacity, transform;
 }
