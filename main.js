@@ -2251,11 +2251,17 @@ function initBackgroundMusic() {
     let active = trackA;
     let standby = trackB;
     let crossfading = false;
-    let muted = false;
+    // Off by default for every visitor, every device — only an explicit tap
+    // on the sound toggle turns it on. A returning visitor's own choice
+    // (stored below) still overrides this.
+    let muted = true;
     let preloaderDismissed = false;
     let audioUnlocked = false;
 
-    try { muted = localStorage.getItem("ribasMuted") === "1"; } catch (e) {}
+    try {
+        const savedMuted = localStorage.getItem("ribasMuted");
+        if (savedMuted !== null) muted = savedMuted === "1";
+    } catch (e) {}
 
     updateButton();
 
