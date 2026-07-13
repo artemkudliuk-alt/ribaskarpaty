@@ -179,10 +179,10 @@ function initPreloader() {
     // ─────────────────────────────────────────────────────────────────────────
 
     // ── DOM: move video OUT of preloader so they animate independently ────
-    // #intro-video-container sits at z-index 19999, below #preloader (20000).
+    // #intro-video-container sits at z-index 49999, below #preloader (50000).
     const introContainer = document.createElement("div");
     introContainer.id = "intro-video-container";
-    introContainer.style.cssText = "position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:19999;background:#000;opacity:0;pointer-events:none;";
+    introContainer.style.cssText = "position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:49999;background:#000;opacity:0;pointer-events:none;";
     preloader.parentNode.insertBefore(introContainer, preloader);
     introContainer.appendChild(preloaderVideo);
     // Centered and fullscreen video coverage without shifting
