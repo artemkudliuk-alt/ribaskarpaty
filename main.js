@@ -874,10 +874,28 @@ function initTransitionTrigger() {
                     scrollingVideo.currentTime = targetTime;
                 });
                 seekToTarget(scrollingVideoReverse, targetTimeReverse, () => {
-                    // Swap back to make forward video visible now that seek is complete
-                    scrollingVideo.style.opacity = "1";
-                    scrollingVideoReverse.style.opacity = "0";
-                    if (onComplete) onComplete();
+                    // Swap back to make forward video visible now that seek is complete.
+                    // Wait for the forward video to actually finish seeking to its target frame
+                    // to prevent a brief visual flash of its old frame.
+                    const completeSwap = () => {
+                        scrollingVideo.style.opacity = "1";
+                        scrollingVideoReverse.style.opacity = "0";
+                        if (onComplete) onComplete();
+                    };
+
+                    if (scrollingVideo.seeking) {
+                        let hasSwapped = false;
+                        const onSeeked = () => {
+                            if (hasSwapped) return;
+                            hasSwapped = true;
+                            scrollingVideo.removeEventListener("seeked", onSeeked);
+                            completeSwap();
+                        };
+                        scrollingVideo.addEventListener("seeked", onSeeked);
+                        setTimeout(onSeeked, 250); // safety fallback timeout
+                    } else {
+                        completeSwap();
+                    }
                 });
             }).catch(err => {
                 console.log("Native reverse play failed, seeking instantly:", err);
