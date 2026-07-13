@@ -301,6 +301,9 @@ function initPreloader() {
             }
         });
     }
+    // Step 1: play preloader.webm as a stream immediately — no blob wait.
+    preloaderVideo.src = "preloader.webm";
+
     // Step 2: the hero loop's own download only STARTS once the preloader
     // clip has actually begun playing (not the instant its src is assigned).
     // Firing both fetches at t=0 splits the same pipe from byte zero — on a
