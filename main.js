@@ -170,59 +170,8 @@ function preloadRemainingAssets() {
 
 let introFadeTriggered = false;
 
-function initMobileDirectLoad() {
-    console.log("Mobile/Tablet detected: Bypassing preloader and loading Hero screen directly...");
-    window.preloaderBypassed = true;
-
-    const preloader = document.getElementById("preloader");
-    if (preloader) preloader.style.display = "none";
-
-    const videoLobby1 = document.getElementById("video-lobby-1");
-    const videoLobby2 = document.getElementById("video-lobby-2");
-
-    if (videoLobby1 && videoLobby2) {
-        const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-        const isSlowConnection = conn && (conn.saveData || /(^|-)2g|3g$/.test(conn.effectiveType || ""));
-        const heroSrc = isSlowConnection ? "1 screen_weak.webm" : "1 screen.webm";
-
-        videoLobby1.src = heroSrc;
-        videoLobby2.src = heroSrc;
-        initLobbySeamlessLoop();
-
-        // Start playback as early as possible
-        videoLobby1.play().catch(() => {
-            // Autoplay is likely blocked, will play via first user gesture fallback
-        });
-    }
-
-    // Set Screen 1 visible
-    gsap.set("#screen-1", { display: "block", opacity: 1 });
-
-    // Initialize triggers
-    initTransitionTrigger();
-
-    const pillowTab = document.getElementById("floating-pillow-tab");
-    if (pillowTab) {
-        pillowTab.classList.add("is-visible");
-    }
-
-    // Play entrance animation
-    animateWelcomeScreenEntrance();
-
-    // Sequence background preloading of scrolling videos
-    startForwardScrollPreload();
-    startReverseScrollPreload();
-
-    // Lazy load the rest after 3 seconds
-    setTimeout(preloadRemainingAssets, 3000);
-}
-
 function initPreloader() {
     const isMobileOrTablet = window.matchMedia("(max-width: 1024px)").matches;
-    if (isMobileOrTablet) {
-        initMobileDirectLoad();
-        return;
-    }
 
     const preloader = document.getElementById("preloader");
     const logoContainer = document.querySelector(".preloader-logo-container");
@@ -234,15 +183,26 @@ function initPreloader() {
 
     if (!preloader || !logoContainer || !logoFill || !preloaderVideo || !videoLobby1 || !videoLobby2) return;
 
-    // Show logo silhouette immediately (scaled down to 0.5 on black preloader)
-    gsap.set(logoContainer, { opacity: 1, scale: 0.5 });
-
     let mainVideoReady = false;
     let preloaderVideoFinished = false;
     let waitingForMain = false;
     let lobbyVideoBlobUrl = null;
     let artificialProgress = 0;
     let artificialTimerComplete = false;
+
+    if (isMobileOrTablet) {
+        // On mobile, bypass the 3-second artificial progress screen
+        artificialProgress = 100;
+        artificialTimerComplete = true;
+        window.preloaderBypassed = true;
+
+        // Make the solid white logo outline ready for slow fade-in at 1.0 scale
+        gsap.set(logoContainer, { opacity: 0, scale: 1.0, filter: "none" });
+        gsap.set(logoFill, { clipPath: "inset(0% 0 0 0)" });
+    } else {
+        // Show logo silhouette immediately (scaled down to 0.5 on black preloader)
+        gsap.set(logoContainer, { opacity: 1, scale: 0.5 });
+    }
 
     // Safety timeout (15 seconds hard limit)
     const safetyTimeout = setTimeout(() => {
@@ -253,22 +213,6 @@ function initPreloader() {
         startForwardScrollPreload();
         dismissPreloader();
     }, 15000);
-
-    // Start artificial progress count-up to at least 50% over 3 seconds
-    const artificialObj = { val: 0 };
-    gsap.to(artificialObj, {
-        val: 50,
-        duration: 3.0,
-        ease: "power1.out",
-        onUpdate: () => {
-            artificialProgress = Math.round(artificialObj.val);
-            updateCombinedProgress();
-        },
-        onComplete: () => {
-            artificialTimerComplete = true;
-            checkReadyState();
-        }
-    });
 
     // Real readiness gate for the shared scrolling video (screens 2-5), not
     // just the hero loop above. Previously nothing tied the preloader to
@@ -317,7 +261,7 @@ function initPreloader() {
     let introPercent = 0;
     let heroPercent = 0;
     const updateCombinedProgress = () => {
-        if (!progressText) return;
+        if (!progressText || isMobileOrTablet) return;
         const realCombined = Math.round(introPercent * 0.5 + heroPercent * 0.48);
         const combined = Math.min(98, Math.max(artificialProgress, realCombined));
         progressText.textContent = `${combined}%`;
@@ -330,14 +274,33 @@ function initPreloader() {
         introPercent = Math.min(100, (bufferedEnd / preloaderVideo.duration) * 100);
         updateCombinedProgress();
     };
-    preloaderVideo.addEventListener("progress", onPreloaderProgress);
-    videoLobby1.addEventListener("progress", () => {
-        if (!videoLobby1.duration) return;
-        const buf = videoLobby1.buffered;
-        const bufferedEnd = buf.length ? buf.end(buf.length - 1) : 0;
-        heroPercent = Math.min(100, (bufferedEnd / videoLobby1.duration) * 100);
-        updateCombinedProgress();
-    });
+
+    if (!isMobileOrTablet) {
+        preloaderVideo.addEventListener("progress", onPreloaderProgress);
+        videoLobby1.addEventListener("progress", () => {
+            if (!videoLobby1.duration) return;
+            const buf = videoLobby1.buffered;
+            const bufferedEnd = buf.length ? buf.end(buf.length - 1) : 0;
+            heroPercent = Math.min(100, (bufferedEnd / videoLobby1.duration) * 100);
+            updateCombinedProgress();
+        });
+
+        // Start artificial progress count-up to at least 50% over 3 seconds
+        const artificialObj = { val: 0 };
+        gsap.to(artificialObj, {
+            val: 50,
+            duration: 3.0,
+            ease: "power1.out",
+            onUpdate: () => {
+                artificialProgress = Math.round(artificialObj.val);
+                updateCombinedProgress();
+            },
+            onComplete: () => {
+                artificialTimerComplete = true;
+                checkReadyState();
+            }
+        });
+    }
     // Step 2: the hero loop's own download only STARTS once the preloader
     // clip has actually begun playing (not the instant its src is assigned).
     // Firing both fetches at t=0 splits the same pipe from byte zero — on a
@@ -466,24 +429,34 @@ function initPreloader() {
             duration: 1.2,
             ease: "power2.out"
         });
-        // Hide progress text and fade out the 50% scale logo silhouette
-        gsap.to(progressText, { opacity: 0, duration: 0.3 });
-        gsap.to(logoContainer, {
-            opacity: 0,
-            duration: 0.3,
-            onComplete: () => {
-                // Instantly scale to 1.0 (normal size) while invisible
-                gsap.set(logoContainer, { scale: 1.0, filter: "none" });
-                // Force solid logo fill to be fully visible (no clipping)
-                gsap.set(logoFill, { clipPath: "inset(0% 0 0 0)" });
-                // Very slow, elegant fade-in over 2.4 seconds
-                gsap.to(logoContainer, {
-                    opacity: 1,
-                    duration: 2.4,
-                    ease: "power2.out"
-                });
-            }
-        });
+
+        if (isMobileOrTablet) {
+            // On mobile, immediately start the slow, elegant 2.4-second fade-in of the solid white logo
+            gsap.to(logoContainer, {
+                opacity: 1,
+                duration: 2.4,
+                ease: "power2.out"
+            });
+        } else {
+            // Hide progress text and fade out the 50% scale logo silhouette
+            gsap.to(progressText, { opacity: 0, duration: 0.3 });
+            gsap.to(logoContainer, {
+                opacity: 0,
+                duration: 0.3,
+                onComplete: () => {
+                    // Instantly scale to 1.0 (normal size) while invisible
+                    gsap.set(logoContainer, { scale: 1.0, filter: "none" });
+                    // Force solid logo fill to be fully visible (no clipping)
+                    gsap.set(logoFill, { clipPath: "inset(0% 0 0 0)" });
+                    // Very slow, elegant fade-in over 2.4 seconds
+                    gsap.to(logoContainer, {
+                        opacity: 1,
+                        duration: 2.4,
+                        ease: "power2.out"
+                    });
+                }
+            });
+        }
 
         preloaderVideo.addEventListener("timeupdate", checkPreloaderVideoProgress);
         preloaderVideo.addEventListener("ended", () => {

@@ -2434,7 +2434,8 @@ body {
         pointer-events: auto; /* Re-enable clicks */
     }
 
-    #preloader {
+    #preloader .preloader-progress,
+    #preloader .logo-silhouette {
         display: none !important;
     }
 
