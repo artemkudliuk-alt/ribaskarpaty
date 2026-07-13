@@ -195,6 +195,24 @@ function initPreloader() {
         dismissPreloader();
     }, 15000);
 
+    // Real readiness gate for the shared scrolling video (screens 2-5), not
+    // just the hero loop above. Previously nothing tied the preloader to
+    // this video at all — it just started downloading in the background
+    // whenever startForwardScrollPreload() happened to run, so the preloader
+    // could dismiss and drop the user onto screen 2 with zero buffered data
+    // (the ~21s black-screen freeze from the mobile audit). canplay fires
+    // near-instantly on a fast connection, so this doesn't change desktop
+    // behavior in practice.
+    const vScrollingEl = document.getElementById("video-scrolling");
+    let scrollVideoReady = !vScrollingEl;
+    if (vScrollingEl) {
+        vScrollingEl.addEventListener("canplay", () => {
+            if (scrollVideoReady) return;
+            scrollVideoReady = true;
+            checkReadyState();
+        }, { once: true });
+    }
+
     // Step 1: play preloader.webm as a stream immediately — no blob wait.
     // It used to block on a full XHR download before the first frame, which
     // on a slow/roaming connection is exactly the "black screen before
@@ -238,12 +256,39 @@ function initPreloader() {
             videoLobby1.src = heroSrc;
             videoLobby2.src = heroSrc;
             initLobbySeamlessLoop();
-            mainVideoReady = true;
-            if (waitingForMain) {
-                waitingForMain = false;
-                preloaderVideo.play().catch(() => {});
+
+            // mainVideoReady used to flip true the instant the src was
+            // assigned, before a single byte had arrived — the preloader had
+            // no real signal to hold on and would dismiss straight onto a
+            // hero clip with nothing buffered. Wait for an actual canplay
+            // instead; readyState is already >=3 here on a fast connection
+            // (init...Loop's own .play() already resolved), so this is a
+            // no-op delay in that case.
+            const markHeroReady = () => {
+                if (mainVideoReady) return;
+                mainVideoReady = true;
+                if (waitingForMain) {
+                    waitingForMain = false;
+                    preloaderVideo.play().catch(() => {});
+                }
+                checkReadyState();
+            };
+            if (videoLobby1.readyState >= 3) {
+                markHeroReady();
+            } else {
+                videoLobby1.addEventListener("canplay", markHeroReady, { once: true });
             }
-            checkReadyState();
+
+            // Requested cap: on a confirmed slow connection, never hold the
+            // preloader open more than ~5s total waiting for hero/scroll
+            // buffering, even if canplay never fires — the poster images and
+            // weak-tier files handle graceful degradation past this point.
+            if (isSlowConnection) {
+                setTimeout(() => {
+                    console.log("Slow-connection preloader cap (5s) reached — dismissing regardless of buffering state.");
+                    dismissPreloader();
+                }, 5000);
+            }
             return;
         }
 
@@ -364,7 +409,7 @@ function initPreloader() {
     }
 
     function checkReadyState() {
-        if (preloaderVideoFinished && mainVideoReady) {
+        if (preloaderVideoFinished && mainVideoReady && scrollVideoReady) {
             dismissPreloader();
         }
     }
