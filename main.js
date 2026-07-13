@@ -636,96 +636,124 @@ function initTransitionTrigger() {
         if (isTransitioning) return;
 
         const isTouchEvent = e.touches && e.touches.length > 0;
-        if (isTouchEvent && touchTriggered) return;
+        const activeContent = screens[currentScreen - 1] ? screens[currentScreen - 1].el.querySelector(".screen-content") : null;
 
+        // ── MOBILE TOUCH GESTURE PATH ──
+        if (isTouchEvent) {
+            if (touchTriggered) return;
+
+            const touchDeltaY = window.touchStartY - e.touches[0].clientY; // Positive = swiping up = scrolling down
+            const touchDeltaX = window.touchStartX - e.touches[0].clientX;
+
+            // Ignore horizontal swipes
+            if (Math.abs(touchDeltaX) > Math.abs(touchDeltaY)) {
+                return;
+            }
+
+            const isSwipeUp = touchDeltaY > 0; // finger moved up = scroll down / next screen intent
+            const isSwipeDown = touchDeltaY < 0; // finger moved down = scroll up / prev screen intent
+
+            if (activeContent && activeContent.scrollHeight > activeContent.clientHeight + 10 && blockedSwipeStreak < 2) {
+                // If we are swiping up (scrolling down):
+                if (isSwipeUp) {
+                    const atBottom = activeContent.scrollTop + activeContent.clientHeight >= activeContent.scrollHeight - 15;
+                    // If we are not at the bottom of the card, let the browser scroll natively.
+                    if (!atBottom) {
+                        return; // DO NOT preventDefault, DO NOT transition
+                    }
+
+                    // If we are at the bottom, but didn't start the swipe at the bottom,
+                    // block transitioning on this swipe to prevent accidental transition slipping.
+                    if (!window.touchStartedAtBottom) {
+                        e.preventDefault();
+                        gestureWasBlocked = true;
+                        return;
+                    }
+                }
+
+                // If we are swiping down (scrolling up):
+                if (isSwipeDown) {
+                    const atTop = activeContent.scrollTop <= 15;
+                    // If we are not at the top of the card, let the browser scroll natively.
+                    if (!atTop) {
+                        return; // DO NOT preventDefault, DO NOT transition
+                    }
+
+                    // If we are at the top, but didn't start the swipe at the top,
+                    // block transitioning on this swipe to prevent accidental transition slipping.
+                    if (!window.touchStartedAtTop) {
+                        e.preventDefault();
+                        gestureWasBlocked = true;
+                        return;
+                    }
+                }
+            }
+
+            // We are at a boundary (or the card is not scrollable) and transition is allowed.
+            const swipeThreshold = 55; // minimum swipe distance of 55px to trigger transition
+
+            if (isSwipeUp && currentScreen < 6) {
+                if (Math.abs(touchDeltaY) < swipeThreshold) {
+                    e.preventDefault();
+                    gestureWasBlocked = true;
+                    return;
+                }
+                e.preventDefault();
+                touchTriggered = true;
+                blockedSwipeStreak = 0;
+                transitionTo(currentScreen + 1);
+            } else if (isSwipeDown && currentScreen > 1) {
+                if (Math.abs(touchDeltaY) < swipeThreshold) {
+                    e.preventDefault();
+                    gestureWasBlocked = true;
+                    return;
+                }
+                e.preventDefault();
+                touchTriggered = true;
+                blockedSwipeStreak = 0;
+                transitionTo(currentScreen - 1);
+            }
+            return;
+        }
+
+        // ── DESKTOP MOUSE WHEEL PATH ──
         const deltaY = e.deltaY;
-        // Positive = finger moved up = scroll-down intent (also the raw pixel
-        // amount to apply to scrollTop directly, see below).
-        const touchDelta = isTouchEvent ? (window.lastTouchY - e.touches[0].clientY) : 0;
-        const isTouchScrollDown = isTouchEvent && touchDelta > 0;
-        const isTouchScrollUp = isTouchEvent && touchDelta < 0;
+        const isScrollDown = deltaY > 0;
+        const isScrollUp = deltaY < 0;
 
-        const isScrollDown = deltaY > 0 || isTouchScrollDown;
-        const isScrollUp = deltaY < 0 || isTouchScrollUp;
-
-        // When the screen content is taller than the viewport (stacked layouts
-        // on tablet/mobile), scroll it to its edge first and only then switch
-        // screens on a subsequent swipe.
-        const activeContent = screens[currentScreen - 1].el.querySelector(".screen-content");
         if (activeContent && activeContent.scrollHeight > activeContent.clientHeight + 40 && blockedSwipeStreak < 2) {
             const atTop = activeContent.scrollTop <= 5;
             const atBottom = activeContent.scrollTop + activeContent.clientHeight >= activeContent.scrollHeight - 5;
 
-            // Bypass internal content scroll blocking if the touch gesture started directly at the corresponding edge
-            const bypassContentScroll = (isScrollDown && window.touchStartedAtBottom) || (isScrollUp && window.touchStartedAtTop);
+            if ((isScrollDown && !atBottom) || (isScrollUp && !atTop)) {
+                e.preventDefault();
+                gestureWasBlocked = true;
 
-            if (!bypassContentScroll) {
-                if ((isScrollDown && !atBottom) || (isScrollUp && !atTop)) {
-                    // Drive scrollTop ourselves instead of returning and hoping
-                    // the browser's own native touch-scroll picks it up — on
-                    // some real phones it silently never does (the address bar
-                    // collapsing mid-gesture, momentum scroll swallowing
-                    // touchmove, etc.), which just ate every swipe without the
-                    // content ever actually scrolling into view.
-                    e.preventDefault();
-                    gestureWasBlocked = true;
-                    if (isTouchEvent) {
-                        activeContent.scrollTop += touchDelta;
-                        window.lastTouchY = e.touches[0].clientY;
-                        touchIsScrollingContent = true; // Mark that we did content scroll in this swipe
-                    } else {
-                        // Premium smooth scrolling for mouse wheel on desktop
-                        if (activeContent._targetScrollTop === undefined || Math.abs(activeContent._targetScrollTop - activeContent.scrollTop) > 5) {
-                            activeContent._targetScrollTop = activeContent.scrollTop;
-                        }
-                        let targetVal = activeContent._targetScrollTop + deltaY;
-                        const maxScroll = activeContent.scrollHeight - activeContent.clientHeight;
-                        targetVal = Math.max(0, Math.min(maxScroll, targetVal));
-                        activeContent._targetScrollTop = targetVal;
-
-                        gsap.to(activeContent, {
-                            scrollTop: targetVal,
-                            duration: 0.5,
-                            ease: "power2.out",
-                            overwrite: "auto"
-                        });
-                    }
-                    return;
+                // Premium smooth scrolling for mouse wheel on desktop
+                if (activeContent._targetScrollTop === undefined || Math.abs(activeContent._targetScrollTop - activeContent.scrollTop) > 5) {
+                    activeContent._targetScrollTop = activeContent.scrollTop;
                 }
+                let targetVal = activeContent._targetScrollTop + deltaY;
+                const maxScroll = activeContent.scrollHeight - activeContent.clientHeight;
+                targetVal = Math.max(0, Math.min(maxScroll, targetVal));
+                activeContent._targetScrollTop = targetVal;
 
-                // If we already scrolled content inside this specific touch gesture,
-                // block transitioning until they release and swipe again (prevents slipping)
-                if (isTouchEvent && touchIsScrollingContent) {
-                    gestureWasBlocked = true;
-                    window.lastTouchY = e.touches[0].clientY;
-                    return;
-                }
+                gsap.to(activeContent, {
+                    scrollTop: targetVal,
+                    duration: 0.5,
+                    ease: "power2.out",
+                    overwrite: "auto"
+                });
+                return;
             }
         }
 
-        const totalTouchDeltaY = isTouchEvent ? (window.touchStartY - e.touches[0].clientY) : 0;
-        const swipeThreshold = 55; // minimum swipe distance of 55px to trigger a screen transition
-
         if (isScrollDown && currentScreen < 6) {
-            if (isTouchEvent && Math.abs(totalTouchDeltaY) < swipeThreshold) {
-                // Ignore small wiggles at the boundary; keep preventing default browser scroll
-                e.preventDefault();
-                gestureWasBlocked = true;
-                return;
-            }
             e.preventDefault();
-            if (isTouchEvent) touchTriggered = true;
             blockedSwipeStreak = 0;
             transitionTo(currentScreen + 1);
         } else if (isScrollUp && currentScreen > 1) {
-            if (isTouchEvent && Math.abs(totalTouchDeltaY) < swipeThreshold) {
-                // Ignore small wiggles at the boundary; keep preventing default browser scroll
-                e.preventDefault();
-                gestureWasBlocked = true;
-                return;
-            }
             e.preventDefault();
-            if (isTouchEvent) touchTriggered = true;
             blockedSwipeStreak = 0;
             transitionTo(currentScreen - 1);
         }
@@ -743,11 +771,12 @@ function initTransitionTrigger() {
 
         window.lastTouchY = e.touches[0].clientY;
         window.touchStartY = e.touches[0].clientY; // Save start position to calculate swipe distance
+        window.touchStartX = e.touches[0].clientX; // Save start X position to check swipe direction
         touchTriggered = false;
         touchIsScrollingContent = false;
 
         const activeContent = screens[currentScreen - 1] ? screens[currentScreen - 1].el.querySelector(".screen-content") : null;
-        if (activeContent) {
+        if (activeContent && activeContent.scrollHeight > activeContent.clientHeight + 10) {
             // Check if the scroll container is parked at either boundary (using 15px safe margin)
             window.touchStartedAtBottom = activeContent.scrollTop + activeContent.clientHeight >= activeContent.scrollHeight - 15;
             window.touchStartedAtTop = activeContent.scrollTop <= 15;
