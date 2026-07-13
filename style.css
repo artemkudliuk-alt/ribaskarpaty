@@ -2434,8 +2434,12 @@ body {
         pointer-events: auto; /* Re-enable clicks */
     }
 
+    #preloader {
+        display: none !important;
+    }
+
     .welcome-container {
-        padding: 110px 40px 70px 40px;
+        padding: 110px 40px 140px 40px; /* Increased bottom padding to 140px to prevent mobile browser bottom bar cutoff */
         gap: 48px;
         flex-direction: column;
         align-items: center;
@@ -2517,10 +2521,22 @@ body {
         justify-content: flex-start;
     }
 
-    #screen-3 .spa-card .card-actions,
+    #screen-3 .spa-card .card-actions {
+        min-width: 0;
+        margin-top: 20px;
+    }
+
     #screen-5 .info-card .card-actions {
         min-width: 0;
         margin-top: 20px;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        width: 100% !important;
+    }
+
+    #screen-5 .info-card .bento-btn {
+        width: 100% !important;
+        box-sizing: border-box;
     }
 
     #screen-3 .spa-promo-desc,
@@ -2581,7 +2597,7 @@ body {
         flex-direction: column;
         justify-content: flex-start;
         align-items: flex-start;
-        padding: 100px 20px 60px 20px;
+        padding: 100px 20px 140px 20px; /* Increased bottom padding to 140px to prevent mobile browser bottom bar cutoff */
         gap: 36px;
         height: auto;
         pointer-events: auto; /* Enable touch scrolling and clicks on mobile */

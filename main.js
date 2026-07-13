@@ -170,7 +170,60 @@ function preloadRemainingAssets() {
 
 let introFadeTriggered = false;
 
+function initMobileDirectLoad() {
+    console.log("Mobile/Tablet detected: Bypassing preloader and loading Hero screen directly...");
+    window.preloaderBypassed = true;
+
+    const preloader = document.getElementById("preloader");
+    if (preloader) preloader.style.display = "none";
+
+    const videoLobby1 = document.getElementById("video-lobby-1");
+    const videoLobby2 = document.getElementById("video-lobby-2");
+
+    if (videoLobby1 && videoLobby2) {
+        const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        const isSlowConnection = conn && (conn.saveData || /(^|-)2g|3g$/.test(conn.effectiveType || ""));
+        const heroSrc = isSlowConnection ? "1 screen_weak.webm" : "1 screen.webm";
+
+        videoLobby1.src = heroSrc;
+        videoLobby2.src = heroSrc;
+        initLobbySeamlessLoop();
+
+        // Start playback as early as possible
+        videoLobby1.play().catch(() => {
+            // Autoplay is likely blocked, will play via first user gesture fallback
+        });
+    }
+
+    // Set Screen 1 visible
+    gsap.set("#screen-1", { display: "block", opacity: 1 });
+
+    // Initialize triggers
+    initTransitionTrigger();
+
+    const pillowTab = document.getElementById("floating-pillow-tab");
+    if (pillowTab) {
+        pillowTab.classList.add("is-visible");
+    }
+
+    // Play entrance animation
+    animateWelcomeScreenEntrance();
+
+    // Sequence background preloading of scrolling videos
+    startForwardScrollPreload();
+    startReverseScrollPreload();
+
+    // Lazy load the rest after 3 seconds
+    setTimeout(preloadRemainingAssets, 3000);
+}
+
 function initPreloader() {
+    const isMobileOrTablet = window.matchMedia("(max-width: 1024px)").matches;
+    if (isMobileOrTablet) {
+        initMobileDirectLoad();
+        return;
+    }
+
     const preloader = document.getElementById("preloader");
     const logoContainer = document.querySelector(".preloader-logo-container");
     const logoFill = document.querySelector(".preloader-logo.logo-fill");
@@ -188,6 +241,8 @@ function initPreloader() {
     let preloaderVideoFinished = false;
     let waitingForMain = false;
     let lobbyVideoBlobUrl = null;
+    let artificialProgress = 0;
+    let artificialTimerComplete = false;
 
     // Safety timeout (15 seconds hard limit)
     const safetyTimeout = setTimeout(() => {
@@ -198,6 +253,22 @@ function initPreloader() {
         startForwardScrollPreload();
         dismissPreloader();
     }, 15000);
+
+    // Start artificial progress count-up to at least 50% over 3 seconds
+    const artificialObj = { val: 0 };
+    gsap.to(artificialObj, {
+        val: 50,
+        duration: 3.0,
+        ease: "power1.out",
+        onUpdate: () => {
+            artificialProgress = Math.round(artificialObj.val);
+            updateCombinedProgress();
+        },
+        onComplete: () => {
+            artificialTimerComplete = true;
+            checkReadyState();
+        }
+    });
 
     // Real readiness gate for the shared scrolling video (screens 2-5), not
     // just the hero loop above. Previously nothing tied the preloader to
@@ -247,7 +318,8 @@ function initPreloader() {
     let heroPercent = 0;
     const updateCombinedProgress = () => {
         if (!progressText) return;
-        const combined = Math.min(98, Math.round(introPercent * 0.5 + heroPercent * 0.48));
+        const realCombined = Math.round(introPercent * 0.5 + heroPercent * 0.48);
+        const combined = Math.min(98, Math.max(artificialProgress, realCombined));
         progressText.textContent = `${combined}%`;
         logoFill.style.clipPath = `inset(${100 - combined}% 0 0 0)`;
     };
@@ -459,7 +531,7 @@ function initPreloader() {
     }
 
     function checkReadyState() {
-        if (preloaderVideoFinished && mainVideoReady && scrollVideoReady) {
+        if (preloaderVideoFinished && mainVideoReady && scrollVideoReady && artificialTimerComplete) {
             dismissPreloader();
         }
     }
@@ -2255,7 +2327,7 @@ function initBackgroundMusic() {
     // on the sound toggle turns it on. A returning visitor's own choice
     // (stored below) still overrides this.
     let muted = true;
-    let preloaderDismissed = false;
+    let preloaderDismissed = !!window.preloaderBypassed;
     let audioUnlocked = false;
 
     try {
