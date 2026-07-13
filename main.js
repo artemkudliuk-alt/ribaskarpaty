@@ -1259,6 +1259,7 @@ function animateScreenEntrance(screenEl) {
     const tiles = screenEl.querySelectorAll(".bento-tile, .footer-social-links, .video-promo-btn, .grid-btn");
     const card = screenEl.querySelector(".welcome-pillow-card");
     const scrollMouse = screenEl.querySelector(".scroll-indicator-mouse");
+    const pillowBtn = screenEl.querySelector("#pillow-welcome-btn");
 
     // Fresh screens always start scrolled to the top (matters on stacked layouts)
     if (toContent) {
@@ -1284,6 +1285,7 @@ function animateScreenEntrance(screenEl) {
     if (labelTag) gsap.set(labelTag, { y: 24, opacity: 0 });
     if (title) gsap.set(title, { y: 30, opacity: 0 });
     if (subtitle) gsap.set(subtitle, { y: 30, opacity: 0 });
+    if (pillowBtn) gsap.set(pillowBtn, { y: 30, opacity: 0 });
     if (divider) gsap.set(divider, { scaleX: 0, transformOrigin: "left" });
     if (infoItems.length) gsap.set(infoItems, { y: 26, opacity: 0 });
     if (tiles.length) gsap.set(tiles, { y: 26, opacity: 0 });
@@ -1323,6 +1325,10 @@ function animateScreenEntrance(screenEl) {
     if (subtitle) {
         tl.to(subtitle, { y: 0, opacity: 1, duration: 0.45 }, 0.18);
     }
+    // 4.1 Pillows button (mobile only)
+    if (pillowBtn) {
+        tl.to(pillowBtn, { y: 0, opacity: 1, duration: 0.45 }, 0.22);
+    }
     // 5. Divider draws itself
     if (divider) {
         tl.to(divider, { scaleX: 1, duration: 0.4, ease: "power2.out" }, 0.2);
@@ -1358,6 +1364,7 @@ function initWelcomeScreen() {
     gsap.set("#screen-1 .welcome-title", { y: 25, opacity: 0 });
     gsap.set("#screen-1 .welcome-divider", { scaleX: 0, transformOrigin: "left" });
     gsap.set("#screen-1 .welcome-subtitle", { y: 15, opacity: 0 });
+    gsap.set("#pillow-welcome-btn", { y: 15, opacity: 0 });
     gsap.set(".scroll-indicator-mouse", { y: 15, opacity: 0 });
 }
 
@@ -1405,6 +1412,17 @@ function animateWelcomeScreenEntrance() {
         duration: 0.8,
         ease: "power3.out"
     }, 0.6);
+
+    // 6. Mobile Pillows Button
+    const pillowBtn = document.getElementById("pillow-welcome-btn");
+    if (pillowBtn) {
+        entranceTl.to(pillowBtn, {
+            y: 0,
+            opacity: 1,
+            duration: 0.8,
+            ease: "power3.out"
+        }, 0.75);
+    }
 
     // 7. Mouse scroll indicator at the bottom fades in
     entranceTl.to(".scroll-indicator-mouse", {
