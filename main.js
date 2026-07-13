@@ -130,6 +130,21 @@ function preloadRemainingAssets() {
     if (remainingAssetsLoaded) return;
     remainingAssetsLoaded = true;
 
+    // ponytail: every other background preload in this file skips itself on
+    // a confirmed slow connection (see startForwardScrollPreload etc.) — this
+    // one didn't, and it's the biggest single payload (footer transition +
+    // reverse, ~12MB combined). On weak mobile internet it fired 3s after
+    // the preloader dismissed and ate bandwidth the in-progress scrolling
+    // video needed to keep buffering, starving the exact transitions the
+    // user was actively scrolling through. The footer's own .play() call in
+    // transitionTo() still fetches it on demand when actually reached.
+    const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    const isSlowConnection = conn && (conn.saveData || /(^|-)2g|3g$/.test(conn.effectiveType || ""));
+    if (isSlowConnection) {
+        console.log("Slow connection detected: skipping eager footer/loop preload, will stream on demand instead.");
+        return;
+    }
+
     console.log("Lazy loading remaining screen loops, transitions, and footer videos...");
     screens.forEach(s => {
         if (s.transitionVideo && typeof s.transitionVideo.load === "function") {
