@@ -650,42 +650,35 @@ function initTransitionTrigger() {
                 return;
             }
 
+            const touchDelta = window.lastTouchY - e.touches[0].clientY; // Incremental Y displacement
+            window.lastTouchY = e.touches[0].clientY; // update Y coordinate for next frame increment
+
             const isSwipeUp = touchDeltaY > 0; // finger moved up = scroll down / next screen intent
             const isSwipeDown = touchDeltaY < 0; // finger moved down = scroll up / prev screen intent
 
             if (activeContent && activeContent.scrollHeight > activeContent.clientHeight + 10 && blockedSwipeStreak < 2) {
-                // If we are swiping up (scrolling down):
-                if (isSwipeUp) {
-                    const atBottom = activeContent.scrollTop + activeContent.clientHeight >= activeContent.scrollHeight - 15;
-                    // If we are not at the bottom of the card, let the browser scroll natively.
-                    if (!atBottom) {
-                        return; // DO NOT preventDefault, DO NOT transition
-                    }
+                const atTop = activeContent.scrollTop <= 3;
+                const atBottom = activeContent.scrollTop + activeContent.clientHeight >= activeContent.scrollHeight - 3;
 
-                    // If we are at the bottom, but didn't start the swipe at the bottom,
-                    // block transitioning on this swipe to prevent accidental transition slipping.
-                    if (!window.touchStartedAtBottom) {
-                        e.preventDefault();
-                        gestureWasBlocked = true;
-                        return;
-                    }
+                // Drive internal content scrolling manually (crucial for iOS WebKit fixed viewport layout)
+                if (isSwipeUp && !atBottom) {
+                    e.preventDefault();
+                    activeContent.scrollTop += touchDelta;
+                    touchIsScrollingContent = true;
+                    return;
+                }
+                if (isSwipeDown && !atTop) {
+                    e.preventDefault();
+                    activeContent.scrollTop += touchDelta;
+                    touchIsScrollingContent = true;
+                    return;
                 }
 
-                // If we are swiping down (scrolling up):
-                if (isSwipeDown) {
-                    const atTop = activeContent.scrollTop <= 15;
-                    // If we are not at the top of the card, let the browser scroll natively.
-                    if (!atTop) {
-                        return; // DO NOT preventDefault, DO NOT transition
-                    }
-
-                    // If we are at the top, but didn't start the swipe at the top,
-                    // block transitioning on this swipe to prevent accidental transition slipping.
-                    if (!window.touchStartedAtTop) {
-                        e.preventDefault();
-                        gestureWasBlocked = true;
-                        return;
-                    }
+                // Block transition if they scrolled content in this gesture
+                if (touchIsScrollingContent) {
+                    e.preventDefault();
+                    gestureWasBlocked = true;
+                    return;
                 }
             }
 
@@ -774,16 +767,6 @@ function initTransitionTrigger() {
         window.touchStartX = e.touches[0].clientX; // Save start X position to check swipe direction
         touchTriggered = false;
         touchIsScrollingContent = false;
-
-        const activeContent = screens[currentScreen - 1] ? screens[currentScreen - 1].el.querySelector(".screen-content") : null;
-        if (activeContent && activeContent.scrollHeight > activeContent.clientHeight + 10) {
-            // Check if the scroll container is parked at either boundary (using 15px safe margin)
-            window.touchStartedAtBottom = activeContent.scrollTop + activeContent.clientHeight >= activeContent.scrollHeight - 15;
-            window.touchStartedAtTop = activeContent.scrollTop <= 15;
-        } else {
-            window.touchStartedAtBottom = true;
-            window.touchStartedAtTop = true;
-        }
     }, { passive: true });
 
     const videoDuration = 7.6333;
