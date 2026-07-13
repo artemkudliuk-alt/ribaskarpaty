@@ -756,7 +756,18 @@ function initTransitionTrigger() {
         // advancing and the old per-branch loops spun forever with
         // isTransitioning stuck true (the reported freeze/black-screen on
         // first swipe). STALL_MS of no progress force-completes the seek.
-        const STALL_MS = 1200;
+        //
+        // On a genuinely slow/roaming connection, buffering the next chunk of
+        // video can legitimately take several seconds — a fixed 1200ms budget
+        // gave up on real (still-progressing) buffering, forced an instant
+        // seek to an unbuffered timestamp, and revealed a frozen/black frame
+        // right as the entrance animation was already bringing the new
+        // screen's content in on top of it (content advancing over dead
+        // video). Give slow connections a much longer real chance to finish
+        // buffering before falling back.
+        const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        const isSlowConnection = conn && (conn.saveData || /(^|-)2g|3g$/.test(conn.effectiveType || ""));
+        const STALL_MS = isSlowConnection ? 6000 : 1200;
 
         // play() itself can sit pending forever on some mobile browsers when
         // buffering never starts (bad roaming handoff) — race it against the
