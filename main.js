@@ -192,6 +192,10 @@ function initPreloader() {
     // Safety timeout (15 seconds hard limit)
     const safetyTimeout = setTimeout(() => {
         console.log("Preloader safety timeout triggered. Forcing dismiss...");
+        // Scroll video is normally kicked off once the hero clip is
+        // confirmed ready (see markHeroReady) — if that never happened,
+        // make sure it's at least starting to download before we give up.
+        startForwardScrollPreload();
         dismissPreloader();
     }, 15000);
 
@@ -200,17 +204,30 @@ function initPreloader() {
     // this video at all — it just started downloading in the background
     // whenever startForwardScrollPreload() happened to run, so the preloader
     // could dismiss and drop the user onto screen 2 with zero buffered data
-    // (the ~21s black-screen freeze from the mobile audit). canplay fires
-    // near-instantly on a fast connection, so this doesn't change desktop
-    // behavior in practice.
+    // (the ~21s black-screen freeze from the mobile audit).
+    //
+    // This used to gate on "canplay", which turned out to be far too weak a
+    // signal — it fires once the browser can render the CURRENT frame plus
+    // a sliver more (readyState 3, HAVE_FUTURE_DATA), sometimes after only a
+    // few KB. That's why the preloader kept dismissing almost instantly on
+    // real weak mobile internet and then stalling once the video actually
+    // needed to keep playing/seeking past that sliver. "canplaythrough"
+    // (readyState 4, HAVE_ENOUGH_DATA) is the browser's own estimate that it
+    // can play the clip to the end without stopping to buffer again — the
+    // signal that actually matches what "ready" needs to mean here.
     const vScrollingEl = document.getElementById("video-scrolling");
     let scrollVideoReady = !vScrollingEl;
     if (vScrollingEl) {
-        vScrollingEl.addEventListener("canplay", () => {
+        const markScrollReady = () => {
             if (scrollVideoReady) return;
             scrollVideoReady = true;
             checkReadyState();
-        }, { once: true });
+        };
+        if (vScrollingEl.readyState >= 4) {
+            markScrollReady();
+        } else {
+            vScrollingEl.addEventListener("canplaythrough", markScrollReady, { once: true });
+        }
     }
 
     // Step 1: play preloader.webm as a stream immediately — no blob wait.
@@ -281,10 +298,12 @@ function initPreloader() {
             // mainVideoReady used to flip true the instant the src was
             // assigned, before a single byte had arrived — the preloader had
             // no real signal to hold on and would dismiss straight onto a
-            // hero clip with nothing buffered. Wait for an actual canplay
-            // instead; readyState is already >=3 here on a fast connection
-            // (init...Loop's own .play() already resolved), so this is a
-            // no-op delay in that case.
+            // hero clip with nothing buffered. "canplaythrough" (readyState
+            // 4) is the browser's own estimate that the clip can play to the
+            // end without stopping to buffer again — "canplay" (readyState 3)
+            // fires far earlier, after only a sliver of data, which is why
+            // the preloader kept dismissing instantly and then stalling once
+            // the hero clip needed to keep playing past that sliver.
             const markHeroReady = () => {
                 if (mainVideoReady) return;
                 mainVideoReady = true;
@@ -292,21 +311,30 @@ function initPreloader() {
                     waitingForMain = false;
                     preloaderVideo.play().catch(() => {});
                 }
+                // Sequential on purpose: the scroll video only starts
+                // downloading once the hero clip is actually confirmed
+                // ready, instead of splitting the same limited pipe between
+                // both from the start. Intro, then hero, then scroll.
+                startForwardScrollPreload();
                 checkReadyState();
             };
-            if (videoLobby1.readyState >= 3) {
+            if (videoLobby1.readyState >= 4) {
                 markHeroReady();
             } else {
-                videoLobby1.addEventListener("canplay", markHeroReady, { once: true });
+                videoLobby1.addEventListener("canplaythrough", markHeroReady, { once: true });
             }
 
             // Requested cap: on a confirmed slow connection, never hold the
             // preloader open more than ~5s total waiting for hero/scroll
-            // buffering, even if canplay never fires — the poster images and
-            // weak-tier files handle graceful degradation past this point.
+            // buffering, even if canplaythrough never fires — the poster
+            // images and weak-tier files handle graceful degradation past
+            // this point. Also kicks off the scroll preload here as a safety
+            // net in case hero readiness never fired, so it's at least
+            // downloading in the background by the time the user swipes.
             if (isSlowConnection) {
                 setTimeout(() => {
                     console.log("Slow-connection preloader cap (5s) reached — dismissing regardless of buffering state.");
+                    startForwardScrollPreload();
                     dismissPreloader();
                 }, 5000);
             }
@@ -334,6 +362,7 @@ function initPreloader() {
                 waitingForMain = false;
                 preloaderVideo.play().catch(() => {});
             }
+            startForwardScrollPreload();
             checkReadyState();
         })
         .catch((err) => {
@@ -344,15 +373,17 @@ function initPreloader() {
             initLobbySeamlessLoop();
 
             mainVideoReady = true;
+            startForwardScrollPreload();
             checkReadyState();
         });
     }
     // Bounded fallback: guarantees the hero clip starts downloading even if
     // preloaderVideo.play() itself never settles (mirrors the setTimeout
-    // fallback pattern already used for initTransitionTrigger below).
+    // fallback pattern already used for initTransitionTrigger below). The
+    // scroll video is deliberately NOT kicked off here — it's sequenced to
+    // start only once the hero clip is confirmed ready (see markHeroReady).
     setTimeout(() => {
         startLobbyPreload();
-        startForwardScrollPreload();
     }, 3000);
 
     preloaderVideo.play().then(() => {
@@ -389,13 +420,11 @@ function initPreloader() {
         });
 
         startLobbyPreload();
-        startForwardScrollPreload();
     }).catch(err => {
         console.log("Preloader video autoplay blocked, bypass waiting.", err);
         preloaderVideoFinished = true;
         checkReadyState();
         startLobbyPreload();
-        startForwardScrollPreload();
     });
 
     function checkPreloaderVideoProgress() {
