@@ -2434,10 +2434,6 @@ body {
         pointer-events: auto; /* Re-enable clicks */
     }
 
-    #preloader .preloader-progress,
-    #preloader .logo-silhouette {
-        display: none !important;
-    }
 
     .welcome-container {
         padding: 110px 40px 140px 40px; /* Increased bottom padding to 140px to prevent mobile browser bottom bar cutoff */
