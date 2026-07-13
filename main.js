@@ -219,15 +219,36 @@ function initPreloader() {
     // anything happens" the audit was chasing. The logo fill bar now tracks
     // the video's own buffered ranges instead of an XHR progress event.
     preloaderVideo.src = "preloader.webm";
+
+    // The displayed percentage now represents the intro clip AND the hero
+    // loop's own buffering, not just the intro alone — the owner wants the
+    // number on screen to mean "how much of what's about to play has
+    // actually loaded", not just the first few seconds of splash video.
+    // Weighted so both can reach ~98% combined, leaving a couple points of
+    // headroom for the settle-to-100% step in dismissPreloader().
+    let introPercent = 0;
+    let heroPercent = 0;
+    const updateCombinedProgress = () => {
+        if (!progressText) return;
+        const combined = Math.min(98, Math.round(introPercent * 0.5 + heroPercent * 0.48));
+        progressText.textContent = `${combined}%`;
+        logoFill.style.clipPath = `inset(${100 - combined}% 0 0 0)`;
+    };
     const onPreloaderProgress = () => {
-        if (!progressText || !preloaderVideo.duration) return;
+        if (!preloaderVideo.duration) return;
         const buf = preloaderVideo.buffered;
         const bufferedEnd = buf.length ? buf.end(buf.length - 1) : 0;
-        const percent = Math.min(100, Math.round((bufferedEnd / preloaderVideo.duration) * 100));
-        progressText.textContent = `${percent}%`;
-        logoFill.style.clipPath = `inset(${100 - percent}% 0 0 0)`;
+        introPercent = Math.min(100, (bufferedEnd / preloaderVideo.duration) * 100);
+        updateCombinedProgress();
     };
     preloaderVideo.addEventListener("progress", onPreloaderProgress);
+    videoLobby1.addEventListener("progress", () => {
+        if (!videoLobby1.duration) return;
+        const buf = videoLobby1.buffered;
+        const bufferedEnd = buf.length ? buf.end(buf.length - 1) : 0;
+        heroPercent = Math.min(100, (bufferedEnd / videoLobby1.duration) * 100);
+        updateCombinedProgress();
+    });
     // Step 2: the hero loop's own download only STARTS once the preloader
     // clip has actually begun playing (not the instant its src is assigned).
     // Firing both fetches at t=0 splits the same pipe from byte zero — on a
@@ -414,8 +435,30 @@ function initPreloader() {
         }
     }
 
+    let preloaderSettling = false;
     function dismissPreloader() {
-        if (preloader.classList.contains("dismissed")) return;
+        if (preloader.classList.contains("dismissed") || preloaderSettling) return;
+        preloaderSettling = true;
+
+        // Requested: let the percentage visibly land on 100% over about a
+        // second instead of jumping straight from whatever it was — now that
+        // the lighter mobile assets buffer fast, the old instant jump felt
+        // like nothing had actually loaded.
+        const settleObj = { p: Math.min(98, introPercent * 0.5 + heroPercent * 0.48) };
+        gsap.to(settleObj, {
+            p: 100,
+            duration: 1,
+            ease: "power1.out",
+            onUpdate: () => {
+                const val = Math.round(settleObj.p);
+                if (progressText) progressText.textContent = `${val}%`;
+                logoFill.style.clipPath = `inset(${100 - val}% 0 0 0)`;
+            },
+            onComplete: runDismiss
+        });
+    }
+
+    function runDismiss() {
         preloader.classList.add("dismissed");
         clearTimeout(safetyTimeout);
 
