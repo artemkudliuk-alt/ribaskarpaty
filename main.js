@@ -627,6 +627,12 @@ function initTransitionTrigger() {
     let gestureWasBlocked = false;
 
     function handleScroll(e) {
+        // Prevent background transitions/scrolling when the mobile menu is open
+        const mobileMenu = document.getElementById("mobile-menu-overlay");
+        if (mobileMenu && mobileMenu.classList.contains("is-open")) {
+            return;
+        }
+
         if (isTransitioning) return;
 
         const isTouchEvent = e.touches && e.touches.length > 0;
@@ -711,6 +717,10 @@ function initTransitionTrigger() {
     }
 
     window.addEventListener("touchstart", (e) => {
+        // Prevent background tracking if mobile menu is open
+        const mobileMenu = document.getElementById("mobile-menu-overlay");
+        if (mobileMenu && mobileMenu.classList.contains("is-open")) return;
+
         // A gesture that ends (next touchstart fires) without ever completing
         // a transition counts toward the streak that eventually forces one through.
         blockedSwipeStreak = gestureWasBlocked ? blockedSwipeStreak + 1 : 0;
