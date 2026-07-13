@@ -323,9 +323,7 @@ function initPreloader() {
         preloaderVideo.currentTime = 0;
         preloaderVideo.play().then(() => {
 
-            // ④ Logo: hide silhouette, reveal solid fill, fade container in (opacity only)
-            if (logoSilhouette) logoSilhouette.style.opacity = "0";
-            gsap.set(logoFill, { clipPath: "inset(0% 0 0 0)" });
+            // ④ Logo: simple opacity fade-in over the intro video (no clip-path, no silhouette)
             Object.assign(logoContainer.style, {
                 position:  "absolute",
                 top:       "50%",
@@ -409,9 +407,26 @@ function initPreloader() {
             return;
         }
 
+        // Desktop / fast: blob preload for seamless hero loop
+        // Safety cap: if blob preload takes > 8 s, fall back to streaming so preloader doesn't freeze
+        let desktopFallbackFired = false;
+        const desktopFallback = setTimeout(() => {
+            if (!heroVideoReady) {
+                desktopFallbackFired = true;
+                videoLobby1.src = "1 screen.webm";
+                videoLobby2.src = "1 screen.webm";
+                initLobbySeamlessLoop();
+                heroVideoReady = true;
+                startForwardScrollPreload();
+                checkReadyState();
+            }
+        }, 8000);
+
         preloadFile("1 screen.webm", () => {})
         .catch(() => "1 screen.webm")
         .then((blobUrl) => {
+            if (desktopFallbackFired) return; // already streaming
+            clearTimeout(desktopFallback);
             lobbyVideoBlobUrl = blobUrl;
             heroVideoReady    = true;
             videoLobby1.src   = blobUrl;
@@ -421,13 +436,16 @@ function initPreloader() {
             checkReadyState();
         })
         .catch((err) => {
-            console.error("Preload fallback:", err);
-            videoLobby1.src = "1 screen.webm";
-            videoLobby2.src = "1 screen.webm";
-            initLobbySeamlessLoop();
-            heroVideoReady  = true;
-            startForwardScrollPreload();
-            checkReadyState();
+            clearTimeout(desktopFallback);
+            if (!heroVideoReady) {
+                console.error("Preload fallback:", err);
+                videoLobby1.src = "1 screen.webm";
+                videoLobby2.src = "1 screen.webm";
+                initLobbySeamlessLoop();
+                heroVideoReady  = true;
+                startForwardScrollPreload();
+                checkReadyState();
+            }
         });
     }
 }
