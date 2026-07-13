@@ -191,14 +191,22 @@ function initPreloader() {
     let artificialTimerComplete = false;
 
     if (isMobileOrTablet) {
-        // On mobile, bypass the 3-second artificial progress screen
+        // On mobile, hide the progress counter and silhouette (done via CSS),
+        // but still wait at least 3 seconds before dismissing the preloader
+        // so the cinematic intro video has time to play and the logo can fade in.
         artificialProgress = 100;
-        artificialTimerComplete = true;
+        artificialTimerComplete = false; // will be set to true after 3s
         window.preloaderBypassed = true;
 
-        // Make the solid white logo outline ready for slow fade-in at 1.0 scale
+        // Make the solid white logo ready for slow fade-in at 1.0 scale
         gsap.set(logoContainer, { opacity: 0, scale: 1.0, filter: "none" });
         gsap.set(logoFill, { clipPath: "inset(0% 0 0 0)" });
+
+        // Minimum 3-second display timer for mobile (same as desktop)
+        setTimeout(() => {
+            artificialTimerComplete = true;
+            checkReadyState();
+        }, 3000);
     } else {
         // Show logo silhouette immediately (scaled down to 0.5 on black preloader)
         gsap.set(logoContainer, { opacity: 1, scale: 0.5 });
