@@ -350,9 +350,10 @@ function initPreloader() {
         // Ensure lobby background video plays immediately when hero screen is revealed
         const vLobby1 = document.getElementById("video-lobby-1");
         if (vLobby1) {
+            vLobby1.muted = true;
             vLobby1.playbackRate = 0.35;
             if (vLobby1.paused) {
-                vLobby1.play().catch(e => console.log("Lobby video autoplay blocked in showHeroScreen, waiting for action:", e));
+                vLobby1.play().catch(e => console.log("Lobby video autoplay blocked in showHeroScreen:", e));
             }
         }
 
@@ -378,70 +379,32 @@ function initPreloader() {
         const conn             = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
         const isSlowConnection = conn && (conn.saveData || /(^|-)2g|3g$/.test(conn.effectiveType || ""));
 
-        if (isMobileOrTablet || isSlowConnection) {
-            const heroSrc = isSlowConnection ? "1 screen_weak.webm" : "1 screen.webm";
-            videoLobby1.src = heroSrc;
-            videoLobby2.src = heroSrc;
-            initLobbySeamlessLoop();
+        // Direct streaming is much safer and completely standard, avoiding XHR race conditions
+        const heroSrc = (isMobileOrTablet && isSlowConnection) ? "1 screen_weak.webm" : "1 screen.webm";
 
-            const markHeroReady = () => {
-                if (heroVideoReady) return;
-                heroVideoReady = true;
-                startForwardScrollPreload();
-            };
-            if (videoLobby1.readyState >= 4) {
-                markHeroReady();
-            } else {
-                videoLobby1.addEventListener("canplaythrough", markHeroReady, { once: true });
-            }
-            if (isSlowConnection) {
-                setTimeout(() => {
-                    if (!heroVideoReady) { heroVideoReady = true; startForwardScrollPreload(); }
-                }, 5000);
-            }
-            return;
+        console.log("Preloading lobby video:", heroSrc);
+        videoLobby1.muted = true;
+        videoLobby2.muted = true;
+        videoLobby1.src   = heroSrc;
+        videoLobby2.src   = heroSrc;
+        initLobbySeamlessLoop();
+
+        const markHeroReady = () => {
+            if (heroVideoReady) return;
+            heroVideoReady = true;
+            startForwardScrollPreload();
+        };
+
+        if (videoLobby1.readyState >= 4) {
+            markHeroReady();
+        } else {
+            videoLobby1.addEventListener("canplaythrough", markHeroReady, { once: true });
         }
 
-        // Desktop / fast: blob preload for seamless hero loop
-        // Safety cap: if blob preload takes > 8 s, fall back to streaming so preloader doesn't freeze
-        let desktopFallbackFired = false;
-        const desktopFallback = setTimeout(() => {
-            if (!heroVideoReady) {
-                desktopFallbackFired = true;
-                videoLobby1.src = "1 screen.webm";
-                videoLobby2.src = "1 screen.webm";
-                initLobbySeamlessLoop();
-                heroVideoReady = true;
-                startForwardScrollPreload();
-            }
-        }, 8000);
-
-        preloadFile("1 screen.webm", () => {})
-        .catch(() => "1 screen.webm")
-        .then((blobUrl) => {
-            if (desktopFallbackFired) return; // already streaming
-            clearTimeout(desktopFallback);
-            lobbyVideoBlobUrl = blobUrl;
-            heroVideoReady    = true;
-            videoLobby1.src   = blobUrl;
-            videoLobby2.src   = blobUrl;
-            initLobbySeamlessLoop();
-            startForwardScrollPreload();
-        })
-        .catch((err) => {
-            clearTimeout(desktopFallback);
-            if (!heroVideoReady) {
-                console.error("Preload fallback:", err);
-                videoLobby1.src = "1 screen.webm";
-                videoLobby2.src = "1 screen.webm";
-                initLobbySeamlessLoop();
-                heroVideoReady  = true;
-                startForwardScrollPreload();
-            }
-        });
+        // Safety timeout
+        setTimeout(markHeroReady, 4000);
     }
 }
-
 
 
 function initLobbySeamlessLoop() {
@@ -449,7 +412,9 @@ function initLobbySeamlessLoop() {
     const v2 = document.getElementById("video-lobby-2");
     if (!v1 || !v2) return;
 
-    // Load both videos
+    // Explicitly set muted true in JS to bypass chrome/safari autoplay policy
+    v1.muted = true;
+    v2.muted = true;
     v1.load();
     v2.load();
     v1.playbackRate = 0.35;
@@ -457,6 +422,7 @@ function initLobbySeamlessLoop() {
 
     // Try playing video 1 immediately
     const startPlay = () => {
+        v1.muted = true;
         v1.playbackRate = 0.35;
         v1.play()
             .then(() => {
@@ -496,6 +462,7 @@ function initLobbySeamlessLoop() {
 
                 // Prepare and play the inactive video from the beginning
                 inactiveVideo.currentTime = 0;
+                inactiveVideo.muted = true;
                 inactiveVideo.playbackRate = 0.35;
                 inactiveVideo.play().then(() => {
                     // Seamless crossfade opacities
@@ -2148,11 +2115,6 @@ function initBackgroundMusic() {
     let muted = true;
     let preloaderDismissed = !!window.preloaderBypassed;
     let audioUnlocked = false;
-
-    try {
-        const savedMuted = localStorage.getItem("ribasMuted");
-        if (savedMuted !== null) muted = savedMuted === "1";
-    } catch (e) {}
 
     updateButton();
 
