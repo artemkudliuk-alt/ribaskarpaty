@@ -2410,8 +2410,8 @@ body {
         width: auto;
     }
 
-    .lang-selector {
-        display: none !important; /* Hide lang selector in header on mobile */
+    .header-right > .lang-selector {
+        display: none !important; /* Hide lang selector in header on mobile — the mobile menu has its own copy of this same class inside .lang-section, which this used to hide too */
     }
 
     .header-right {
