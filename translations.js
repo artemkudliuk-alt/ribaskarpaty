@@ -80,6 +80,7 @@ window.translations = {
         "#floating-pillow-tab .tab-title-text": "Меню <br class=\"tab-br\">подушок",
         "#floating-pillow-tab .pillow-desc": "Міцний сон — важлива частина відпочинку. Ви можете обрати подушку зі спеціального меню: ортопедичну, з ефектом памʼяті або лавандову для релаксу. <br><br> Просто повідомте адміністратора на рецепції — і ми доставимо її у ваш номер.",
         "#pillow-card-action-btn span": "Обрати подушку",
+        "#pillow-welcome-btn span": "Меню подушок",
         "#screen-1 .scroll-text": "Скрольте вниз",
 
         // Screen 2
@@ -258,6 +259,7 @@ window.translations = {
         "#floating-pillow-tab .tab-title-text": "Pillow <br class=\"tab-br\">Menu",
         "#floating-pillow-tab .pillow-desc": "A sound sleep is key to relaxation. You can select a pillow from our special menu: orthopedic, memory-foam, or lavender for deep relaxation. <br><br> Just let the receptionist know, and we will deliver it to your room.",
         "#pillow-card-action-btn span": "Choose Pillow",
+        "#pillow-welcome-btn span": "Pillow Menu",
         "#screen-1 .scroll-text": "Scroll down",
 
         // Screen 2
@@ -436,6 +438,7 @@ window.translations = {
         "#floating-pillow-tab .tab-title-text": "Меню <br class=\"tab-br\">подушек",
         "#floating-pillow-tab .pillow-desc": "Крепкий сон — важная часть отдыха. Вы можете выбрать подушку из специального меню: ортопедическую, с эффектом памяти или лавандовую для релакса. <br><br> Просто сообщите администратору на рецепции — и мы доставим ее в ваш номер.",
         "#pillow-card-action-btn span": "Выбрать подушку",
+        "#pillow-welcome-btn span": "Меню подушек",
         "#screen-1 .scroll-text": "Скролльте вниз",
 
         // Screen 2

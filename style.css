@@ -833,6 +833,10 @@ body {
     }
 }
 
+#pillow-welcome-btn {
+    display: none;
+}
+
 .floating-pillow-tab {
     position: absolute;
     top: 50%;
@@ -2403,6 +2407,22 @@ body {
 
     .scroll-indicator-mouse {
         display: none !important;
+    }
+
+    #floating-pillow-tab {
+        display: none !important;
+    }
+
+    #pillow-welcome-btn {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        width: auto !important;
+        max-width: 220px;
+        margin: 24px auto 0 auto;
+        padding: 12px 24px;
+        font-size: 0.75rem;
+        align-self: center;
     }
 
     /* Increase close button tap target sizes to 44px on mobile/tablet for accessibility */
