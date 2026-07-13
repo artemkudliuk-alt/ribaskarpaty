@@ -72,25 +72,14 @@ function startForwardScrollPreload() {
         : "scrolling video.webm";
 
     console.log("Preloading forward scrolling video:", src);
+    vScrolling.muted = true;
     vScrolling.preload = "auto";
     vScrolling.src = src;
     vScrolling.load();
     vScrolling.addEventListener("canplay", () => {
+        vScrolling.muted = true;
         if (vScrolling.paused) vScrolling.play().then(() => vScrolling.pause()).catch(() => {});
     }, { once: true });
-
-    if (isSlowConnection || isMobile) return;
-
-    preloadFile(src, () => {}).then(blobUrl => {
-        const swap = () => {
-            if (!vScrolling.paused) { setTimeout(swap, 500); return; }
-            const t = vScrolling.currentTime;
-            vScrolling.src = blobUrl;
-            vScrolling.load();
-            vScrolling.currentTime = t;
-        };
-        swap();
-    }).catch(() => {});
 }
 
 let reverseScrollPreloadStarted = false;
@@ -109,25 +98,14 @@ function startReverseScrollPreload() {
         : "scrolling video_reverse.webm";
 
     console.log("Preloading reverse scrolling video:", src);
+    vScrollingRev.muted = true;
     vScrollingRev.preload = "auto";
     vScrollingRev.src = src;
     vScrollingRev.load();
     vScrollingRev.addEventListener("canplay", () => {
+        vScrollingRev.muted = true;
         if (vScrollingRev.paused) vScrollingRev.play().then(() => vScrollingRev.pause()).catch(() => {});
     }, { once: true });
-
-    if (isSlowConnection || isMobile) return;
-
-    preloadFile(src, () => {}).then(blobUrl => {
-        const swap = () => {
-            if (!vScrollingRev.paused) { setTimeout(swap, 500); return; }
-            const t = vScrollingRev.currentTime;
-            vScrollingRev.src = blobUrl;
-            vScrollingRev.load();
-            vScrollingRev.currentTime = t;
-        };
-        swap();
-    }).catch(() => {});
 }
 
 let remainingAssetsLoaded = false;
