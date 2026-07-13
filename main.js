@@ -65,7 +65,7 @@ function startForwardScrollPreload() {
 
     const isMobile = window.matchMedia("(max-width: 1024px)").matches;
     const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-    const isSlowConnection = conn && (conn.saveData || /(^|-)2g|3g$/.test(conn.effectiveType || ""));
+    const isSlowConnection = isMobile || (conn && (conn.saveData || /(^|-)2g|3g$/.test(conn.effectiveType || "")));
     // Always load widescreen on desktop; weak/mobile vertical videos are only for actual mobile browsers
     const src = isMobile
         ? (isSlowConnection ? "scrolling video_weak.webm" : "scrolling video mob.webm")
@@ -92,7 +92,7 @@ function startReverseScrollPreload() {
 
     const isMobile = window.matchMedia("(max-width: 1024px)").matches;
     const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-    const isSlowConnection = conn && (conn.saveData || /(^|-)2g|3g$/.test(conn.effectiveType || ""));
+    const isSlowConnection = isMobile || (conn && (conn.saveData || /(^|-)2g|3g$/.test(conn.effectiveType || "")));
     const src = isMobile
         ? (isSlowConnection ? "scrolling video_weak_reverse.webm" : "scrolling video mob_reverse.webm")
         : "scrolling video_reverse.webm";
@@ -121,8 +121,9 @@ function preloadRemainingAssets() {
     // video needed to keep buffering, starving the exact transitions the
     // user was actively scrolling through. The footer's own .play() call in
     // transitionTo() still fetches it on demand when actually reached.
+    const isMobile = window.matchMedia("(max-width: 1024px)").matches;
     const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-    const isSlowConnection = conn && (conn.saveData || /(^|-)2g|3g$/.test(conn.effectiveType || ""));
+    const isSlowConnection = isMobile || (conn && (conn.saveData || /(^|-)2g|3g$/.test(conn.effectiveType || "")));
     if (isSlowConnection) {
         console.log("Slow connection detected: skipping eager footer/loop preload, will stream on demand instead.");
         return;
@@ -237,10 +238,7 @@ function initPreloader() {
         }
     });
 
-    // 2. Pause at 98% for 1.2 seconds to allow background videos to buffer
-    loadingTimeline.to({}, { duration: 1.2 });
-
-    // 3. 98% -> 100% over 0.6 seconds
+    // 2. 98% -> 100% over 0.6 seconds, starting 1.2 seconds after the previous tween ends
     loadingTimeline.to(progressObj, {
         val: 100,
         duration: 0.6,
@@ -248,15 +246,14 @@ function initPreloader() {
         onUpdate: () => {
             updateProgressBar(Math.round(progressObj.val));
         }
-    });
+    }, "+=1.2");
 
     // ── Buffer intro video immediately in background (preload only, do NOT play) ─
     preloaderVideo.src     = "preloader.webm";
     preloaderVideo.preload = "auto";
     preloaderVideo.load();
 
-    // ── Buffer hero loop video immediately in background ───────────────────
-    startLobbyPreload();
+    // ── Buffer hero loop video is deferred until runDismiss to save preloader bandwidth ──
 
 
     function runDismiss() {
@@ -265,8 +262,13 @@ function initPreloader() {
         clearTimeout(safetyTimeout);
 
         if (window.__ribasMusic) window.__ribasMusic.start();
-        startReverseScrollPreload();
-        setTimeout(preloadRemainingAssets, 3000);
+        
+        // Start preloading the lobby/hero video now (while intro video is about to play)
+        startLobbyPreload();
+        
+        // Delay reverse scroll and remaining assets preload to prioritize the lobby video
+        setTimeout(startReverseScrollPreload, 2000);
+        setTimeout(preloadRemainingAssets, 6000);
 
         // ① Immediately fade out progress container (so it doesn't show over intro video)
         if (progressContainer) {
@@ -284,8 +286,14 @@ function initPreloader() {
         // ③ Reveal intro video container (fades in from black)
         gsap.to(introContainer, { opacity: 1, duration: 0.8, ease: "power2.out" });
 
-        // ④ Play intro video from the start
-        preloaderVideo.currentTime = 0;
+        // ④ Play intro video from the start (checking readyState and catching exceptions to prevent iOS crashes)
+        if (preloaderVideo.readyState >= 1) {
+            try {
+                preloaderVideo.currentTime = 0;
+            } catch (e) {
+                console.warn("Failed to set preloaderVideo.currentTime:", e);
+            }
+        }
         preloaderVideo.play().then(() => {
             // Fade out logo, then fade it back in slowly over the clouds video
             gsap.to(logoContainer, {
@@ -355,7 +363,7 @@ function initPreloader() {
         lobbyPreloadStarted = true;
 
         const conn             = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-        const isSlowConnection = conn && (conn.saveData || /(^|-)2g|3g$/.test(conn.effectiveType || ""));
+        const isSlowConnection = isMobileOrTablet || (conn && (conn.saveData || /(^|-)2g|3g$/.test(conn.effectiveType || "")));
 
         // Direct streaming is much safer and completely standard, avoiding XHR race conditions
         const heroSrc = (isMobileOrTablet && isSlowConnection) ? "1 screen_weak.webm" : "1 screen.webm";
@@ -750,8 +758,9 @@ function initTransitionTrigger() {
         // screen's content in on top of it (content advancing over dead
         // video). Give slow connections a much longer real chance to finish
         // buffering before falling back.
+        const isMobile = window.matchMedia("(max-width: 1024px)").matches;
         const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-        const isSlowConnection = conn && (conn.saveData || /(^|-)2g|3g$/.test(conn.effectiveType || ""));
+        const isSlowConnection = isMobile || (conn && (conn.saveData || /(^|-)2g|3g$/.test(conn.effectiveType || "")));
         const STALL_MS = isSlowConnection ? 6000 : 1200;
 
         // play() itself can sit pending forever on some mobile browsers when
