@@ -209,97 +209,54 @@ function initPreloader() {
     // ── State ─────────────────────────────────────────────────────────────
     let heroVideoReady      = false;
     let lobbyVideoBlobUrl   = null;
-    let introPercent        = 0;
-    let heroPercent         = 0;
-    let artificialProgress  = 0;
-    let artificialTimerComplete = false;
 
-    // ── PHASE 1: Logo silhouette static on black screen ───────────────────
+    // ── PHASE 1: Logo static on black screen ──────────────────────────────
     gsap.set(logoContainer, { opacity: 1, scale: 1.0 });
-    // logoFill starts fully clipped by CSS default → only silhouette shows.
-    // We reveal the solid fill later, over the intro video.
 
     // ── Safety timeout: 15 s absolute cap ────────────────────────────────
     const safetyTimeout = setTimeout(() => {
-        heroVideoReady        = true;
-        artificialTimerComplete = true;
+        heroVideoReady = true;
         startForwardScrollPreload();
-        checkReadyState();
+        runDismiss();
     }, 15000);
 
-    // ── % counter: text only — NO clip-path on silhouette ─────────────────
-    const updateProgress = () => {
-        if (!progressText) return;
-        const real     = Math.round(introPercent * 0.4 + heroPercent * 0.55);
-        const combined = Math.min(98, Math.max(artificialProgress, real));
-        progressText.textContent = `${combined}%`;
-        // Silhouette stands still — no logoFill clip-path animation here
-    };
+    // ── Deterministic Loading Timeline: 0% -> 98% -> pause -> 100% ────────
+    const progressObj = { val: 0 };
+    const loadingTimeline = gsap.timeline({
+        onComplete: runDismiss
+    });
 
-    // ── Artificial 3 s minimum: smoothly drives % to 50 ──────────────────
-    const artificialObj = { val: 0 };
-    gsap.to(artificialObj, {
-        val: 50,
-        duration: 3.0,
+    // 1. 0% -> 98% over 3.2 seconds
+    loadingTimeline.to(progressObj, {
+        val: 98,
+        duration: 3.2,
         ease: "power1.out",
         onUpdate: () => {
-            artificialProgress = Math.round(artificialObj.val);
-            updateProgress();
-        },
-        onComplete: () => {
-            artificialTimerComplete = true;
-            checkReadyState();
+            if (progressText) progressText.textContent = `${Math.round(progressObj.val)}%`;
         }
     });
 
-    // ── Buffer intro video immediately (preload only, do NOT play yet) ────
+    // 2. Pause at 98% for 1.2 seconds to allow background videos to buffer
+    loadingTimeline.to({}, { duration: 1.2 });
+
+    // 3. 98% -> 100% over 0.6 seconds
+    loadingTimeline.to(progressObj, {
+        val: 100,
+        duration: 0.6,
+        ease: "power1.in",
+        onUpdate: () => {
+            if (progressText) progressText.textContent = `${Math.round(progressObj.val)}%`;
+        }
+    });
+
+    // ── Buffer intro video immediately in background (preload only, do NOT play) ─
     preloaderVideo.src     = "preloader.webm";
     preloaderVideo.preload = "auto";
     preloaderVideo.load();
-    preloaderVideo.addEventListener("progress", () => {
-        if (!preloaderVideo.duration) return;
-        const buf = preloaderVideo.buffered;
-        const end = buf.length ? buf.end(buf.length - 1) : 0;
-        introPercent = Math.min(100, (end / preloaderVideo.duration) * 100);
-        updateProgress();
-    });
 
-    // ── Buffer hero loop video immediately ────────────────────────────────
-    videoLobby1.addEventListener("progress", () => {
-        if (!videoLobby1.duration) return;
-        const buf = videoLobby1.buffered;
-        const end = buf.length ? buf.end(buf.length - 1) : 0;
-        heroPercent = Math.min(100, (end / videoLobby1.duration) * 100);
-        updateProgress();
-    });
+    // ── Buffer hero loop video immediately in background ───────────────────
     startLobbyPreload();
 
-    // ── Gate: only 3 s timer needed — hero loads in background during the intro video
-    // The intro clip runs 15–20 s, giving the hero video ample time to buffer.
-    function checkReadyState() {
-        if (artificialTimerComplete) {
-            dismissPreloader();
-        }
-    }
-
-    // ── Dismiss: settle % to 100%, then transition to PHASE 2 ────────────
-    let preloaderSettling = false;
-    function dismissPreloader() {
-        if (preloader.classList.contains("dismissed") || preloaderSettling) return;
-        preloaderSettling = true;
-
-        const startP    = Math.min(98, Math.max(artificialProgress, Math.round(introPercent * 0.4 + heroPercent * 0.55)));
-        const settleObj = { p: startP };
-        gsap.to(settleObj, {
-            p: 100,
-            duration: 1.0,
-            ease: "power1.out",
-            onUpdate: () => {
-                if (progressText) progressText.textContent = `${Math.round(settleObj.p)}%`;
-            },
-            onComplete: runDismiss
-        });
-    }
 
     function runDismiss() {
         preloader.classList.add("dismissed");
@@ -393,7 +350,6 @@ function initPreloader() {
                 if (heroVideoReady) return;
                 heroVideoReady = true;
                 startForwardScrollPreload();
-                checkReadyState();
             };
             if (videoLobby1.readyState >= 4) {
                 markHeroReady();
@@ -402,7 +358,7 @@ function initPreloader() {
             }
             if (isSlowConnection) {
                 setTimeout(() => {
-                    if (!heroVideoReady) { heroVideoReady = true; startForwardScrollPreload(); checkReadyState(); }
+                    if (!heroVideoReady) { heroVideoReady = true; startForwardScrollPreload(); }
                 }, 5000);
             }
             return;
@@ -419,7 +375,6 @@ function initPreloader() {
                 initLobbySeamlessLoop();
                 heroVideoReady = true;
                 startForwardScrollPreload();
-                checkReadyState();
             }
         }, 8000);
 
@@ -434,7 +389,6 @@ function initPreloader() {
             videoLobby2.src   = blobUrl;
             initLobbySeamlessLoop();
             startForwardScrollPreload();
-            checkReadyState();
         })
         .catch((err) => {
             clearTimeout(desktopFallback);
@@ -445,7 +399,6 @@ function initPreloader() {
                 initLobbySeamlessLoop();
                 heroVideoReady  = true;
                 startForwardScrollPreload();
-                checkReadyState();
             }
         });
     }

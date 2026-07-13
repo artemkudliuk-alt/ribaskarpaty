@@ -105,13 +105,15 @@ body {
 
 .preloader-progress {
     font-family: 'Outfit', sans-serif;
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 300;
-    color: rgba(255, 255, 255, 0.35);
-    letter-spacing: 0.3em;
-    margin-top: 14px;
+    color: #ffffff;
+    letter-spacing: 0.4em;
+    text-indent: 0.4em; /* Compensates letter-spacing on the last character for perfect centering */
+    margin-top: 16px;
     text-align: center;
     text-transform: uppercase;
+    opacity: 0.75;
     transition: opacity 0.3s ease;
 }
 
