@@ -64,7 +64,14 @@ function startForwardScrollPreload() {
     if (!vScrolling) return;
 
     const isMobile = window.matchMedia("(max-width: 1024px)").matches;
-    const src = isMobile ? "scrolling video mob.webm" : "scrolling video.webm";
+    const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    const isSlowConnection = conn && (conn.saveData || /(^|-)2g|3g$/.test(conn.effectiveType || ""));
+    // ponytail: a confirmed slow connection gets a much smaller (~1.2MB vs
+    // 3.2MB) dedicated encode instead of the regular mobile file — a screen
+    // recording on real weak mobile internet showed this video staying
+    // solid black for ~21s waiting to buffer; the file itself was the
+    // bottleneck, no amount of timeout-tuning fixes raw download time.
+    const src = isSlowConnection ? "scrolling video_weak.webm" : (isMobile ? "scrolling video mob.webm" : "scrolling video.webm");
 
     console.log("Preloading forward scrolling video:", src);
     vScrolling.preload = "auto";
@@ -74,8 +81,6 @@ function startForwardScrollPreload() {
         if (vScrolling.paused) vScrolling.play().then(() => vScrolling.pause()).catch(() => {});
     }, { once: true });
 
-    const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-    const isSlowConnection = conn && (conn.saveData || /(^|-)2g|3g$/.test(conn.effectiveType || ""));
     if (isSlowConnection || isMobile) return;
 
     preloadFile(src, () => {}).then(blobUrl => {
@@ -99,7 +104,9 @@ function startReverseScrollPreload() {
     if (!vScrollingRev) return;
 
     const isMobile = window.matchMedia("(max-width: 1024px)").matches;
-    const src = isMobile ? "scrolling video mob_reverse.webm" : "scrolling video_reverse.webm";
+    const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    const isSlowConnection = conn && (conn.saveData || /(^|-)2g|3g$/.test(conn.effectiveType || ""));
+    const src = isSlowConnection ? "scrolling video_weak_reverse.webm" : (isMobile ? "scrolling video mob_reverse.webm" : "scrolling video_reverse.webm");
 
     console.log("Preloading reverse scrolling video:", src);
     vScrollingRev.preload = "auto";
@@ -109,8 +116,6 @@ function startReverseScrollPreload() {
         if (vScrollingRev.paused) vScrollingRev.play().then(() => vScrollingRev.pause()).catch(() => {});
     }, { once: true });
 
-    const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-    const isSlowConnection = conn && (conn.saveData || /(^|-)2g|3g$/.test(conn.effectiveType || ""));
     if (isSlowConnection || isMobile) return;
 
     preloadFile(src, () => {}).then(blobUrl => {
@@ -225,8 +230,13 @@ function initPreloader() {
 
         if (isMobileOrTablet || isSlowConnection) {
             console.log("Mobile/Slow network detected: Skipping Lobby video blob preload, streaming directly.");
-            videoLobby1.src = "1 screen.webm";
-            videoLobby2.src = "1 screen.webm";
+            // A confirmed slow connection gets the ~2.1MB weak-tier encode
+            // instead of the regular 5MB hero clip (see startForwardScrollPreload
+            // for why: a real weak-mobile recording showed this exact video
+            // stuck solid black for ~10s waiting to buffer).
+            const heroSrc = isSlowConnection ? "1 screen_weak.webm" : "1 screen.webm";
+            videoLobby1.src = heroSrc;
+            videoLobby2.src = heroSrc;
             initLobbySeamlessLoop();
             mainVideoReady = true;
             if (waitingForMain) {

@@ -258,14 +258,14 @@
 
     <!-- Shared Scrolling Video Background for Screens 2-5 -->
     <div id="shared-video-bg" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 5; pointer-events: none; opacity: 0; display: none; transition: opacity 0.4s ease;">
-        <video id="video-scrolling" class="screen-video" muted playsinline></video>
+        <video id="video-scrolling" class="screen-video" muted playsinline poster="scroll-poster.webp"></video>
         <video id="video-scrolling-reverse" class="screen-video" muted playsinline style="opacity: 0;"></video>
     </div>
 
     <!-- Screen 1: Welcome / Lobby Screen -->
     <div id="screen-1" class="screen">
         <!-- Dual Videos for Seamless Crossfade Looping of 1 screen.mp4 -->
-        <video id="video-lobby-1" class="screen-video" muted playsinline></video>
+        <video id="video-lobby-1" class="screen-video" muted playsinline poster="hero-poster.webp"></video>
         <video id="video-lobby-2" class="screen-video" muted playsinline style="opacity: 0; pointer-events: none;"></video>
         
         <!-- Transition Glare/Blur Overlay -->
