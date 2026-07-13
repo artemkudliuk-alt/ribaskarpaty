@@ -478,6 +478,13 @@ function initTransitionTrigger() {
     let touchTriggered = false;
     let touchIsScrollingContent = false;
 
+    const safeSeek = (video, time) => {
+        if (!video) return;
+        if (Math.abs(video.currentTime - time) > 0.05) {
+            video.currentTime = time;
+        }
+    };
+
     // Elements mapping
     screens = [
         {
@@ -926,8 +933,8 @@ function initTransitionTrigger() {
 
             scrollingVideo.pause();
             scrollingVideoReverse.pause();
-            scrollingVideo.currentTime = screenTimestamps[5];
-            scrollingVideoReverse.currentTime = screenTimestampsReverse[5];
+            safeSeek(scrollingVideo, screenTimestamps[5]);
+            safeSeek(scrollingVideoReverse, screenTimestampsReverse[5]);
             // Make sure the forward layer (holding the screen-5 frame) is the
             // visible one — the reverse copy may still sit on top after an
             // earlier upward transition
@@ -1059,8 +1066,8 @@ function initTransitionTrigger() {
             // Make sure the scrolling video is parked at frame 0
             scrollingVideo.pause();
             scrollingVideoReverse.pause();
-            scrollingVideo.currentTime = 0.0;
-            scrollingVideoReverse.currentTime = screenTimestampsReverse[1];
+            safeSeek(scrollingVideo, 0.0);
+            safeSeek(scrollingVideoReverse, screenTimestampsReverse[1]);
 
             // Hide the scrolling video layers themselves before the shared
             // container is revealed — their own opacity can be left over from
@@ -2338,13 +2345,14 @@ setInterval(() => {
         Preloader: display=${preloader ? preloader.style.display : 'N/A'} bg="${preloader ? preloader.style.backgroundColor : 'N/A'}"<br>
         Lobby1: src="${vLobby1 ? vLobby1.getAttribute('src') || '' : 'none'}" ready=${vLobby1 ? vLobby1.readyState : 'N/A'} paused=${vLobby1 ? vLobby1.paused : 'N/A'} time=${vLobby1 ? vLobby1.currentTime.toFixed(2) : 'N/A'}<br>
         Lobby2: src="${vLobby2 ? vLobby2.getAttribute('src') || '' : 'none'}" ready=${vLobby2 ? vLobby2.readyState : 'N/A'} paused=${vLobby2 ? vLobby2.paused : 'N/A'} time=${vLobby2 ? vLobby2.currentTime.toFixed(2) : 'N/A'}<br>
-        Scroll: src="${vScroll ? vScroll.getAttribute('src') || '' : 'none'}" ready=${vScroll ? vScroll.readyState : 'N/A'} paused=${vScroll ? vScroll.paused : 'N/A'} time=${vScroll ? vScroll.currentTime.toFixed(2) : 'N/A'}<br>
-        ScrollRev: src="${vScrollRev ? vScrollRev.getAttribute('src') || '' : 'none'}" ready=${vScrollRev ? vScrollRev.readyState : 'N/A'} paused=${vScrollRev ? vScrollRev.paused : 'N/A'} time=${vScrollRev ? vScrollRev.currentTime.toFixed(2) : 'N/A'}
+        Scroll: src="${vScroll ? vScroll.getAttribute('src') || '' : 'none'}" ready=${vScroll ? vScroll.readyState : 'N/A'} seek=${vScroll ? vScroll.seeking : 'N/A'} err=${vScroll && vScroll.error ? vScroll.error.code : 0} paused=${vScroll ? vScroll.paused : 'N/A'} time=${vScroll ? vScroll.currentTime.toFixed(2) : 'N/A'}<br>
+        ScrollRev: src="${vScrollRev ? vScrollRev.getAttribute('src') || '' : 'none'}" ready=${vScrollRev ? vScrollRev.readyState : 'N/A'} seek=${vScrollRev ? vScrollRev.seeking : 'N/A'} err=${vScrollRev && vScrollRev.error ? vScrollRev.error.code : 0} paused=${vScrollRev ? vScrollRev.paused : 'N/A'} time=${vScrollRev ? vScrollRev.currentTime.toFixed(2) : 'N/A'}
         ${errorsHtml}
     `;
 
     const logsDiv = document.getElementById("debug-logs");
     if (logsDiv && window.__logs) {
-        logsDiv.innerHTML = window.__logs.slice(-7).map(l => `[${l.type}] ${l.text}`).join('<br>');
+        logsDiv.innerHTML = window.__logs.slice(-20).map(l => `[${l.type}] ${l.text}`).join('<br>');
+        logsDiv.scrollTop = logsDiv.scrollHeight;
     }
 }, 500);
