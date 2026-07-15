@@ -571,10 +571,11 @@ function initTransitionTrigger() {
 
     // Screens loops and transitions are preloaded lazily via preloadRemainingAssets() 3 seconds after dismissPreloader.
 
-    // Wire restaurant click in header menu to go directly to screen 2 (without blocking external link navigation)
+    // Wire restaurant click in header menu to go directly to screen 2
     const viewMenuBtn = document.getElementById("view-menu-btn");
     if (viewMenuBtn) {
         viewMenuBtn.addEventListener("click", (e) => {
+            e.preventDefault();
             if (!isTransitioning && currentScreen === 1) {
                 transitionTo(2);
             }
