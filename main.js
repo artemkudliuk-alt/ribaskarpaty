@@ -2069,7 +2069,7 @@ function initPdfModal() {
         // Dynamic responsive swap for Memo Games PDF
         if (src === "/files/memo-games.pdf" || src.includes("MemoGames") || src.includes("memo-games")) {
             const isMobile = window.innerWidth <= 768;
-            src = isMobile ? "/files/MemoGames mob.pdf" : "/files/MemoGames декстоп.pdf";
+            src = isMobile ? "/files/MemoGames mob.pdf" : "/files/memo-games.pdf";
         }
 
         // Dynamic translated title extraction (falls back to data-pdf-title)
