@@ -670,88 +670,83 @@ body {
    ========================================================================= */
 .vertical-navigation-ribbon {
     position: fixed;
-    left: 40px;
+    left: 44px;
     top: 50%;
     transform: translateY(-50%);
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 24px;
+    gap: 2px;
     z-index: 999;
     pointer-events: auto;
     user-select: none;
 }
 
+/* Old vertical progress line replaced by per-item horizontal ticks */
 .ribbon-line-container {
-    width: 2px;
-    height: 120px;
-    background: rgba(245, 239, 230, 0.1);
-    position: relative;
-    border-radius: 2px;
-    overflow: hidden;
-}
-
-.ribbon-line-progress {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 16.6%; /* Initial progress for screen 1 */
-    background: var(--color-gold);
-    box-shadow: 0 0 8px var(--color-gold-glow);
-    transition: height 0.4s ease;
+    display: none;
 }
 
 .ribbon-items {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 16px;
+    gap: 2px;
 }
 
 .ribbon-item {
     display: flex;
     align-items: center;
+    gap: 14px;
     position: relative;
     cursor: pointer;
-    padding: 4px;
-    height: 24px;
+    padding: 9px 6px 9px 0;
 }
 
+/* The number text is used as a growing tick-mark, not shown as digits —
+   the label carries the screen name */
 .ribbon-number {
-    font-family: var(--font-body);
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: rgba(245, 239, 230, 0.35);
-    transition: color 0.3s ease, transform 0.3s ease;
-    letter-spacing: 0.05em;
+    font-size: 0;
+    width: 22px;
+    height: 2px;
+    border-radius: 2px;
+    background: rgba(247, 244, 250, 0.28);
+    flex-shrink: 0;
+    transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1), background 0.35s ease, box-shadow 0.35s ease;
 }
 
 .ribbon-label {
-    position: absolute;
-    left: 36px;
-    font-family: var(--font-heading);
-    font-size: 0.65rem;
+    font-family: var(--font-body);
+    font-size: 0.68rem;
     font-weight: 500;
     text-transform: uppercase;
-    letter-spacing: 0.15em;
-    color: var(--color-gold);
+    letter-spacing: 0.16em;
+    color: rgba(247, 244, 250, 0.5);
     opacity: 0;
     pointer-events: none;
-    transform: translateX(-10px);
-    transition: opacity 0.3s ease, transform 0.3s ease;
+    transform: translateX(-6px);
+    transition: opacity 0.3s ease, transform 0.3s ease, color 0.3s ease;
     white-space: nowrap;
 }
 
-.ribbon-item:hover .ribbon-number,
+.ribbon-item:hover .ribbon-number {
+    width: 34px;
+    background: rgba(247, 244, 250, 0.65);
+}
+
 .ribbon-item.active .ribbon-number {
-    color: var(--color-gold);
-    transform: scale(1.15);
+    width: 46px;
+    background: var(--color-gold);
+    box-shadow: 0 0 12px var(--color-gold-glow);
 }
 
 .ribbon-item:hover .ribbon-label {
     opacity: 1;
     transform: translateX(0);
+}
+
+.ribbon-item.active .ribbon-label {
+    opacity: 1;
+    transform: translateX(0);
+    color: var(--color-gold);
 }
 
 
@@ -2392,44 +2387,9 @@ body {
 }
 
 @media (max-width: 1024px) {
-    /* Mobile: the ribbon collapses to a slim dot-rail on the right edge —
-       gives quick jumps between screens (incl. back to top) without labels */
+    /* Mobile: no side navigation at all — burger menu covers navigation */
     .vertical-navigation-ribbon {
-        left: auto;
-        right: 10px;
-        gap: 0;
-    }
-
-    .ribbon-line-container {
-        display: none;
-    }
-
-    .ribbon-items {
-        gap: 14px;
-    }
-
-    .ribbon-item {
-        height: auto;
-        padding: 5px; /* generous tap target around the dot */
-    }
-
-    .ribbon-number {
-        font-size: 0;               /* hide the text, keep the element */
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        background: rgba(245, 239, 230, 0.35);
-        transition: background 0.3s ease, transform 0.3s ease;
-    }
-
-    .ribbon-item.active .ribbon-number {
-        background: var(--color-gold);
-        box-shadow: 0 0 8px var(--color-gold-glow);
-        transform: scale(1.3);
-    }
-
-    .ribbon-label {
-        display: none;
+        display: none !important;
     }
 
     .scroll-indicator-mouse {
