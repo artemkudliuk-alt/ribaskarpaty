@@ -1,3 +1,4 @@
+// Version: 1.0.1 - Mobile video quality and vector SVG optimizations
 document.addEventListener("DOMContentLoaded", () => {
     initPreloader();
     initWelcomeScreen();
