@@ -65,10 +65,11 @@ function startForwardScrollPreload() {
 
     const isMobile = window.matchMedia("(max-width: 1024px)").matches;
     const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-    const isSlowConnection = isMobile || (conn && (conn.saveData || /(^|-)2g|3g$/.test(conn.effectiveType || "")));
+    const isSlowConnection = !!(conn && (conn.saveData || /(^|-)2g|3g$/.test(conn.effectiveType || "")));
     // Always load widescreen on desktop; weak/mobile vertical videos are only for actual mobile browsers
+    // On mobile, use high-fidelity H.264 MP4 videos for hardware acceleration and Safari compatibility
     const src = isMobile
-        ? (isSlowConnection ? "scrolling video_weak.webm" : "scrolling video mob.webm")
+        ? (isSlowConnection ? "scrolling video_weak.mp4" : "scrolling video mob.mp4")
         : "scrolling video.webm";
 
     console.log("Preloading forward scrolling video:", src);
@@ -92,9 +93,9 @@ function startReverseScrollPreload() {
 
     const isMobile = window.matchMedia("(max-width: 1024px)").matches;
     const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-    const isSlowConnection = isMobile || (conn && (conn.saveData || /(^|-)2g|3g$/.test(conn.effectiveType || "")));
+    const isSlowConnection = !!(conn && (conn.saveData || /(^|-)2g|3g$/.test(conn.effectiveType || "")));
     const src = isMobile
-        ? (isSlowConnection ? "scrolling video_weak_reverse.webm" : "scrolling video mob_reverse.webm")
+        ? (isSlowConnection ? "scrolling video_weak_reverse.mp4" : "scrolling video mob_reverse.mp4")
         : "scrolling video_reverse.webm";
 
     console.log("Preloading reverse scrolling video:", src);
@@ -249,7 +250,7 @@ function initPreloader() {
     }, "+=1.2");
 
     // ── Buffer intro video immediately in background (preload only, do NOT play) ─
-    preloaderVideo.src     = "preloader.webm";
+    preloaderVideo.src     = "preloader.mp4";
     preloaderVideo.preload = "auto";
     preloaderVideo.load();
 
@@ -370,10 +371,13 @@ function initPreloader() {
         lobbyPreloadStarted = true;
 
         const conn             = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-        const isSlowConnection = isMobileOrTablet || (conn && (conn.saveData || /(^|-)2g|3g$/.test(conn.effectiveType || "")));
+        const isSlowConnection = !!(conn && (conn.saveData || /(^|-)2g|3g$/.test(conn.effectiveType || "")));
 
         // Direct streaming is much safer and completely standard, avoiding XHR race conditions
-        const heroSrc = (isMobileOrTablet && isSlowConnection) ? "1 screen_weak.webm" : "1 screen.webm";
+        // On mobile/tablet, load H.264 MP4 variants for hardware acceleration
+        const heroSrc = isMobileOrTablet
+            ? (isSlowConnection ? "1 screen_weak.mp4" : "1 screen.mp4")
+            : "1 screen.webm";
 
         console.log("Preloading lobby video:", heroSrc);
         videoLobby1.muted = true;
