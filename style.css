@@ -200,6 +200,16 @@ body {
     perspective: 1000px;
 }
 
+/* The two shared scrolling layers are swapped via direct style.opacity
+   writes (not GSAP tweens) — this transition turns each hard flip into a
+   soft ~0.35s crossfade, killing the one-frame "glitch" flash during
+   swipes and softening the hero → screen-2 handoff. Scoped ONLY to the
+   shared layers: the lobby/footer videos are GSAP-tweened and a CSS
+   transition would fight those tweens. */
+#shared-video-bg .screen-video {
+    transition: opacity 0.35s ease;
+}
+
 .screen-overlay {
     position: absolute;
     top: 0;
@@ -1956,11 +1966,52 @@ body {
     background: rgba(115, 96, 242, 0.12);
 }
 
-/* Copied checkmark state animation */
-#copy-wifi-btn.copied, #pillow-card-action-btn.copied, .mobile-modal .copied {
+/* Copied checkmark state animation — covers every copy button incl. the
+   burger-menu one (#mobile-copy-wifi-btn), which was missing and stayed pink */
+#copy-wifi-btn.copied, #mobile-copy-wifi-btn.copied, #copy-wifi-direct-btn.copied,
+#pillow-card-action-btn.copied, .mobile-modal .copied {
     background: #4bb543 !important;
     border-color: #4bb543 !important;
     color: #ffffff !important;
+}
+
+/* ── Back-to-top: instant teleport to the hero screen ─────────────────── */
+#back-to-top-btn {
+    position: fixed;
+    right: 18px;
+    bottom: 22px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(21, 32, 61, 0.55);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(247, 117, 186, 0.35);
+    color: var(--color-gold);
+    cursor: pointer;
+    z-index: 9000; /* above screens, below header/menu */
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(8px);
+    transition: opacity 0.35s ease, transform 0.35s ease, background 0.3s ease;
+}
+
+#back-to-top-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+#back-to-top-btn.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+#back-to-top-btn:hover {
+    background: rgba(247, 117, 186, 0.2);
 }
 
 /* =========================================================================
@@ -3228,6 +3279,11 @@ body {
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    /* iOS: keep the gesture inside this scroller — without these Safari
+       hands the swipe to the (fixed, unscrollable) body and the menu
+       appears frozen */
+    touch-action: pan-y;
+    overscroll-behavior: contain;
 }
 
 .mobile-menu-content::-webkit-scrollbar {

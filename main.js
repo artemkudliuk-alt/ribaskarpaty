@@ -15,6 +15,23 @@ document.addEventListener("DOMContentLoaded", () => {
     initLanguageSelector();
     initBackgroundMusic();
     initMobileMenu();
+
+    // Logo click = full reload back to the very start (owner request)
+    const headerLogo = document.querySelector(".main-header .logo");
+    if (headerLogo) {
+        headerLogo.style.cursor = "pointer";
+        headerLogo.addEventListener("click", () => window.location.reload());
+    }
+
+    // Posters exist only to cover the slow-network "black rectangle before
+    // any video data" case at first load. Once a video has actually started
+    // playing, drop the poster — otherwise browsers repaint it for a split
+    // second on later currentTime jumps / layer swaps, which reads as a
+    // random foreign frame flashing mid-swipe (reported on iPhone+Android).
+    ["video-scrolling", "video-lobby-1"].forEach(id => {
+        const v = document.getElementById(id);
+        if (v) v.addEventListener("playing", () => v.removeAttribute("poster"), { once: true });
+    });
 });
 
 let currentScreen = 1;
@@ -609,7 +626,74 @@ function initTransitionTrigger() {
             const pct = (screenIndex / 6) * 100;
             ribbonProgress.style.height = `${pct}%`;
         }
+        if (backTopBtn) backTopBtn.classList.toggle("is-visible", screenIndex > 1);
     }
+
+    // ── Back-to-top: instant teleport to the hero, no scroll-through ──
+    const backTopBtn = document.getElementById("back-to-top-btn");
+
+    // Bumped on every teleport; an in-flight transition captures its value
+    // at start and its finalize step aborts if a teleport happened meanwhile
+    // (otherwise the stale finalize would overwrite currentScreen and
+    // re-enable pointer events on a screen the teleport just hid).
+    let transitionEpoch = 0;
+
+    function teleportHome() {
+        // Deliberately NOT gated on isTransitioning: if a transition stalls
+        // on a slow phone, this button is exactly the escape hatch — it
+        // force-resets the whole stack to the hero.
+        if (currentScreen === 1 && !isTransitioning) return;
+        transitionEpoch++;
+        isTransitioning = true;
+
+        // Kill any in-flight video-seek watchdog loops
+        if (scrollingVideo._seekAnimationFrame) cancelAnimationFrame(scrollingVideo._seekAnimationFrame);
+        if (scrollingVideoReverse._seekAnimationFrame) cancelAnimationFrame(scrollingVideoReverse._seekAnimationFrame);
+        scrollingVideo._seekAnimationFrame = null;
+        scrollingVideoReverse._seekAnimationFrame = null;
+
+        // Instantly drop every non-hero screen out of the stack
+        screens.forEach(s => {
+            if (s.id === 1) return;
+            gsap.set(s.el, { opacity: 0, display: "none", y: 0 });
+            s.el.style.pointerEvents = "none";
+            s.el.style.zIndex = "";
+        });
+
+        // Park the shared scrolling video back at frame 0, hidden
+        scrollingVideo.pause();
+        scrollingVideoReverse.pause();
+        scrollingVideo.currentTime = 0;
+        scrollingVideoReverse.currentTime = screenTimestampsReverse[1];
+        sharedVideoBg.style.display = "none";
+        sharedVideoBg.style.opacity = "0";
+
+        // Footer has its own opaque videos — make sure they stop
+        const footerScreen = screens[5];
+        if (footerScreen.transitionVideo) footerScreen.transitionVideo.pause();
+        if (footerScreen.loopVideo) footerScreen.loopVideo.pause();
+
+        // Show the hero and restart its loop
+        const hero = screens[0];
+        gsap.set(hero.el, { display: "block", opacity: 1 });
+        hero.el.style.pointerEvents = "auto";
+        hero.el.style.zIndex = "";
+        gsap.set(v1, { opacity: 1 });
+        gsap.set(v2, { opacity: 0 });
+        v2.pause();
+        v1.currentTime = 0;
+        v1.playbackRate = 0.35;
+        v1.play().catch(() => {});
+
+        currentScreen = 1;
+        updateRibbonState(1);
+        animateScreenEntrance(hero.el);
+        document.body.style.overflow = "auto";
+        isTransitioning = false;
+    }
+
+    if (backTopBtn) backTopBtn.addEventListener("click", teleportHome);
+    window.__ribasTeleport = teleportHome;
 
     // Safety net: on some real mobile devices/browsers the inner content
     // scroll (below) never actually advances scrollTop for reasons we can't
@@ -952,7 +1036,12 @@ function initTransitionTrigger() {
         console.log(`Transitioning: Screen ${currentScreen} -> Screen ${nextScreenIndex}`);
         document.body.style.overflow = "hidden";
 
+        // If a teleport-home fires mid-transition, this finalize is stale —
+        // it must not overwrite the state the teleport just set
+        const myEpoch = transitionEpoch;
+
         const finalizeTransition = () => {
+            if (myEpoch !== transitionEpoch) return;
             // Hide the old screen container if it's not the current active screen
             if (fromScreen.id !== nextScreenIndex) {
                 gsap.set(fromScreen.el, { opacity: 0, display: "none" });
@@ -1188,9 +1277,13 @@ function initTransitionTrigger() {
             sharedVideoBg.offsetHeight;
             sharedVideoBg.style.opacity = "1";
 
+            // Longer fade = the lobby video stays softly visible underneath
+            // while the scrolling video fades in above it (gentle overlap
+            // instead of a hard cut — owner request)
             gsap.to(lobbyVideo, {
                 opacity: 0,
-                duration: 0.4,
+                duration: 0.8,
+                ease: "power1.inOut",
                 onComplete: () => {
                     lobbyVideo.pause();
                 }
@@ -1218,8 +1311,10 @@ function initTransitionTrigger() {
    clearing the stage for the incoming scene.
    ────────────────────────────────────────────────────────────────────────── */
 function animateScreenExit(screenEl) {
+    // Slightly longer, eased fades so the info melts away instead of
+    // vanishing abruptly mid-swipe (owner: "плавно исчезать")
     const content = screenEl.querySelector(".screen-content");
-    if (content) gsap.to(content, { opacity: 0, duration: 0.3, ease: "power2.in", overwrite: "auto" });
+    if (content) gsap.to(content, { opacity: 0, duration: 0.5, ease: "power2.inOut", overwrite: "auto" });
 
     const overlay = screenEl.querySelector(".screen-overlay");
     if (overlay) {
@@ -1229,7 +1324,7 @@ function animateScreenExit(screenEl) {
         } else {
             gsap.to(overlay, {
                 opacity: 0,
-                duration: 0.5,
+                duration: 0.65,
                 delay: 0.05,
                 ease: "power2.inOut",
                 overwrite: "auto"
@@ -1238,7 +1333,7 @@ function animateScreenExit(screenEl) {
     }
 
     const movers = screenEl.querySelectorAll(".welcome-text-side, .leisure-bento-grid, .welcome-pillow-card");
-    if (movers.length) gsap.to(movers, { y: -20, duration: 0.3, ease: "power2.in", overwrite: "auto" });
+    if (movers.length) gsap.to(movers, { y: -20, duration: 0.5, ease: "power2.inOut", overwrite: "auto" });
 }
 
 /* ── Generic Staggered Screen Entrance Animation ─────────────────────────────
@@ -2422,9 +2517,11 @@ function initMobileMenu() {
         }
     });
 
-    // Close menu when a link inside it is clicked (except language switch buttons)
+    // Close menu when a link inside it is clicked — except language switch
+    // buttons and the Wi-Fi copy button (it shows a green "copied" state
+    // for 2.5s; instantly closing the menu meant nobody ever saw it)
     menuLinks.forEach(link => {
-        if (link.classList.contains("lang-btn")) return;
+        if (link.classList.contains("lang-btn") || link.id === "mobile-copy-wifi-btn") return;
         link.addEventListener("click", () => {
             closeMenu();
         });
@@ -2443,13 +2540,18 @@ function initMobileMenu() {
     function openMenu() {
         toggle.classList.add("is-active");
         overlay.classList.add("is-open");
-        
-        // Disable scroll on main body to prevent background scrolling
+
+        // iOS Safari ignores overflow:hidden on body — it keeps handing the
+        // swipe to the body behind the fixed overlay, so the menu itself
+        // never scrolls. position:fixed is the reliable body lock there
+        // (harmless here: the site never scrolls the body anyway).
         document.body.style.overflow = "hidden";
+        document.body.style.position = "fixed";
+        document.body.style.width = "100%";
 
         // Premium fade-in slide animation using GSAP
-        gsap.fromTo(".mobile-menu-section", 
-            { opacity: 0, y: 15 }, 
+        gsap.fromTo(".mobile-menu-section",
+            { opacity: 0, y: 15 },
             { opacity: 1, y: 0, duration: 0.35, stagger: 0.06, ease: "power2.out" }
         );
     }
@@ -2458,6 +2560,8 @@ function initMobileMenu() {
         toggle.classList.remove("is-active");
         overlay.classList.remove("is-open");
         document.body.style.overflow = "";
+        document.body.style.position = "";
+        document.body.style.width = "";
     }
 }
 

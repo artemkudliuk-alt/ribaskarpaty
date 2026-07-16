@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
     
     <!-- CSS -->
-    <link rel="stylesheet" href="style.css?v=3">
+    <link rel="stylesheet" href="style.css?v=4">
     
     <!-- GSAP: self-hosted, not loaded from a 3rd-party CDN. On weak/roaming
          mobile connections a CDN hiccup used to throw a ReferenceError on the
@@ -21,7 +21,7 @@
 
     <!-- JS -->
     <script src="translations.js" defer></script>
-    <script src="main.js?v=2" defer></script>
+    <script src="main.js?v=3" defer></script>
 </head>
 <body>
 
@@ -222,6 +222,11 @@
             <div class="mobile-menu-spacer" style="height: 120px; flex-shrink: 0; pointer-events: none;"></div>
         </div>
     </div>
+
+    <!-- Back-to-top: instant teleport to the hero screen (no scroll-through) -->
+    <button id="back-to-top-btn" aria-label="Повернутися на початок">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+    </button>
 
     <!-- Global Navigation Ribbon -->
     <div class="vertical-navigation-ribbon">
