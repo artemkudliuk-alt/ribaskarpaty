@@ -1,14 +1,18 @@
 :root {
-    --color-bg: #09090b;
-    --color-gold: #c3a475;
-    --color-gold-hover: #dcc094;
-    --color-gold-glow: rgba(197, 168, 128, 0.25);
-    --color-text-primary: #f5efe6;
-    --color-text-secondary: #a1a1aa;
-    --glass-bg: rgba(15, 15, 18, 0.65);
-    --glass-border: rgba(197, 168, 128, 0.14);
-    --font-heading: 'Cinzel', 'Playfair Display', serif;
-    --font-body: 'Outfit', 'Montserrat', sans-serif;
+    /* Brand palette: deep navy #23365E surfaces, pink #F775BA accent.
+       The variable is still named --color-gold so 100+ existing usages
+       keep working — it now carries the brand pink. */
+    --color-bg: #0a1020;
+    --color-navy: #23365e;
+    --color-gold: #f775ba;
+    --color-gold-hover: #ff9dce;
+    --color-gold-glow: rgba(247, 117, 186, 0.3);
+    --color-text-primary: #f7f4fa;
+    --color-text-secondary: #9aa3b8;
+    --glass-bg: rgba(21, 32, 61, 0.6);
+    --glass-border: rgba(247, 117, 186, 0.18);
+    --font-heading: 'Rubik', sans-serif;
+    --font-body: 'Rubik', sans-serif;
 }
 
 /* Reset & Base Styles */
@@ -76,7 +80,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #050505; /* Solid pure dark luxury background */
+    background-color: #060a16; /* Solid pure dark luxury background */
     overflow: hidden;
 }
 
@@ -129,7 +133,7 @@ body {
 }
 
 .preloader-progress {
-    font-family: 'Outfit', sans-serif;
+    font-family: 'Rubik', sans-serif;
     font-size: 11px;
     font-weight: 300;
     color: #ffffff;
@@ -205,8 +209,8 @@ body {
     /* Left-weighted gradient keeps the text column readable over bright sky/snow,
        bottom scrim protects small copy near the lower edge. */
     background:
-        linear-gradient(0deg, rgba(9, 9, 11, 0.5) 0%, rgba(9, 9, 11, 0) 28%),
-        linear-gradient(90deg, rgba(9, 9, 11, 0.72) 0%, rgba(9, 9, 11, 0.38) 55%, rgba(9, 9, 11, 0.58) 100%);
+        linear-gradient(0deg, rgba(8, 13, 26, 0.5) 0%, rgba(8, 13, 26, 0) 28%),
+        linear-gradient(90deg, rgba(8, 13, 26, 0.72) 0%, rgba(8, 13, 26, 0.38) 55%, rgba(8, 13, 26, 0.58) 100%);
     z-index: 12;
     pointer-events: none;
 }
@@ -214,7 +218,7 @@ body {
 /* Footer text is centered, so the scrim is centered too */
 #screen-footer .screen-overlay {
     background:
-        radial-gradient(ellipse at 50% 55%, rgba(9, 9, 11, 0.66) 0%, rgba(9, 9, 11, 0.5) 55%, rgba(9, 9, 11, 0.74) 100%);
+        radial-gradient(ellipse at 50% 55%, rgba(8, 13, 26, 0.66) 0%, rgba(8, 13, 26, 0.5) 55%, rgba(8, 13, 26, 0.74) 100%);
 }
 
 /* ── Per-screen composition ─────────────────────────────────────────────────
@@ -575,7 +579,7 @@ body {
     padding: 24px 60px;
     z-index: 1000;
     pointer-events: auto;
-    background: linear-gradient(to bottom, rgba(9, 9, 11, 0.5), transparent);
+    background: linear-gradient(to bottom, rgba(8, 13, 26, 0.5), transparent);
     opacity: 0;
 }
 
@@ -854,7 +858,7 @@ body {
     height: 112px;
     overflow: hidden;
     background: rgba(14, 13, 11, 0.9);
-    border: 1px solid rgba(197, 168, 128, 0.22);
+    border: 1px solid rgba(247, 117, 186, 0.22);
     border-right: none;
     border-radius: 16px 0 0 16px;
     padding: 12px 10px;
@@ -887,8 +891,8 @@ body {
     height: 275px;
     padding: 20px 24px;
     background: rgba(14, 13, 11, 0.97);
-    border-color: rgba(197, 168, 128, 0.55);
-    box-shadow: -15px 15px 40px rgba(0, 0, 0, 0.65), 0 0 30px rgba(197, 168, 128, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+    border-color: rgba(247, 117, 186, 0.55);
+    box-shadow: -15px 15px 40px rgba(0, 0, 0, 0.65), 0 0 30px rgba(247, 117, 186, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
 .floating-pillow-tab .tab-header {
@@ -908,7 +912,7 @@ body {
     flex-direction: row;
     align-items: center;
     justify-content: flex-start;
-    border-bottom: 1px solid rgba(197, 168, 128, 0.15);
+    border-bottom: 1px solid rgba(247, 117, 186, 0.15);
     padding-bottom: 10px;
     margin-bottom: 12px;
     gap: 12px;
@@ -1097,8 +1101,8 @@ body {
     max-width: 440px;
     flex-shrink: 0;
     background:
-        linear-gradient(rgba(12, 12, 14, 0.55), rgba(12, 12, 14, 0.55)) padding-box,
-        linear-gradient(160deg, rgba(197, 168, 128, 0.45) 0%, rgba(197, 168, 128, 0.07) 45%, rgba(197, 168, 128, 0.28) 100%) border-box;
+        linear-gradient(rgba(16, 24, 46, 0.55), rgba(16, 24, 46, 0.55)) padding-box,
+        linear-gradient(160deg, rgba(247, 117, 186, 0.45) 0%, rgba(247, 117, 186, 0.07) 45%, rgba(247, 117, 186, 0.28) 100%) border-box;
     border: 1px solid transparent;
     border-radius: 22px;
     padding: 36px 34px;
@@ -1111,7 +1115,7 @@ body {
 @media (hover: hover) and (pointer: fine) {
     .welcome-pillow-card:hover {
         transform: translateY(-4px);
-        box-shadow: 0 32px 70px rgba(0, 0, 0, 0.5), 0 0 24px rgba(197, 168, 128, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        box-shadow: 0 32px 70px rgba(0, 0, 0, 0.5), 0 0 24px rgba(247, 117, 186, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.08);
     }
 }
 
@@ -1121,9 +1125,9 @@ body {
     align-self: flex-start;
     align-items: center;
     padding: 7px 15px;
-    border: 1px solid rgba(197, 168, 128, 0.4);
+    border: 1px solid rgba(247, 117, 186, 0.4);
     border-radius: 999px;
-    background: rgba(197, 168, 128, 0.08);
+    background: rgba(247, 117, 186, 0.08);
     color: var(--color-gold);
     font-family: var(--font-body);
     font-size: 0.66rem;
@@ -1238,8 +1242,8 @@ body {
 
 .bento-card:hover {
     transform: translateY(-3px);
-    border-color: rgba(197, 168, 128, 0.3);
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5), 0 0 15px rgba(197, 168, 128, 0.06);
+    border-color: rgba(247, 117, 186, 0.3);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5), 0 0 15px rgba(247, 117, 186, 0.06);
 }
 
 .card-header-icon {
@@ -1312,7 +1316,7 @@ body {
 }
 
 .social-icon-btn:hover {
-    background: rgba(197, 168, 128, 0.1);
+    background: rgba(247, 117, 186, 0.1);
     border-color: var(--color-gold);
     color: var(--color-gold);
 }
@@ -1340,7 +1344,7 @@ body {
 
 .gold-action-btn:hover {
     background: var(--color-gold);
-    color: #09090b;
+    color: #0a1020;
     box-shadow: 0 0 12px var(--color-gold-glow);
 }
 
@@ -1403,7 +1407,7 @@ body {
 }
 
 .info-heading {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Rubik', sans-serif;
     font-size: 1.05rem;
     font-weight: 500;
     color: #ffffff;
@@ -1411,7 +1415,7 @@ body {
 }
 
 .info-text {
-    font-family: 'Jost', sans-serif;
+    font-family: 'Rubik', sans-serif;
     font-weight: 300;
     font-size: 0.85rem;
     color: rgba(255, 255, 255, 0.65);
@@ -1467,7 +1471,7 @@ body {
     width: 100%;
     padding: 8px 12px;
     background: linear-gradient(0deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0) 100%);
-    font-family: 'Jost', sans-serif;
+    font-family: 'Rubik', sans-serif;
     font-size: 0.75rem;
     color: #ffffff;
     font-weight: 500;
@@ -1499,7 +1503,7 @@ body {
 
 /* SPA specific stylings */
 .spa-promo-title {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Rubik', sans-serif;
     font-size: 1.3rem;
     font-weight: 500;
     line-height: 1.35;
@@ -1508,7 +1512,7 @@ body {
 }
 
 .spa-promo-desc {
-    font-family: 'Jost', sans-serif;
+    font-family: 'Rubik', sans-serif;
     font-size: 0.85rem;
     color: rgba(255, 255, 255, 0.7);
     line-height: 1.6;
@@ -1526,7 +1530,7 @@ body {
 .spa-price-tag s {
     color: rgba(255, 255, 255, 0.35);
     font-size: 0.95rem;
-    text-decoration-color: rgba(197, 168, 128, 0.5);
+    text-decoration-color: rgba(247, 117, 186, 0.5);
 }
 
 .spa-price-tag span {
@@ -1552,7 +1556,7 @@ body {
 }
 
 .bento-tile {
-    background: rgba(12, 12, 14, 0.45);
+    background: rgba(16, 24, 46, 0.45);
     border: 1px solid rgba(255, 255, 255, 0.09);
     border-radius: 20px;
     padding: 28px;
@@ -1564,7 +1568,7 @@ body {
 
 @media (hover: hover) and (pointer: fine) {
     .bento-tile:hover {
-        border-color: rgba(197, 168, 128, 0.35);
+        border-color: rgba(247, 117, 186, 0.35);
         transform: translateY(-3px);
         box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
     }
@@ -1574,7 +1578,7 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
-    font-family: 'Playfair Display', serif;
+    font-family: 'Rubik', sans-serif;
     font-size: 1.05rem;
     font-weight: 600;
     color: #ffffff;
@@ -1589,7 +1593,7 @@ body {
 }
 
 .tile-desc {
-    font-family: 'Jost', sans-serif;
+    font-family: 'Rubik', sans-serif;
     font-size: 0.82rem;
     line-height: 1.55;
     color: rgba(255, 255, 255, 0.68);
@@ -1645,12 +1649,12 @@ body {
     align-items: center;
     gap: 10px;
     padding: 12px 24px;
-    border: 1px solid rgba(197, 168, 128, 0.3);
+    border: 1px solid rgba(247, 117, 186, 0.3);
     border-radius: 999px;
-    background: rgba(12, 12, 14, 0.45);
+    background: rgba(16, 24, 46, 0.45);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
-    font-family: 'Jost', sans-serif;
+    font-family: 'Rubik', sans-serif;
     font-size: 0.9rem;
     font-weight: 400;
     letter-spacing: 0.04em;
@@ -1671,8 +1675,8 @@ body {
 @media (hover: hover) and (pointer: fine) {
     .footer-social-link:hover {
         color: var(--color-gold);
-        border-color: rgba(197, 168, 128, 0.55);
-        background: rgba(197, 168, 128, 0.08);
+        border-color: rgba(247, 117, 186, 0.55);
+        background: rgba(247, 117, 186, 0.08);
         transform: translateY(-2px);
     }
 
@@ -1704,44 +1708,31 @@ body {
     will-change: opacity, transform;
 }
 
-.mouse-icon {
-    width: 22px;
-    height: 36px;
-    border: 2px solid #ffffff;
-    border-radius: 11px;
-    position: relative;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+.mouse-svg {
+    filter: drop-shadow(0 2px 10px rgba(0,0,0,0.4));
 }
 
-.mouse-wheel {
-    width: 4px;
-    height: 8px;
-    background-color: var(--color-gold);
-    border-radius: 2px;
-    position: absolute;
-    top: 6px;
-    left: 50%;
-    transform: translateX(-50%);
+.mouse-wheel-dot {
     animation: scrollMouseWheel 1.8s infinite ease-in-out;
 }
 
 @keyframes scrollMouseWheel {
     0% {
-        top: 6px;
+        transform: translateY(0);
         opacity: 1;
     }
     50% {
-        top: 18px;
+        transform: translateY(12px);
         opacity: 0.1;
     }
     100% {
-        top: 6px;
+        transform: translateY(0);
         opacity: 1;
     }
 }
 
 .scroll-text {
-    font-family: 'Jost', sans-serif;
+    font-family: 'Rubik', sans-serif;
     font-size: 0.7rem;
     font-weight: 500;
     color: rgba(255, 255, 255, 0.65);
@@ -1806,7 +1797,7 @@ body {
 }
 
 .dropdown-title {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Rubik', sans-serif;
     font-size: 1.15rem;
     font-weight: 600;
     color: #ffffff;
@@ -1816,7 +1807,7 @@ body {
 }
 
 .dropdown-desc {
-    font-family: 'Jost', sans-serif;
+    font-family: 'Rubik', sans-serif;
     font-size: 0.85rem;
     font-weight: 300;
     line-height: 1.45;
@@ -1832,7 +1823,7 @@ body {
 }
 
 .dropdown-label {
-    font-family: 'Jost', sans-serif;
+    font-family: 'Rubik', sans-serif;
     font-size: 0.75rem;
     font-weight: 400;
     color: rgba(255, 255, 255, 0.4);
@@ -1840,7 +1831,7 @@ body {
 }
 
 .dropdown-val {
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Rubik', sans-serif;
     font-size: 0.95rem;
     font-weight: 500;
     color: #ffffff;
@@ -1868,7 +1859,7 @@ body {
     width: 100%;
     padding: 12px 24px;
     border-radius: 30px;
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Rubik', sans-serif;
     font-size: 0.78rem;
     font-weight: 600;
     text-transform: uppercase;
@@ -1886,7 +1877,7 @@ body {
 .gold-btn {
     background: var(--color-gold);
     border: 1px solid var(--color-gold);
-    color: #050505;
+    color: #12203c; /* deep navy text on pink — on-brand, ~8:1 contrast */
 }
 
 /* Soft shine sweep across the gold button on hover */
@@ -1904,7 +1895,7 @@ body {
         background: var(--color-gold-hover);
         border-color: var(--color-gold-hover);
         color: #050505;
-        box-shadow: 0 6px 22px rgba(197, 168, 128, 0.35);
+        box-shadow: 0 6px 22px rgba(247, 117, 186, 0.35);
     }
 
     .gold-btn:hover::after {
@@ -1915,7 +1906,7 @@ body {
 
 .outline-btn {
     background: transparent;
-    border: 1px solid rgba(197, 168, 128, 0.35);
+    border: 1px solid rgba(247, 117, 186, 0.35);
     color: var(--color-text-primary);
 }
 
@@ -1923,7 +1914,7 @@ body {
     .outline-btn:hover {
         border-color: var(--color-gold);
         color: var(--color-gold);
-        background: rgba(197, 168, 128, 0.07);
+        background: rgba(247, 117, 186, 0.07);
     }
 }
 
@@ -1934,7 +1925,7 @@ body {
     justify-content: center;
     padding: 10px;
     border-radius: 30px;
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Rubik', sans-serif;
     font-size: 0.8rem;
     font-weight: 500;
     text-decoration: none;
@@ -2005,8 +1996,8 @@ body {
 /* Frosted glass modal surface with a thin gold gradient border */
 .mobile-modal-content {
     background:
-        linear-gradient(rgba(15, 15, 18, 0.78), rgba(15, 15, 18, 0.78)) padding-box,
-        linear-gradient(160deg, rgba(197, 168, 128, 0.4) 0%, rgba(197, 168, 128, 0.08) 50%, rgba(197, 168, 128, 0.22) 100%) border-box;
+        linear-gradient(rgba(18, 27, 52, 0.78), rgba(18, 27, 52, 0.78)) padding-box,
+        linear-gradient(160deg, rgba(247, 117, 186, 0.4) 0%, rgba(247, 117, 186, 0.08) 50%, rgba(247, 117, 186, 0.22) 100%) border-box;
     border: 1px solid transparent;
     backdrop-filter: blur(28px) saturate(1.15);
     -webkit-backdrop-filter: blur(28px) saturate(1.15);
@@ -2048,7 +2039,7 @@ body {
 
 .close-modal-btn:hover {
     color: var(--color-gold);
-    border-color: rgba(197, 168, 128, 0.5);
+    border-color: rgba(247, 117, 186, 0.5);
 }
 
 .close-modal-btn:active {
@@ -2117,7 +2108,7 @@ body {
 .spa-item-title-row {
     display: flex;
     justify-content: space-between;
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Rubik', sans-serif;
     font-size: 0.88rem;
     font-weight: 600;
     color: var(--color-gold);
@@ -2130,7 +2121,7 @@ body {
 }
 
 .spa-item-desc {
-    font-family: 'Jost', sans-serif;
+    font-family: 'Rubik', sans-serif;
     font-size: 0.78rem;
     line-height: 1.45;
     color: rgba(255, 255, 255, 0.6);
@@ -2148,7 +2139,7 @@ body {
 }
 
 .safe-step-title {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Rubik', sans-serif;
     font-size: 0.95rem;
     color: var(--color-gold);
     margin-bottom: 8px;
@@ -2159,7 +2150,7 @@ body {
 .safe-steps-list {
     margin-left: 20px;
     margin-bottom: 16px;
-    font-family: 'Jost', sans-serif;
+    font-family: 'Rubik', sans-serif;
     font-size: 0.82rem;
     color: rgba(255, 255, 255, 0.7);
     line-height: 1.5;
@@ -2174,7 +2165,7 @@ body {
     border-left: 3px solid var(--color-gold);
     padding: 12px 16px;
     border-radius: 6px;
-    font-family: 'Jost', sans-serif;
+    font-family: 'Rubik', sans-serif;
     font-size: 0.8rem;
     color: rgba(255, 255, 255, 0.85);
     margin-top: 20px;
@@ -2187,7 +2178,7 @@ body {
 }
 
 .baggage-desc {
-    font-family: 'Jost', sans-serif;
+    font-family: 'Rubik', sans-serif;
     font-size: 0.85rem;
     line-height: 1.5;
     color: rgba(255, 255, 255, 0.7);
@@ -2209,7 +2200,7 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 12px;
     padding: 12px 16px;
-    font-family: 'Jost', sans-serif;
+    font-family: 'Rubik', sans-serif;
     font-size: 0.82rem;
     color: #ffffff;
 }
@@ -2240,7 +2231,7 @@ body {
 }
 
 .form-label {
-    font-family: 'Jost', sans-serif;
+    font-family: 'Rubik', sans-serif;
     font-size: 0.72rem;
     color: rgba(255, 255, 255, 0.4);
     text-transform: uppercase;
@@ -2253,7 +2244,7 @@ body {
     border-radius: 10px;
     padding: 11px 14px;
     color: #ffffff;
-    font-family: 'Jost', sans-serif;
+    font-family: 'Rubik', sans-serif;
     font-size: 0.85rem;
     transition: border-color 0.3s ease, background 0.3s ease;
 }
@@ -2288,7 +2279,7 @@ body {
 }
 
 .book-title {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Rubik', sans-serif;
     font-size: 0.95rem;
     color: #ffffff;
     font-weight: 500;
@@ -2296,7 +2287,7 @@ body {
 }
 
 .book-author {
-    font-family: 'Jost', sans-serif;
+    font-family: 'Rubik', sans-serif;
     font-size: 0.75rem;
     color: rgba(255, 255, 255, 0.55);
 }
@@ -2401,8 +2392,44 @@ body {
 }
 
 @media (max-width: 1024px) {
+    /* Mobile: the ribbon collapses to a slim dot-rail on the right edge —
+       gives quick jumps between screens (incl. back to top) without labels */
     .vertical-navigation-ribbon {
-        display: none !important;
+        left: auto;
+        right: 10px;
+        gap: 0;
+    }
+
+    .ribbon-line-container {
+        display: none;
+    }
+
+    .ribbon-items {
+        gap: 14px;
+    }
+
+    .ribbon-item {
+        height: auto;
+        padding: 5px; /* generous tap target around the dot */
+    }
+
+    .ribbon-number {
+        font-size: 0;               /* hide the text, keep the element */
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: rgba(245, 239, 230, 0.35);
+        transition: background 0.3s ease, transform 0.3s ease;
+    }
+
+    .ribbon-item.active .ribbon-number {
+        background: var(--color-gold);
+        box-shadow: 0 0 8px var(--color-gold-glow);
+        transform: scale(1.3);
+    }
+
+    .ribbon-label {
+        display: none;
     }
 
     .scroll-indicator-mouse {
@@ -2799,12 +2826,12 @@ body {
     width: min(92vw, 1100px);
     height: min(90vh, 860px);
     background: rgba(14, 13, 11, 0.96);
-    border: 1px solid rgba(197, 168, 128, 0.18);
+    border: 1px solid rgba(247, 117, 186, 0.18);
     border-radius: 16px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 32px 80px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(197, 168, 128, 0.08);
+    box-shadow: 0 32px 80px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(247, 117, 186, 0.08);
     transform: translateY(24px) scale(0.97);
     transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -2818,7 +2845,7 @@ body {
     align-items: center;
     justify-content: space-between;
     padding: 16px 20px;
-    border-bottom: 1px solid rgba(197, 168, 128, 0.12);
+    border-bottom: 1px solid rgba(247, 117, 186, 0.12);
     background: rgba(20, 18, 14, 0.95);
     flex-shrink: 0;
 }
@@ -2849,7 +2876,7 @@ body {
     text-decoration: none;
     padding: 6px 12px;
     border-radius: 6px;
-    border: 1px solid rgba(197, 168, 128, 0.2);
+    border: 1px solid rgba(247, 117, 186, 0.2);
     background: transparent;
     transition: color 0.2s, border-color 0.2s, background 0.2s;
     cursor: pointer;
@@ -2863,15 +2890,15 @@ body {
 
 .pdf-modal-download-btn:hover {
     color: var(--color-gold);
-    border-color: rgba(197, 168, 128, 0.5);
-    background: rgba(197, 168, 128, 0.06);
+    border-color: rgba(247, 117, 186, 0.5);
+    background: rgba(247, 117, 186, 0.06);
 }
 
 .pdf-modal-close-btn {
     width: 34px;
     height: 34px;
     border-radius: 8px;
-    border: 1px solid rgba(197, 168, 128, 0.18);
+    border: 1px solid rgba(247, 117, 186, 0.18);
     background: transparent;
     color: rgba(240, 235, 225, 0.55);
     cursor: pointer;
@@ -2888,8 +2915,8 @@ body {
 
 .pdf-modal-close-btn:hover {
     color: #fff;
-    border-color: rgba(197, 168, 128, 0.45);
-    background: rgba(197, 168, 128, 0.08);
+    border-color: rgba(247, 117, 186, 0.45);
+    background: rgba(247, 117, 186, 0.08);
 }
 
 .pdf-modal-body {
@@ -2921,7 +2948,7 @@ body {
         flex-direction: column;
         justify-content: flex-start;
         align-items: stretch;
-        border-right: 1px solid rgba(197, 168, 128, 0.22);
+        border-right: 1px solid rgba(247, 117, 186, 0.22);
         border-radius: 16px;
         padding: 14px 18px;
     }
@@ -2979,7 +3006,7 @@ body {
     align-items: center;
     justify-content: center;
     background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(197, 168, 128, 0.3);
+    border: 1px solid rgba(247, 117, 186, 0.3);
     border-radius: 50%;
     color: var(--color-gold);
     cursor: pointer;
@@ -2989,7 +3016,7 @@ body {
 
 @media (hover: hover) and (pointer: fine) {
     .sound-toggle:hover {
-        border-color: rgba(197, 168, 128, 0.6);
+        border-color: rgba(247, 117, 186, 0.6);
     }
 }
 
@@ -3060,7 +3087,7 @@ body {
     align-items: center;
     justify-content: center;
     background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(197, 168, 128, 0.3);
+    border: 1px solid rgba(247, 117, 186, 0.3);
     border-radius: 50%;
     color: var(--color-gold);
     cursor: pointer;
@@ -3070,7 +3097,7 @@ body {
 
 @media (hover: hover) and (pointer: fine) {
     .sound-toggle:hover {
-        border-color: rgba(197, 168, 128, 0.6);
+        border-color: rgba(247, 117, 186, 0.6);
     }
 }
 
@@ -3170,7 +3197,7 @@ body {
     width: 38px;
     height: 38px;
     background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(197, 168, 128, 0.28);
+    border: 1px solid rgba(247, 117, 186, 0.28);
     border-radius: 50%;
     color: var(--color-gold);
     cursor: pointer;
@@ -3251,7 +3278,7 @@ body {
 
 .mobile-menu-section {
     background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(197, 168, 128, 0.08);
+    border: 1px solid rgba(247, 117, 186, 0.08);
     border-radius: 14px;
     padding: 20px;
     display: flex;

@@ -52,7 +52,7 @@ window.translations = {
         "#nav-reception span": "Рецепція",
         ".reception-dropdown .dropdown-title": "Зв'язок з рецепцією",
         ".reception-dropdown .dropdown-desc": "Дзвінок з мобільного або внутрішнього телефону.",
-        ".reception-dropdown .bento-btn span": "Подзвонити 101",
+        ".reception-dropdown .bento-btn span": "Подзвонити на рецепцію",
         "#nav-chat span": "Написати нам",
         ".chat-dropdown .dropdown-title": "Написати нам",
         ".chat-dropdown .dropdown-desc": "Оберіть месенджер для швидкої відповіді:",
@@ -68,15 +68,24 @@ window.translations = {
         "#mobile-copy-wifi-btn .btn-text": "Скопіювати пароль",
         "#mobile-menu-overlay .reception-section .mobile-section-title span": "Рецепція",
         "#mobile-menu-overlay .reception-section .mobile-section-desc": "Швидкий дзвінок з мобільного або внутрішнього телефону.",
-        "#mobile-menu-overlay .reception-section a": "Подзвонити 101",
+        "#mobile-menu-overlay .reception-section a": "Подзвонити на рецепцію",
         "#mobile-menu-overlay .chat-section .mobile-section-title span": "Написати нам",
         "#mobile-menu-overlay .menu-section .mobile-section-title span": "Ресторан",
         "#mobile-view-menu-btn": "Переглянути меню",
+        "#mobile-menu-overlay .pillow-section .mobile-section-title span": "Меню подушок",
+        "#mobile-menu-overlay .pillow-section .mobile-section-desc": "Оберіть подушку зі спеціального меню — доставимо її у ваш номер.",
+        "#mobile-pillow-menu-btn": "Обрати подушку",
         
         // Screen 1
-        "#screen-1 .screen-label-tag": "01 / Welcome",
+        ".ribbon-item[data-screen='1'] .ribbon-label": "Вітання",
+        ".ribbon-item[data-screen='2'] .ribbon-label": "Ресторан LIS",
+        ".ribbon-item[data-screen='3'] .ribbon-label": "SPA",
+        ".ribbon-item[data-screen='4'] .ribbon-label": "Дозвілля",
+        ".ribbon-item[data-screen='5'] .ribbon-label": "Корисна інформація",
+        ".ribbon-item[data-screen='6'] .ribbon-label": "Контакти",
+        "#screen-1 .screen-label-tag": "01 / Вітання",
         "#screen-1 .welcome-title": "Ласкаво просимо<br class=\"desktop-only\"> до відпочинку<br class=\"desktop-only\"> серед гір",
-        "#screen-1 .welcome-subtitle": "Ribas Karpaty — ваш затишний простір у Буковелі. <br class=\"desktop-only\">Ми подбали про деталі, щоб ваш відпочинок був легким, комфортним і по-справжньому безтурботним.",
+        "#screen-1 .welcome-subtitle": "Ми підготували все необхідне, щоб ви легко орієнтувалися в готелі <br class=\"desktop-only\">й насолоджувалися кожною хвилиною перебування в Ribas Karpaty.",
         "#floating-pillow-tab .tab-title-text": "Меню <br class=\"tab-br\">подушок",
         "#floating-pillow-tab .pillow-desc": "Міцний сон — важлива частина відпочинку. Ви можете обрати подушку зі спеціального меню: ортопедичну, з ефектом памʼяті або лавандову для релаксу. <br><br> Просто повідомте адміністратора на рецепції — і ми доставимо її у ваш номер.",
         "#pillow-card-action-btn span": "Обрати подушку",
@@ -84,7 +93,7 @@ window.translations = {
         "#screen-1 .scroll-text": "Скрольте вниз",
 
         // Screen 2
-        "#screen-2 .screen-label-tag": "02 / Restaurant LIS",
+        "#screen-2 .screen-label-tag": "02 / Ресторан LIS",
         "#screen-2 .welcome-title": "Ресторан LIS:<br class=\"desktop-only\"> щастя не за горами —<br class=\"desktop-only\"> воно тут",
         "#screen-2 .welcome-subtitle": "Сучасна українська кухня, локальні смаки й трохи карпатської душі в кожній страві.",
         "#screen-2 .info-item:nth-child(1) .info-heading": "Сніданки, шведський стіл",
@@ -94,7 +103,7 @@ window.translations = {
         "#screen-2 .info-item:nth-child(3) .info-heading": "Лобі-бар",
         "#screen-2 .info-item:nth-child(3) .info-text": "Цілодобово",
         "#screen-2 .info-item:nth-child(4) .info-heading": "Коворкінг та Камінна зала",
-        "#screen-2 .info-item:nth-child(4) .info-text": "08:00–23:00 / Цілодобово",
+        "#screen-2 .info-item:nth-child(4) .info-text": "<strong>Коворкінг:</strong> 08:00–23:00<br><strong>Камінна зала:</strong> цілодобово",
         ".restaurant-card .card-header-icon h3": "Послуги ресторану",
         ".restaurant-card .food-slide:nth-child(1) .slide-caption": "Сніданки",
         ".restaurant-card .food-slide:nth-child(2) .slide-caption": "Камінна зала",
@@ -105,9 +114,9 @@ window.translations = {
         "#book-table-btn .btn-text": "Забронювати столик",
 
         // Screen 3
-        "#screen-3 .screen-label-tag": "03 / SPA & Wellness",
+        "#screen-3 .screen-label-tag": "03 / SPA",
         "#screen-3 .welcome-title": "Територія абсолютного релаксу",
-        "#screen-3 .welcome-subtitle": "Для вас — басейн 36 м, римська та фінська сауна, масажі, зона відпочинку й обслуговування, щоб ви могли просто видихнути.",
+        "#screen-3 .welcome-subtitle": "Для вас — басейн 36 м², римська та фінська сауна, масажі, зона відпочинку й обслуговування, щоб ви могли просто видихнути.",
         "#screen-3 .info-item:nth-child(1) .info-heading": "Зручний доступ",
         "#screen-3 .info-item:nth-child(1) .info-text": "Можна спуститися з номера просто в халаті",
         "#screen-3 .info-item:nth-child(2) .info-heading": "Години роботи",
@@ -118,12 +127,12 @@ window.translations = {
         "#screen-3 .info-item:nth-child(4) .info-text": "Для гостей від 16 років (тиша): 20:00–22:00",
         ".spa-card .card-badge": "Пропозиція дня",
         ".spa-card .spa-promo-title": "Стоун-масаж гарячим камінням",
-        ".spa-card .spa-promo-desc": "Тільки сьогодні для гостей нашого готелю діє спеціальна пропозиція <strong>−10%</strong> на розслаблювальний стоун-масаж.",
+        ".spa-card .spa-promo-desc": "Для гостей нашого готелю діє спеціальна пропозиція <strong>−10%</strong> на розслаблювальний стоун-масаж.",
         "#book-spa-btn .btn-text": "Записатися на масаж",
         "#view-spa-menu-btn .btn-text": "Переглянути SPA-меню",
 
         // Screen 4
-        "#screen-4 .screen-label-tag": "04 / Leisure",
+        "#screen-4 .screen-label-tag": "04 / Дозвілля",
         "#screen-4 .welcome-title": "Відкрийте для себе Буковель",
         "#screen-4 .welcome-subtitle": "Ми зібрали найцікавіші локації поруч і подбали про затишне дозвілля всередині готелю.",
         ".leisure-bento-grid .bento-tile:nth-child(1) .tile-header span": "Літній відпочинок",
@@ -143,7 +152,7 @@ window.translations = {
         "#play-video-promo-btn span": "Переглянути відео-огляд готелю",
 
         // Screen 5
-        "#screen-5 .screen-label-tag": "05 / Useful Info",
+        "#screen-5 .screen-label-tag": "05 / Корисна інформація",
         "#screen-5 .welcome-title": "Усе, що знадобиться під час відпочинку",
         "#screen-5 .welcome-subtitle": "Деталі вашого перебування: час заїзду та виїзду, відправка багажу Новою Поштою та інструкція користування сейфом.",
         "#screen-5 .info-item:nth-child(1) .info-heading": "Заїзд / Виїзд",
@@ -153,7 +162,7 @@ window.translations = {
         "#screen-5 .info-item:nth-child(3) .info-heading": "Сейф у номері",
         "#screen-5 .info-item:nth-child(3) .info-text": "Користування сейфом безкоштовне. Інструкція по налаштуванню коду додається.",
         "#screen-5 .info-item:nth-child(4) .info-heading": "Зв'язок з рецепцією",
-        "#screen-5 .info-item:nth-child(4) .info-text": "З мобільного або внутрішнього телефону: номер 101.",
+        "#screen-5 .info-item:nth-child(4) .info-text": "З мобільного: 067 427 86 77.",
         ".info-card h3": "Сервіси та інструкції",
         ".info-card .pillow-desc": "Усе важливе — у два дотики. Детальні інструкції відкриються поверх екрана, не перевантажуючи його.",
         "#safe-instr-btn .btn-text": "Сейф",
@@ -161,7 +170,7 @@ window.translations = {
         "#call-reception-btn span": "Рецепція",
 
         // Screen 6
-        "#screen-footer .screen-label-tag": "06 / Ribas Karpaty",
+        "#screen-footer .screen-label-tag": "06 / Контакти",
         "#screen-footer .welcome-title": "Бажаємо вам приємного відпочинку!",
         "#screen-footer .welcome-subtitle": "З любов'ю, команда Ribas Karpaty.",
 
@@ -231,7 +240,7 @@ window.translations = {
         "#nav-reception span": "Reception",
         ".reception-dropdown .dropdown-title": "Reception Desk",
         ".reception-dropdown .dropdown-desc": "Call from mobile or in-room phone.",
-        ".reception-dropdown .bento-btn span": "Call 101",
+        ".reception-dropdown .bento-btn span": "Call reception",
         "#nav-chat span": "Message Us",
         ".chat-dropdown .dropdown-title": "Message Us",
         ".chat-dropdown .dropdown-desc": "Choose a messenger for a quick reply:",
@@ -247,15 +256,24 @@ window.translations = {
         "#mobile-copy-wifi-btn .btn-text": "Copy Password",
         "#mobile-menu-overlay .reception-section .mobile-section-title span": "Reception",
         "#mobile-menu-overlay .reception-section .mobile-section-desc": "Quick call from mobile or in-room phone.",
-        "#mobile-menu-overlay .reception-section a": "Call 101",
+        "#mobile-menu-overlay .reception-section a": "Call reception",
         "#mobile-menu-overlay .chat-section .mobile-section-title span": "Message Us",
         "#mobile-menu-overlay .menu-section .mobile-section-title span": "Restaurant",
         "#mobile-view-menu-btn": "View Menu",
+        "#mobile-menu-overlay .pillow-section .mobile-section-title span": "Pillow menu",
+        "#mobile-menu-overlay .pillow-section .mobile-section-desc": "Choose a pillow from our special menu — we will bring it to your room.",
+        "#mobile-pillow-menu-btn": "Choose a pillow",
         
         // Screen 1
+        ".ribbon-item[data-screen='1'] .ribbon-label": "Welcome",
+        ".ribbon-item[data-screen='2'] .ribbon-label": "Restaurant LIS",
+        ".ribbon-item[data-screen='3'] .ribbon-label": "SPA",
+        ".ribbon-item[data-screen='4'] .ribbon-label": "Leisure",
+        ".ribbon-item[data-screen='5'] .ribbon-label": "Useful info",
+        ".ribbon-item[data-screen='6'] .ribbon-label": "Contacts",
         "#screen-1 .screen-label-tag": "01 / Welcome",
         "#screen-1 .welcome-title": "Welcome<br class=\"desktop-only\"> to relaxation<br class=\"desktop-only\"> among the mountains",
-        "#screen-1 .welcome-subtitle": "Ribas Karpaty is your cozy sanctuary in Bukovel. <br class=\"desktop-only\">We took care of all the details to make your stay effortless, comfortable, and truly serene.",
+        "#screen-1 .welcome-subtitle": "We have prepared everything you need to find your way around the hotel <br class=\"desktop-only\">with ease and enjoy every minute of your stay at Ribas Karpaty.",
         "#floating-pillow-tab .tab-title-text": "Pillow <br class=\"tab-br\">Menu",
         "#floating-pillow-tab .pillow-desc": "A sound sleep is key to relaxation. You can select a pillow from our special menu: orthopedic, memory-foam, or lavender for deep relaxation. <br><br> Just let the receptionist know, and we will deliver it to your room.",
         "#pillow-card-action-btn span": "Choose Pillow",
@@ -284,9 +302,9 @@ window.translations = {
         "#book-table-btn .btn-text": "Book a Table",
 
         // Screen 3
-        "#screen-3 .screen-label-tag": "03 / SPA & Wellness",
+        "#screen-3 .screen-label-tag": "03 / SPA",
         "#screen-3 .welcome-title": "Area of Absolute Serenity",
-        "#screen-3 .welcome-subtitle": "Indulge in our 36m pool, Roman & Finnish saunas, professional massages, quiet lounge area, and customized service to let you just breathe out.",
+        "#screen-3 .welcome-subtitle": "Indulge in our 36 m² pool, Roman & Finnish saunas, professional massages, quiet lounge area, and customized service to let you just breathe out.",
         "#screen-3 .info-item:nth-child(1) .info-heading": "Easy Access",
         "#screen-3 .info-item:nth-child(1) .info-text": "Take the elevator straight down in your bathrobe",
         "#screen-3 .info-item:nth-child(2) .info-heading": "Opening Hours",
@@ -297,7 +315,7 @@ window.translations = {
         "#screen-3 .info-item:nth-child(4) .info-text": "For guests 16+ years (silence hours): 20:00–22:00",
         ".spa-card .card-badge": "Offer of the Day",
         ".spa-card .spa-promo-title": "Hot Stone Massage Treatment",
-        ".spa-card .spa-promo-desc": "Only today, hotel guests enjoy a special <strong>−10%</strong> discount on our deeply relaxing hot stone massage therapy.",
+        ".spa-card .spa-promo-desc": "Hotel guests enjoy a special <strong>−10%</strong> discount on our deeply relaxing hot stone massage therapy.",
         "#book-spa-btn .btn-text": "Book a Massage",
         "#view-spa-menu-btn .btn-text": "View SPA Menu",
 
@@ -322,7 +340,7 @@ window.translations = {
         "#play-video-promo-btn span": "Watch Hotel Video Tour",
 
         // Screen 5
-        "#screen-5 .screen-label-tag": "05 / Useful Info",
+        "#screen-5 .screen-label-tag": "05 / Useful info",
         "#screen-5 .welcome-title": "Useful Guidelines for a Smooth Stay",
         "#screen-5 .welcome-subtitle": "Your stay details: check-in/out times, luggage shipping with Nova Poshta, and in-room safe instructions.",
         "#screen-5 .info-item:nth-child(1) .info-heading": "Check-in / Check-out",
@@ -332,7 +350,7 @@ window.translations = {
         "#screen-5 .info-item:nth-child(3) .info-heading": "In-room Safe Box",
         "#screen-5 .info-item:nth-child(3) .info-text": "Safe box usage is free. Coding guide and setup instructions are provided.",
         "#screen-5 .info-item:nth-child(4) .info-heading": "Reception Desk Call",
-        "#screen-5 .info-item:nth-child(4) .info-text": "From mobile or internal phone: dial 101.",
+        "#screen-5 .info-item:nth-child(4) .info-text": "From mobile: +38 067 427 86 77.",
         ".info-card h3": "Services & Guides",
         ".info-card .pillow-desc": "All essentials in two taps. Detailed instructions open in-screen without cluttering the page layout.",
         "#safe-instr-btn .btn-text": "Safe",
@@ -340,7 +358,7 @@ window.translations = {
         "#call-reception-btn span": "Reception",
 
         // Screen 6
-        "#screen-footer .screen-label-tag": "06 / Ribas Karpaty",
+        "#screen-footer .screen-label-tag": "06 / Contacts",
         "#screen-footer .welcome-title": "Have a Wonderful Holiday!",
         "#screen-footer .welcome-subtitle": "With love, the Ribas Karpaty Team.",
 
@@ -410,7 +428,7 @@ window.translations = {
         "#nav-reception span": "Рецепция",
         ".reception-dropdown .dropdown-title": "Связь с рецепцией",
         ".reception-dropdown .dropdown-desc": "Звонок с мобильного или внутреннего телефона.",
-        ".reception-dropdown .bento-btn span": "Позвонить 101",
+        ".reception-dropdown .bento-btn span": "Позвонить на ресепшн",
         "#nav-chat span": "Написать нам",
         ".chat-dropdown .dropdown-title": "Написать нам",
         ".chat-dropdown .dropdown-desc": "Выберите мессенджер для быстрого ответа:",
@@ -426,15 +444,24 @@ window.translations = {
         "#mobile-copy-wifi-btn .btn-text": "Скопировать пароль",
         "#mobile-menu-overlay .reception-section .mobile-section-title span": "Рецепция",
         "#mobile-menu-overlay .reception-section .mobile-section-desc": "Быстрый звонок с мобильного или внутреннего телефона.",
-        "#mobile-menu-overlay .reception-section a": "Позвонить 101",
+        "#mobile-menu-overlay .reception-section a": "Позвонить на ресепшн",
         "#mobile-menu-overlay .chat-section .mobile-section-title span": "Написать нам",
         "#mobile-menu-overlay .menu-section .mobile-section-title span": "Ресторан",
         "#mobile-view-menu-btn": "Посмотреть меню",
+        "#mobile-menu-overlay .pillow-section .mobile-section-title span": "Меню подушек",
+        "#mobile-menu-overlay .pillow-section .mobile-section-desc": "Выберите подушку из специального меню — доставим её в ваш номер.",
+        "#mobile-pillow-menu-btn": "Выбрать подушку",
         
         // Screen 1
-        "#screen-1 .screen-label-tag": "01 / Welcome",
+        ".ribbon-item[data-screen='1'] .ribbon-label": "Приветствие",
+        ".ribbon-item[data-screen='2'] .ribbon-label": "Ресторан LIS",
+        ".ribbon-item[data-screen='3'] .ribbon-label": "SPA",
+        ".ribbon-item[data-screen='4'] .ribbon-label": "Досуг",
+        ".ribbon-item[data-screen='5'] .ribbon-label": "Полезная информация",
+        ".ribbon-item[data-screen='6'] .ribbon-label": "Контакты",
+        "#screen-1 .screen-label-tag": "01 / Приветствие",
         "#screen-1 .welcome-title": "Добро пожаловать<br class=\"desktop-only\"> на отдых<br class=\"desktop-only\"> среди гор",
-        "#screen-1 .welcome-subtitle": "Ribas Karpaty — ваше уютное пространство в Буковеле. <br class=\"desktop-only\">Мы позаботились о деталях, чтобы ваш отдых был легким, комфортным и по-настоящему беззаботным.",
+        "#screen-1 .welcome-subtitle": "Мы подготовили всё необходимое, чтобы вы легко ориентировались в отеле <br class=\"desktop-only\">и наслаждались каждой минутой пребывания в Ribas Karpaty.",
         "#floating-pillow-tab .tab-title-text": "Меню <br class=\"tab-br\">подушек",
         "#floating-pillow-tab .pillow-desc": "Крепкий сон — важная часть отдыха. Вы можете выбрать подушку из специального меню: ортопедическую, с эффектом памяти или лавандовую для релакса. <br><br> Просто сообщите администратору на рецепции — и мы доставим ее в ваш номер.",
         "#pillow-card-action-btn span": "Выбрать подушку",
@@ -442,7 +469,7 @@ window.translations = {
         "#screen-1 .scroll-text": "Скролльте вниз",
 
         // Screen 2
-        "#screen-2 .screen-label-tag": "02 / Restaurant LIS",
+        "#screen-2 .screen-label-tag": "02 / Ресторан LIS",
         "#screen-2 .welcome-title": "Ресторан LIS:<br class=\"desktop-only\"> счастье не за горами —<br class=\"desktop-only\"> оно здесь",
         "#screen-2 .welcome-subtitle": "Современная украинская кухня, локальные вкусы и немного карпатской души в каждом блюде.",
         "#screen-2 .info-item:nth-child(1) .info-heading": "Завтраки, шведский стол",
@@ -463,9 +490,9 @@ window.translations = {
         "#book-table-btn .btn-text": "Забронировать столик",
 
         // Screen 3
-        "#screen-3 .screen-label-tag": "03 / SPA & Wellness",
+        "#screen-3 .screen-label-tag": "03 / SPA",
         "#screen-3 .welcome-title": "Территория абсолютного релакса",
-        "#screen-3 .welcome-subtitle": "Для вас — бассейн 36 м, римская и финская сауна, массажи, зона отдыха и обслуживание, чтобы вы могли просто выдохнуть.",
+        "#screen-3 .welcome-subtitle": "Для вас — бассейн 36 м², римская и финская сауна, массажи, зона отдыха и обслуживание, чтобы вы могли просто выдохнуть.",
         "#screen-3 .info-item:nth-child(1) .info-heading": "Удобный доступ",
         "#screen-3 .info-item:nth-child(1) .info-text": "Можно спуститься из номера прямо в халате",
         "#screen-3 .info-item:nth-child(2) .info-heading": "Часы работы",
@@ -476,12 +503,12 @@ window.translations = {
         "#screen-3 .info-item:nth-child(4) .info-text": "Для гостей от 16 лет (тишина): 20:00–22:00",
         ".spa-card .card-badge": "Предложение дня",
         ".spa-card .spa-promo-title": "Стоун-массаж горячими камнями",
-        ".spa-card .spa-promo-desc": "Только сегодня для гостей нашего отеля действует специальное предложение <strong>−10%</strong> на расслабляющий стоун-массаж.",
+        ".spa-card .spa-promo-desc": "Для гостей нашего отеля действует специальное предложение <strong>−10%</strong> на расслабляющий стоун-массаж.",
         "#book-spa-btn .btn-text": "Записаться на массаж",
         "#view-spa-menu-btn .btn-text": "Посмотреть SPA-меню",
 
         // Screen 4
-        "#screen-4 .screen-label-tag": "04 / Leisure",
+        "#screen-4 .screen-label-tag": "04 / Досуг",
         "#screen-4 .welcome-title": "Откройте для себя Буковель",
         "#screen-4 .welcome-subtitle": "Мы собрали самые интересные локации рядом и позаботились об уютном досуге внутри отеля.",
         ".leisure-bento-grid .bento-tile:nth-child(1) .tile-header span": "Летний отдых",
@@ -501,7 +528,7 @@ window.translations = {
         "#play-video-promo-btn span": "Посмотреть видео-обзор отеля",
 
         // Screen 5
-        "#screen-5 .screen-label-tag": "05 / Useful Info",
+        "#screen-5 .screen-label-tag": "05 / Полезная информация",
         "#screen-5 .welcome-title": "Все, что понадобится во время отдыха",
         "#screen-5 .welcome-subtitle": "Детали вашего пребывания: время заезда и выезда, отправка багажа Новой Почтой и инструкция по пользованию сейфом.",
         "#screen-5 .info-item:nth-child(1) .info-heading": "Заезд / Выезд",
@@ -511,7 +538,7 @@ window.translations = {
         "#screen-5 .info-item:nth-child(3) .info-heading": "Сейф в номере",
         "#screen-5 .info-item:nth-child(3) .info-text": "Пользование сейфом бесплатное. Инструкция по настройке кода прилагается.",
         "#screen-5 .info-item:nth-child(4) .info-heading": "Связь с рецепцией",
-        "#screen-5 .info-item:nth-child(4) .info-text": "С мобильного или внутреннего телефона: номер 101.",
+        "#screen-5 .info-item:nth-child(4) .info-text": "С мобильного: 067 427 86 77.",
         ".info-card h3": "Сервисы и инструкции",
         ".info-card .pillow-desc": "Все важное — в два касания. Детальные инструкции откроются поверх экрана, не перегружая его.",
         "#safe-instr-btn .btn-text": "Сейф",
@@ -519,7 +546,7 @@ window.translations = {
         "#call-reception-btn span": "Рецепция",
 
         // Screen 6
-        "#screen-footer .screen-label-tag": "06 / Ribas Karpaty",
+        "#screen-footer .screen-label-tag": "06 / Контакты",
         "#screen-footer .welcome-title": "Желаем вам приятного отдыха!",
         "#screen-footer .welcome-subtitle": "С любовью, команда Ribas Karpaty.",
 
