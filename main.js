@@ -753,14 +753,34 @@ function initTransitionTrigger() {
         const mobileMenu = document.getElementById("mobile-menu-overlay");
         if (mobileMenu && mobileMenu.classList.contains("is-open")) return;
 
+        const activeContent = screens[currentScreen - 1] ? screens[currentScreen - 1].el.querySelector(".screen-content") : null;
+
         // A gesture that ends (next touchstart fires) without ever completing
         // a transition counts toward the streak that eventually forces one through.
-        blockedSwipeStreak = gestureWasBlocked ? blockedSwipeStreak + 1 : 0;
+        // We only increment the blocked streak if the gesture was blocked AND
+        // the user did not actually scroll the content (i.e. they are trying to transition but stuck).
+        if (gestureWasBlocked) {
+            const scrolledDistance = (activeContent && window.touchStartScrollTop !== undefined)
+                ? Math.abs(activeContent.scrollTop - window.touchStartScrollTop)
+                : 0;
+            if (scrolledDistance < 5) {
+                blockedSwipeStreak++;
+            } else {
+                blockedSwipeStreak = 0;
+            }
+        } else {
+            blockedSwipeStreak = 0;
+        }
         gestureWasBlocked = false;
 
         window.lastTouchY = e.touches[0].clientY;
         window.touchStartY = e.touches[0].clientY; // Save start position to calculate swipe distance
         window.touchStartX = e.touches[0].clientX; // Save start X position to check swipe direction
+        if (activeContent) {
+            window.touchStartScrollTop = activeContent.scrollTop;
+        } else {
+            window.touchStartScrollTop = 0;
+        }
         touchTriggered = false;
         touchIsScrollingContent = false;
     }, { passive: true });
