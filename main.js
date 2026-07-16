@@ -2430,6 +2430,16 @@ function initMobileMenu() {
         });
     });
 
+    // Stop propagation of touchmove and touchstart inside the overlay to prevent 
+    // iOS Safari from blocking native scrolling of .mobile-menu-content via window-level listeners
+    overlay.addEventListener("touchmove", (e) => {
+        e.stopPropagation();
+    }, { passive: true });
+
+    overlay.addEventListener("touchstart", (e) => {
+        e.stopPropagation();
+    }, { passive: true });
+
     function openMenu() {
         toggle.classList.add("is-active");
         overlay.classList.add("is-open");
