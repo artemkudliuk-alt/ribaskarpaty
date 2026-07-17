@@ -411,12 +411,10 @@ function initPreloader() {
         const conn             = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
         const isSlowConnection = !!(conn && (conn.saveData || /(^|-)2g|3g$/.test(conn.effectiveType || "")));
 
-        // Direct streaming is much safer and completely standard, avoiding XHR race conditions
-        // Mobile: the new dedicated vertical hero (2.2MB H.264 60fps) — small
-        // enough to serve on any connection tier. Desktop keeps its webm.
+        // Hero video: full quality on normal connections, compressed low on 2G/3G/saveData
         const heroSrc = isMobileOrTablet
-            ? "video_optimized/mob_hero_v2.mp4"
-            : "1 screen.mp4";
+            ? (isSlowConnection ? "video_optimized/mob_hero_low.mp4" : "video_optimized/mob_hero_v2.mp4")
+            : (isSlowConnection ? "video_optimized/desktop_hero_low.mp4" : "1 screen.mp4");
 
         if (isMobileOrTablet) {
             videoLobby1.poster = "video_optimized/mob_hero_poster.jpg";
