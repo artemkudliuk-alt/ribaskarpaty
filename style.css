@@ -3280,101 +3280,192 @@ body {
     width: 100%;
     max-width: 480px;
     margin: 0 auto;
-    padding: 110px 24px 120px 24px;
+    padding: 100px 24px 40px 24px;
     box-sizing: border-box;
-    display: block;
-    overflow-y: scroll;
-    -webkit-overflow-scrolling: touch;
-    z-index: 1;
-}
-
-.mobile-menu-inner {
     display: flex;
     flex-direction: column;
-    gap: 30px;
-    width: 100%;
+    justify-content: center;
+    align-items: center;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    z-index: 1;
 }
 
 .mobile-menu-content::-webkit-scrollbar {
     display: none;
 }
 
-.mobile-menu-section {
+.lang-selector-mini {
+    display: flex;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(247, 117, 186, 0.15);
+    border-radius: 20px;
+    padding: 3px;
+    width: max-content;
+    margin-bottom: 24px;
+}
+
+.lang-selector-mini .lang-btn {
+    background: none;
+    border: none;
+    color: rgba(245, 239, 230, 0.5);
+    padding: 6px 18px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-radius: 17px;
+    cursor: pointer;
+    transition: background 0.25s, color 0.25s;
+    display: block !important;
+}
+
+.lang-selector-mini .lang-btn.active {
+    background: var(--color-gold);
+    color: #0c0b0a;
+}
+
+.mobile-menu-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    width: 100%;
+}
+
+.menu-grid-card {
     background: rgba(255, 255, 255, 0.02);
     border: 1px solid rgba(247, 117, 186, 0.08);
-    border-radius: 14px;
-    padding: 20px;
+    border-radius: 16px;
+    box-sizing: border-box;
+    transition: background 0.25s, border-color 0.25s;
+}
+
+.wifi-card-mini {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    gap: 12px;
+}
+
+.wifi-info-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.wifi-info-left svg {
+    width: 20px;
+    height: 20px;
+    color: var(--color-gold);
+    flex-shrink: 0;
+}
+
+.wifi-details-text {
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 2px;
+    font-size: 0.8rem;
+    color: rgba(240, 235, 225, 0.6);
 }
 
-.mobile-menu-section.lang-section .lang-selector {
-    display: flex;
-    gap: 20px;
-    justify-content: flex-start;
-    align-items: center;
-    margin-top: 5px;
-}
-
-.mobile-menu-section.lang-section .lang-btn {
-    display: block !important; /* Make sure it shows inside menu */
-    color: rgba(245, 239, 230, 0.5);
-    font-size: 1.0rem; /* slightly larger for touch targets */
-    font-weight: 600;
-}
-
-.mobile-menu-section.lang-section .lang-btn.active {
+.wifi-details-text strong {
     color: var(--color-text-primary);
 }
 
-.mobile-section-title {
+.wifi-details-text span {
+    color: var(--color-text-primary);
+}
+
+.action-card {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 10px;
-    font-family: var(--font-body);
-    font-size: 0.88rem;
-    font-weight: 500;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    justify-content: center;
+    gap: 6px;
+    padding: 20px 12px;
+    text-decoration: none;
+    color: var(--color-text-primary);
+    cursor: pointer;
+}
+
+.action-card:active {
+    background: rgba(247, 117, 186, 0.08);
+    border-color: var(--color-gold);
+}
+
+.action-card svg {
+    width: 20px;
+    height: 20px;
     color: var(--color-gold);
 }
 
-.mobile-section-title svg {
-    width: 16px;
-    height: 16px;
+.action-card .card-title {
+    font-size: 0.95rem;
+    font-weight: 500;
 }
 
-.mobile-wifi-fields {
+.action-card .card-subtitle {
+    font-size: 0.72rem;
+    color: var(--color-gold);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+}
+
+.chat-card-mini {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 14px;
 }
 
-.mobile-field {
-    font-size: 0.9rem;
-    color: rgba(240, 235, 225, 0.8);
+.chat-card-mini .card-icon-title {
     display: flex;
-    justify-content: space-between;
-}
-
-.mobile-field strong {
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
     font-weight: 500;
-    color: rgba(240, 235, 225, 0.5);
+    color: rgba(240, 235, 225, 0.7);
 }
 
-.mobile-section-desc {
-    font-size: 0.85rem;
-    line-height: 1.45;
-    color: rgba(240, 235, 225, 0.65);
-    margin: 0;
+.chat-card-mini .card-icon-title svg {
+    width: 14px;
+    height: 14px;
+    color: var(--color-gold);
 }
 
-.mobile-socials-grid {
+.chat-buttons-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+    width: 100%;
 }
+
+.chat-mini-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 0;
+    font-size: 0.75rem;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
+    text-align: center;
+}
+
+.chat-mini-btn.tg {
+    background: rgba(0, 136, 204, 0.08);
+    border: 1px solid rgba(0, 136, 204, 0.25);
+    color: #42c2ff;
+}
+
+.chat-mini-btn.viber {
+    background: rgba(115, 9, 136, 0.08);
+    border: 1px solid rgba(115, 9, 136, 0.25);
+    color: #cf79ff;
+}
+
 
 @media (max-width: 1024px) {
     .mobile-menu-toggle {
