@@ -1020,21 +1020,12 @@ function initTransitionTrigger() {
         } else {
             scrollingVideoReverse.playbackRate = 1.0;
             playSafely(scrollingVideoReverse).then(() => {
-                // Pre-seek the forward layer to its target only AFTER it's
-                // actually hidden (inside swapLayers' own rAF, right after the
-                // opacity flip lands) — doing this hard, instant jump while
-                // scrollingVideo was still the visible layer flashed the
-                // destination's exact paused frame for a moment before the
-                // reverse scrub became visible (only ever noticeable on the
-                // backward direction, since the forward branch's equivalent
-                // pre-seek always targets the already-hidden reverse layer).
-                swapLayers(scrollingVideoReverse, scrollingVideo, () => {
-                    scrollingVideo.currentTime = targetTime;
-                });
+                swapLayers(scrollingVideoReverse, scrollingVideo);
                 seekToTarget(scrollingVideoReverse, targetTimeReverse, () => {
-                    // Swap back to make forward video visible now that seek is complete.
-                    // Wait for the forward video to actually finish seeking to its target frame
-                    // to prevent a brief visual flash of its old frame.
+                    // Start seeking the forward video to the corresponding frame.
+                    // Keep the reverse video visible (opacity 1) during the seek.
+                    scrollingVideo.currentTime = targetTime;
+                    
                     const completeSwap = () => {
                         scrollingVideo.style.opacity = "1";
                         scrollingVideoReverse.style.opacity = "0";
@@ -1050,7 +1041,7 @@ function initTransitionTrigger() {
                             completeSwap();
                         };
                         scrollingVideo.addEventListener("seeked", onSeeked);
-                        setTimeout(onSeeked, 250); // safety fallback timeout
+                        setTimeout(onSeeked, 300); // safety fallback timeout
                     } else {
                         completeSwap();
                     }
