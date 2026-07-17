@@ -84,13 +84,15 @@ function startForwardScrollPreload() {
     const isMobile = window.matchMedia("(max-width: 1024px)").matches;
     const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
     const isSlowConnection = !!(conn && (conn.saveData || /(^|-)2g|3g$/.test(conn.effectiveType || "")));
-    // Always load widescreen on desktop; weak/mobile vertical videos are only for actual mobile browsers
-    // On mobile, use high-fidelity H.264 MP4 videos for hardware acceleration and Safari compatibility
+    // New 60fps H.264 encodes (2026-07-17): hardware-decoded on every device.
+    // Desktop gets the widescreen master, mobile the vertical cut, confirmed
+    // slow connections the 480p low-bandwidth variant.
     const src = isMobile
-        ? (isSlowConnection ? "scrolling video_weak.mp4" : "scrolling video mob.mp4")
-        : "scrolling video.webm";
+        ? (isSlowConnection ? "video_optimized/mobile_scroll_low.mp4" : "video_optimized/mobile_scroll.mp4")
+        : "video_optimized/desktop_scroll.mp4";
 
     console.log("Preloading forward scrolling video:", src);
+    vScrolling.poster = isMobile ? "video_optimized/mobile_scroll_poster.jpg" : "video_optimized/desktop_scroll_poster.jpg";
     vScrolling.muted = true;
     vScrolling.preload = "auto";
     vScrolling.src = src;
@@ -99,6 +101,20 @@ function startForwardScrollPreload() {
         vScrolling.muted = true;
         if (vScrolling.paused) vScrolling.play().then(() => vScrolling.pause()).catch(() => {});
     }, { once: true });
+
+    // iOS has no navigator.connection, so a genuinely bad link can't be
+    // detected up front there — instead, if the normal mobile file hasn't
+    // buffered to playable within ~4s, swap down to the 480p variant.
+    if (isMobile && !isSlowConnection) {
+        setTimeout(() => {
+            if (vScrolling.readyState < 3) {
+                console.log("Scroll video slow to buffer (4s) — switching to low-bandwidth variant.");
+                vScrolling.src = "video_optimized/mobile_scroll_low.mp4";
+                vScrolling.load();
+                window.__ribasScrollLowTier = true;
+            }
+        }, 4000);
+    }
 }
 
 let reverseScrollPreloadStarted = false;
@@ -112,9 +128,12 @@ function startReverseScrollPreload() {
     const isMobile = window.matchMedia("(max-width: 1024px)").matches;
     const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
     const isSlowConnection = !!(conn && (conn.saveData || /(^|-)2g|3g$/.test(conn.effectiveType || "")));
+    // Mirror of startForwardScrollPreload, incl. the 4s low-tier decision it
+    // may have made (window.__ribasScrollLowTier)
+    const useLow = isSlowConnection || window.__ribasScrollLowTier;
     const src = isMobile
-        ? (isSlowConnection ? "scrolling video_weak_reverse.mp4" : "scrolling video mob_reverse.mp4")
-        : "scrolling video_reverse.webm";
+        ? (useLow ? "video_optimized/mobile_scroll_low_reverse.mp4" : "video_optimized/mobile_scroll_reverse.mp4")
+        : "video_optimized/desktop_scroll_reverse.mp4";
 
     console.log("Preloading reverse scrolling video:", src);
     vScrollingRev.muted = true;
@@ -392,10 +411,15 @@ function initPreloader() {
         const isSlowConnection = !!(conn && (conn.saveData || /(^|-)2g|3g$/.test(conn.effectiveType || "")));
 
         // Direct streaming is much safer and completely standard, avoiding XHR race conditions
-        // On mobile/tablet, load H.264 MP4 variants for hardware acceleration
+        // Mobile: the new dedicated vertical hero (2.2MB H.264 60fps) — small
+        // enough to serve on any connection tier. Desktop keeps its webm.
         const heroSrc = isMobileOrTablet
-            ? (isSlowConnection ? "1 screen_weak.mp4" : "1 screen.mp4")
+            ? "video_optimized/mob_hero.mp4"
             : "1 screen.webm";
+
+        if (isMobileOrTablet) {
+            videoLobby1.poster = "video_optimized/mob_hero_poster.jpg";
+        }
 
         console.log("Preloading lobby video:", heroSrc);
         videoLobby1.muted = true;
@@ -567,26 +591,29 @@ function initTransitionTrigger() {
     const scrollingVideoReverse = document.getElementById("video-scrolling-reverse");
     const sharedVideoBg = document.getElementById("shared-video-bg");
 
+    // New 60fps scroll video (2026-07-17), duration 7.918s. Pause points per
+    // the owner's edit timeline (identical for desktop & mobile — same edit,
+    // different framing). The last pause sits 0.45s before the physical end
+    // (static hold frame), so no end-of-clip black-frame margin is needed.
+    const SCROLL_VIDEO_DURATION = 7.918;
     const screenTimestamps = {
         1: 0.0,
-        2: 1.5333,
-        3: 3.2667,
-        4: 5.7667,
-        // 75ms before the physical end of the clip: seeking to the exact end
-        // puts the <video> into the "ended" state and paints a black frame
-        5: 7.58
+        2: 2.05,
+        3: 3.4667,
+        4: 5.20,
+        5: 7.4667
     };
 
+    // Reverse clip mirrors the forward one: rev = DURATION - fwd.
+    // rev[1] would be 7.918 = the exact physical end, which tips <video>
+    // into "ended" and paints black on some decoders — and browsers report
+    // the container duration as low as 7.883, so 7.80 keeps a real margin.
     const screenTimestampsReverse = {
-        // Same margin-from-the-end fix as screenTimestamps[5] above: the reverse
-        // clip's real duration is 7.633-7.634s, so 7.5999 left only ~33ms —
-        // on some devices/decoders that's close enough to tip the <video>
-        // into the "ended" state and paint black. 7.55 keeps a safe margin.
-        1: 7.55,
-        2: 6.2000,
-        3: 4.3332,
-        4: 1.8332,
-        5: 0.0000
+        1: 7.80,
+        2: SCROLL_VIDEO_DURATION - screenTimestamps[2], // 5.868
+        3: SCROLL_VIDEO_DURATION - screenTimestamps[3], // 4.4513
+        4: SCROLL_VIDEO_DURATION - screenTimestamps[4], // 2.718
+        5: SCROLL_VIDEO_DURATION - screenTimestamps[5]  // 0.4513
     };
 
     if (!flashOverlay) return;
@@ -869,7 +896,8 @@ function initTransitionTrigger() {
         touchIsScrollingContent = false;
     }, { passive: true });
 
-    const videoDuration = 7.6333;
+    // (kept for reference; actual timing math uses SCROLL_VIDEO_DURATION above)
+    const videoDuration = SCROLL_VIDEO_DURATION;
 
     function animateVideoTime(nextScreenIndex, onComplete) {
         const targetTime = screenTimestamps[nextScreenIndex];
@@ -1216,10 +1244,19 @@ function initTransitionTrigger() {
 
         animateScreenExit(fromScreen.el);
 
+        // Departure sequencing (owner spec): text fades out (0.3s), then the
+        // overlay (0.25s, overlapping) — the video may only start moving once
+        // both are gone. EXIT_HOLD_MS delays every scrub start accordingly.
+        // setTimeout (not gsap.delayedCall) so a starved rAF ticker can't
+        // freeze the transition; the epoch check makes the delayed start a
+        // no-op if a teleport-home fired during the hold.
+        const EXIT_HOLD_MS = 500;
+
         if (nextScreenIndex === 1) {
             // Transitioning back to screen 1 (Lobby)
             scrollingVideo.pause();
             scrollingVideoReverse.pause();
+            setTimeout(() => { if (myEpoch !== transitionEpoch) return;
             animateVideoTime(1, () => {
                 const lobbyVideo = v1;
                 gsap.set(v2, { opacity: 0 });
@@ -1252,6 +1289,7 @@ function initTransitionTrigger() {
                     doCrossfade();
                 });
             });
+            }, EXIT_HOLD_MS);
         } else if (currentScreen === 1) {
             // Transitioning from screen 1 to screen 2+
             const lobbyVideo = v2.style.opacity === "1" ? v2 : v1;
@@ -1271,37 +1309,43 @@ function initTransitionTrigger() {
             scrollingVideo.style.opacity = "0";
             scrollingVideoReverse.style.opacity = "0";
 
-            // Directly reveal the shared background and fade out the lobby video
-            sharedVideoBg.style.transition = "";
-            sharedVideoBg.style.display = "block";
-            sharedVideoBg.offsetHeight;
-            sharedVideoBg.style.opacity = "1";
+            // Hero text exits first (EXIT_HOLD_MS), then the ~0.4s video
+            // crossfade: shared bg revealed under the still-playing lobby
+            // video, which fades out on top while the scroll video starts.
+            setTimeout(() => {
+                if (myEpoch !== transitionEpoch) return;
 
-            // Longer fade = the lobby video stays softly visible underneath
-            // while the scrolling video fades in above it (gentle overlap
-            // instead of a hard cut — owner request)
-            gsap.to(lobbyVideo, {
-                opacity: 0,
-                duration: 0.8,
-                ease: "power1.inOut",
-                onComplete: () => {
-                    lobbyVideo.pause();
-                }
-            });
+                sharedVideoBg.style.transition = "";
+                sharedVideoBg.style.display = "block";
+                sharedVideoBg.offsetHeight;
+                sharedVideoBg.style.opacity = "1";
 
-            animateVideoTime(nextScreenIndex, () => {
-                finalizeTransition();
-            });
+                gsap.to(lobbyVideo, {
+                    opacity: 0,
+                    duration: 0.5,
+                    ease: "power1.inOut",
+                    onComplete: () => {
+                        lobbyVideo.pause();
+                    }
+                });
+
+                animateVideoTime(nextScreenIndex, () => {
+                    finalizeTransition();
+                });
+            }, EXIT_HOLD_MS);
         } else {
             // Transitioning between screens 2, 3, 4, 5
-            sharedVideoBg.style.display = "block";
-            sharedVideoBg.style.opacity = "1";
-            scrollingVideo.pause();
-            scrollingVideoReverse.pause();
-            
-            animateVideoTime(nextScreenIndex, () => {
-                finalizeTransition();
-            });
+            setTimeout(() => {
+                if (myEpoch !== transitionEpoch) return;
+                sharedVideoBg.style.display = "block";
+                sharedVideoBg.style.opacity = "1";
+                scrollingVideo.pause();
+                scrollingVideoReverse.pause();
+
+                animateVideoTime(nextScreenIndex, () => {
+                    finalizeTransition();
+                });
+            }, EXIT_HOLD_MS);
         }
     }
 }
@@ -1311,10 +1355,12 @@ function initTransitionTrigger() {
    clearing the stage for the incoming scene.
    ────────────────────────────────────────────────────────────────────────── */
 function animateScreenExit(screenEl) {
-    // Slightly longer, eased fades so the info melts away instead of
-    // vanishing abruptly mid-swipe (owner: "плавно исчезать")
+    // Departure order (owner spec): text out first (0.3s), THEN the dark
+    // overlay (0.25s, starting as the text finishes) — the video scrub is
+    // held for EXIT_HOLD_MS in transitionTo so it never moves under
+    // still-visible text.
     const content = screenEl.querySelector(".screen-content");
-    if (content) gsap.to(content, { opacity: 0, duration: 0.5, ease: "power2.inOut", overwrite: "auto" });
+    if (content) gsap.to(content, { opacity: 0, duration: 0.3, ease: "power2.inOut", overwrite: "auto" });
 
     const overlay = screenEl.querySelector(".screen-overlay");
     if (overlay) {
@@ -1324,8 +1370,8 @@ function animateScreenExit(screenEl) {
         } else {
             gsap.to(overlay, {
                 opacity: 0,
-                duration: 0.65,
-                delay: 0.05,
+                duration: 0.25,
+                delay: 0.25,
                 ease: "power2.inOut",
                 overwrite: "auto"
             });
@@ -1333,7 +1379,7 @@ function animateScreenExit(screenEl) {
     }
 
     const movers = screenEl.querySelectorAll(".welcome-text-side, .leisure-bento-grid, .welcome-pillow-card");
-    if (movers.length) gsap.to(movers, { y: -20, duration: 0.5, ease: "power2.inOut", overwrite: "auto" });
+    if (movers.length) gsap.to(movers, { y: -14, duration: 0.3, ease: "power2.inOut", overwrite: "auto" });
 }
 
 /* ── Generic Staggered Screen Entrance Animation ─────────────────────────────
@@ -1375,15 +1421,15 @@ function animateScreenEntrance(screenEl) {
             gsap.set(overlay, { opacity: 0 });
         }
     }
-    if (toHeader) gsap.set(toHeader, { y: -30, opacity: 0 });
-    if (labelTag) gsap.set(labelTag, { y: 24, opacity: 0 });
-    if (title) gsap.set(title, { y: 30, opacity: 0 });
-    if (subtitle) gsap.set(subtitle, { y: 30, opacity: 0 });
-    if (pillowBtn) gsap.set(pillowBtn, { y: 30, opacity: 0 });
+    if (toHeader) gsap.set(toHeader, { y: -20, opacity: 0 });
+    if (labelTag) gsap.set(labelTag, { y: 14, opacity: 0 });
+    if (title) gsap.set(title, { y: 16, opacity: 0 });
+    if (subtitle) gsap.set(subtitle, { y: 16, opacity: 0 });
+    if (pillowBtn) gsap.set(pillowBtn, { y: 16, opacity: 0 });
     if (divider) gsap.set(divider, { scaleX: 0, transformOrigin: "left" });
-    if (infoItems.length) gsap.set(infoItems, { y: 26, opacity: 0 });
-    if (tiles.length) gsap.set(tiles, { y: 26, opacity: 0 });
-    if (card) gsap.set(card, { scale: 0.97, y: 30, opacity: 0 });
+    if (infoItems.length) gsap.set(infoItems, { y: 14, opacity: 0 });
+    if (tiles.length) gsap.set(tiles, { y: 14, opacity: 0 });
+    if (card) gsap.set(card, { scale: 0.97, y: 16, opacity: 0 });
     if (scrollMouse) gsap.set(scrollMouse, { y: 10, opacity: 0 });
 
     if (overlay) {
@@ -1391,17 +1437,18 @@ function animateScreenEntrance(screenEl) {
         if (isHeroOrFooter) {
             gsap.set(overlay, { opacity: 1 });
         } else {
+            // Arrival: dark overlay first (~0.3s), text follows ~0.15s in
             gsap.to(overlay, {
                 opacity: 1,
-                duration: 0.6,
+                duration: 0.3,
                 ease: "power2.out",
                 overwrite: "auto"
             });
         }
     }
 
-    // Info blocks settle in ~0.5s after the scene stops (owner request)
-    const tl = gsap.timeline({ delay: 0.5, defaults: { ease: "power3.out" } });
+    // Text/info starts ~0.15s after the overlay begins (owner spec)
+    const tl = gsap.timeline({ delay: 0.15, defaults: { ease: "power3.out" } });
 
     // 1. Header
     if (toHeader) {
