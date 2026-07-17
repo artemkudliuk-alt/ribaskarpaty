@@ -2950,6 +2950,50 @@ body {
     background: rgba(247, 117, 186, 0.06);
 }
 
+.pdf-modal-expand-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1px solid rgba(247, 117, 186, 0.18);
+    background: transparent;
+    color: rgba(240, 235, 225, 0.55);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+    padding: 0;
+}
+
+.pdf-modal-expand-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.pdf-modal-expand-btn:hover {
+    color: #fff;
+    border-color: rgba(247, 117, 186, 0.45);
+    background: rgba(247, 117, 186, 0.08);
+}
+
+.pdf-modal-container.is-fullscreen {
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    max-width: none !important;
+    max-height: none !important;
+    border-radius: 0 !important;
+    border: none !important;
+}
+
+.pdf-modal-container.is-fullscreen .pdf-modal-expand-btn .expand-ico {
+    display: none !important;
+}
+
+.pdf-modal-container.is-fullscreen .pdf-modal-expand-btn .shrink-ico {
+    display: block !important;
+}
+
 .pdf-modal-close-btn {
     width: 34px;
     height: 34px;

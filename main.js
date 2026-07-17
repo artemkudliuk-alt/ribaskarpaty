@@ -2202,8 +2202,10 @@ function initPdfModal() {
     const iframe    = document.getElementById("pdf-modal-iframe");
     const title     = document.getElementById("pdf-modal-title");
     const closeBtn  = document.getElementById("pdf-modal-close");
+    const expandBtn = document.getElementById("pdf-modal-expand");
     const backdrop  = document.getElementById("pdf-modal-backdrop");
     const downloadBtn = document.getElementById("pdf-download-btn");
+    const container = modal ? modal.querySelector(".pdf-modal-container") : null;
 
     if (!modal || !iframe) return;
 
@@ -2250,6 +2252,13 @@ function initPdfModal() {
             footerEl.style.display = "none";
         }
         
+        // On mobile, default to fullscreen for better readability (GDPR popups/nested scrolling)
+        if (window.innerWidth <= 1024 && container) {
+            container.classList.add("is-fullscreen");
+        } else if (container) {
+            container.classList.remove("is-fullscreen");
+        }
+        
         modal.classList.add("is-open");
         document.body.style.overflow = "hidden";
     }
@@ -2260,9 +2269,17 @@ function initPdfModal() {
         // Short delay before clearing src to avoid flash
         setTimeout(() => { 
             iframe.src = ""; 
+            if (container) container.classList.remove("is-fullscreen");
             document.getElementById("pdf-modal-description").style.display = "none";
             document.getElementById("pdf-modal-footer").style.display = "none";
         }, 350);
+    }
+
+    // Expand toggle click listener
+    if (expandBtn && container) {
+        expandBtn.addEventListener("click", () => {
+            container.classList.toggle("is-fullscreen");
+        });
     }
 
     // Close controls
