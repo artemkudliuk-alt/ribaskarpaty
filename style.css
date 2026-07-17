@@ -3253,14 +3253,14 @@ body {
     -webkit-backdrop-filter: blur(20px);
     z-index: 10000;
     opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    visibility: hidden;
+    transition: opacity 0.4s cubic-bezier(0.25, 1, 0.5, 1), visibility 0.4s cubic-bezier(0.25, 1, 0.5, 1);
     display: block;
 }
 
 .mobile-menu-overlay.is-open {
     opacity: 1;
-    pointer-events: auto;
+    visibility: visible;
 }
 
 .mobile-menu-content {
@@ -3275,10 +3275,8 @@ body {
     padding: 110px 24px 120px 24px;
     box-sizing: border-box;
     display: block;
-    overflow-y: auto;
+    overflow-y: scroll;
     -webkit-overflow-scrolling: touch;
-    touch-action: pan-y;
-    overscroll-behavior: contain;
 }
 
 .mobile-menu-inner {

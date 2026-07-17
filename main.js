@@ -630,8 +630,13 @@ function initTransitionTrigger() {
     // while it is open — this is the ONLY reliable way to unblock iOS Safari
     // native scrolling inside a fixed overlay (passive:false on window freezes
     // all child element scrolling regardless of stopPropagation).
-    window.__ribasEnableTouchScroll  = () => window.addEventListener("touchmove", handleScroll, { passive: false });
-    window.__ribasDisableTouchScroll = () => window.removeEventListener("touchmove", handleScroll, { passive: false });
+    window.__ribasEnableTouchScroll  = () => {
+        window.removeEventListener("touchmove", handleScroll);
+        window.addEventListener("touchmove", handleScroll, { passive: false });
+    };
+    window.__ribasDisableTouchScroll = () => {
+        window.removeEventListener("touchmove", handleScroll);
+    };
 
     // Vertical Navigation Ribbon Controls
     const ribbonItems = document.querySelectorAll(".ribbon-item");
