@@ -1713,6 +1713,51 @@ body {
     will-change: opacity, transform;
 }
 
+.scroll-indicator-mobile {
+    display: none;
+}
+
+@media (max-width: 1024px) {
+    .scroll-indicator-mobile {
+        position: absolute;
+        bottom: 35px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        opacity: 0; /* managed dynamically by GSAP */
+        pointer-events: none;
+        z-index: 100;
+        will-change: opacity, transform;
+    }
+    
+    .swipe-dot {
+        animation: swipeDotAnim 1.8s infinite ease-in-out;
+        transform-origin: center;
+    }
+}
+
+@keyframes swipeDotAnim {
+    0% {
+        transform: translateY(6px);
+        opacity: 0;
+    }
+    20% {
+        transform: translateY(6px);
+        opacity: 1;
+    }
+    80% {
+        transform: translateY(-12px);
+        opacity: 0.1;
+    }
+    100% {
+        transform: translateY(-12px);
+        opacity: 0;
+    }
+}
+
 .mouse-svg {
     filter: drop-shadow(0 2px 10px rgba(0,0,0,0.4));
 }

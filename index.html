@@ -21,7 +21,7 @@
 
     <!-- JS -->
     <script src="translations.js" defer></script>
-    <script src="main.js?v=8" defer></script>
+    <script src="main.js?v=9" defer></script>
 </head>
 <body>
 
@@ -392,6 +392,15 @@
                     <circle class="mouse-wheel-dot" cx="11" cy="10" r="2.4" fill="var(--color-gold)"/>
                 </svg>
                 <span class="scroll-text">Скрольте вниз</span>
+            </div>
+
+            <!-- Mobile Swipe Indicator (animated, disappears forever after first swipe) -->
+            <div id="scroll-indicator-mobile" class="scroll-indicator-mobile">
+                <svg class="swipe-svg" width="22" height="36" viewBox="0 0 22 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <rect x="1" y="1" width="20" height="34" rx="10" stroke="rgba(255,255,255,0.7)" stroke-width="1.6"/>
+                    <circle class="swipe-dot" cx="11" cy="26" r="2.4" fill="var(--color-gold)"/>
+                </svg>
+                <span class="scroll-text" id="mobile-swipe-text">Свайпніть вгору</span>
             </div>
     </div>
 

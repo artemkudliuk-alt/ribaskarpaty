@@ -91,6 +91,7 @@ window.translations = {
         "#pillow-card-action-btn span": "Обрати подушку",
         "#pillow-welcome-btn span": "Меню подушок",
         "#screen-1 .scroll-text": "Скрольте вниз",
+        "#mobile-swipe-text": "Свайпніть вгору",
 
         // Screen 2
         "#screen-2 .screen-label-tag": "02 / Ресторан LIS",
@@ -279,6 +280,7 @@ window.translations = {
         "#pillow-card-action-btn span": "Choose Pillow",
         "#pillow-welcome-btn span": "Pillow Menu",
         "#screen-1 .scroll-text": "Scroll down",
+        "#mobile-swipe-text": "Swipe up",
 
         // Screen 2
         "#screen-2 .screen-label-tag": "02 / Restaurant LIS",
@@ -467,6 +469,7 @@ window.translations = {
         "#pillow-card-action-btn span": "Выбрать подушку",
         "#pillow-welcome-btn span": "Меню подушек",
         "#screen-1 .scroll-text": "Скролльте вниз",
+        "#mobile-swipe-text": "Свайпните вверх",
 
         // Screen 2
         "#screen-2 .screen-label-tag": "02 / Ресторан LIS",

@@ -36,6 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 let currentScreen = 1;
 let screens = [];
+window.__ribasMobileSwipedOnce = false;
 
 function preloadFile(url, onProgress, attempt = 0) {
     return new Promise((resolve, reject) => {
@@ -1301,6 +1302,8 @@ function initTransitionTrigger() {
             }, EXIT_HOLD_MS);
         } else if (currentScreen === 1) {
             // Transitioning from screen 1 to screen 2+
+            window.__ribasMobileSwipedOnce = true;
+            gsap.to(".scroll-indicator-mobile", { opacity: 0, duration: 0.35, ease: "power2.inOut" });
             const lobbyVideo = v2.style.opacity === "1" ? v2 : v1;
 
             // Make sure the scrolling video is parked at frame 0
@@ -1408,6 +1411,7 @@ function animateScreenEntrance(screenEl) {
     const tiles = screenEl.querySelectorAll(".bento-tile, .footer-social-links, .video-promo-btn, .grid-btn");
     const card = screenEl.querySelector(".welcome-pillow-card");
     const scrollMouse = screenEl.querySelector(".scroll-indicator-mouse");
+    const scrollMobile = screenEl.querySelector(".scroll-indicator-mobile");
     const pillowBtn = screenEl.querySelector("#pillow-welcome-btn");
 
     // Fresh screens always start scrolled to the top (matters on stacked layouts)
@@ -1440,6 +1444,7 @@ function animateScreenEntrance(screenEl) {
     if (tiles.length) gsap.set(tiles, { y: 14, opacity: 0 });
     if (card) gsap.set(card, { scale: 0.97, y: 16, opacity: 0 });
     if (scrollMouse) gsap.set(scrollMouse, { y: 10, opacity: 0 });
+    if (scrollMobile) gsap.set(scrollMobile, { y: 10, opacity: 0 });
 
     if (overlay) {
         const isHeroOrFooter = screenEl.id === "screen-1" || screenEl.id === "screen-footer";
@@ -1499,6 +1504,10 @@ function animateScreenEntrance(screenEl) {
     if (scrollMouse) {
         tl.to(scrollMouse, { y: 0, opacity: 0.85, duration: 0.4, ease: "power2.out" }, 0.35);
     }
+    // 9.1 Scroll Mobile
+    if (scrollMobile && !window.__ribasMobileSwipedOnce) {
+        tl.to(scrollMobile, { y: 0, opacity: 0.85, duration: 0.4, ease: "power2.out" }, 0.35);
+    }
 }
 
 /* =========================================================================
@@ -1516,6 +1525,7 @@ function initWelcomeScreen() {
     gsap.set("#screen-1 .welcome-subtitle", { y: 15, opacity: 0 });
     gsap.set("#pillow-welcome-btn", { y: 15, opacity: 0 });
     gsap.set(".scroll-indicator-mouse", { y: 15, opacity: 0 });
+    gsap.set(".scroll-indicator-mobile", { y: 15, opacity: 0 });
 }
 
 function animateWelcomeScreenEntrance() {
@@ -1581,6 +1591,16 @@ function animateWelcomeScreenEntrance() {
         duration: 0.8,
         ease: "power2.out"
     }, 1.15);
+
+    // 7.1 Mobile scroll indicator
+    if (!window.__ribasMobileSwipedOnce) {
+        entranceTl.to(".scroll-indicator-mobile", {
+            y: 0,
+            opacity: 0.85,
+            duration: 0.8,
+            ease: "power2.out"
+        }, 1.15);
+    }
 
     // Initialize mobile action handlers
     initMobileActions();
