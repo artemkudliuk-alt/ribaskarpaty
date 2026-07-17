@@ -632,10 +632,16 @@ function initTransitionTrigger() {
     // all child element scrolling regardless of stopPropagation).
     window.__ribasEnableTouchScroll  = () => {
         window.removeEventListener("touchmove", handleScroll);
+        window.removeEventListener("touchmove", handleScroll, { passive: false });
+        window.removeEventListener("touchmove", handleScroll, true);
+        window.removeEventListener("touchmove", handleScroll, false);
         window.addEventListener("touchmove", handleScroll, { passive: false });
     };
     window.__ribasDisableTouchScroll = () => {
         window.removeEventListener("touchmove", handleScroll);
+        window.removeEventListener("touchmove", handleScroll, { passive: false });
+        window.removeEventListener("touchmove", handleScroll, true);
+        window.removeEventListener("touchmove", handleScroll, false);
     };
 
     // Vertical Navigation Ribbon Controls
