@@ -533,6 +533,7 @@ function initLobbySeamlessLoop() {
 }
 
 function initTransitionTrigger() {
+    window.__ribasTransitionTo = transitionTo;
     currentScreen = 1; // 1 = Lobby, 2 = Restaurant, 3 = SPA, 4 = Leisure, 5 = Info, 6 = Footer
     let isTransitioning = false;
     let touchTriggered = false;
@@ -2862,8 +2863,8 @@ function initMobileMenu() {
     screenNavButtons.forEach(btn => {
         btn.addEventListener("click", () => {
             const target = parseInt(btn.getAttribute("data-target-screen"));
-            if (target && !isNaN(target) && typeof transitionTo === "function") {
-                transitionTo(target);
+            if (target && !isNaN(target) && typeof window.__ribasTransitionTo === "function") {
+                window.__ribasTransitionTo(target);
             }
         });
     });
