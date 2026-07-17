@@ -2595,7 +2595,14 @@ function initMobileMenu() {
         // Premium fade-in slide animation using GSAP
         gsap.fromTo(".mobile-menu-section",
             { opacity: 0, y: 15 },
-            { opacity: 1, y: 0, duration: 0.35, stagger: 0.06, ease: "power2.out" }
+            { 
+                opacity: 1, 
+                y: 0, 
+                duration: 0.35, 
+                stagger: 0.06, 
+                ease: "power2.out",
+                clearProps: "transform,opacity"
+            }
         );
     }
 
