@@ -3321,15 +3321,69 @@ body {
     width: 100%;
     max-width: 480px;
     margin: 0 auto;
-    padding: 100px 24px 40px 24px;
+    padding: 85px 24px 40px 24px;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     z-index: 1;
+}
+
+/* 6 Screens Navigation Grid inside Mobile Menu */
+.mobile-screens-nav {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    width: 100%;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.screen-nav-btn {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(247, 117, 186, 0.1);
+    border-radius: 12px;
+    padding: 10px 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-white);
+    cursor: pointer;
+    transition: background 0.25s, border-color 0.25s, transform 0.15s;
+    font-family: inherit;
+    outline: none;
+    min-height: 54px;
+}
+
+.screen-nav-btn:active {
+    transform: scale(0.96);
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(247, 117, 186, 0.25);
+}
+
+.screen-nav-btn .btn-num {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--color-gold);
+    opacity: 0.9;
+    margin-bottom: 2px;
+    letter-spacing: 0.05em;
+}
+
+.screen-nav-btn .btn-lbl {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    opacity: 0.85;
 }
 
 .mobile-menu-content::-webkit-scrollbar {

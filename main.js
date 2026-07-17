@@ -2857,6 +2857,17 @@ function initMobileMenu() {
         });
     });
 
+    // Screen navigation inside mobile menu overlay
+    const screenNavButtons = overlay.querySelectorAll(".screen-nav-btn");
+    screenNavButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+            const target = parseInt(btn.getAttribute("data-target-screen"));
+            if (target && !isNaN(target) && typeof transitionTo === "function") {
+                transitionTo(target);
+            }
+        });
+    });
+
     function openMenu() {
         toggle.classList.add("is-active");
         overlay.classList.add("is-open");

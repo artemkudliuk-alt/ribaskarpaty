@@ -229,7 +229,14 @@ window.translations = {
         "#books-modal .book-item:nth-child(3) .book-title": "«Легенди та перекази стародавніх Карпат»",
         "#books-modal .book-item:nth-child(3) .book-author": "Етнографічна збірка",
         "#books-modal .book-item:nth-child(4) .book-title": "«Карпатські пішохідні маршрути: гайд для мандрівника»",
-        "#books-modal .book-item:nth-child(4) .book-author": "Туристичне видання"
+        "#books-modal .book-item:nth-child(4) .book-author": "Туристичне видання",
+
+        ".nav-lbl-1": "Вітання",
+        ".nav-lbl-2": "Ресторан LIS",
+        ".nav-lbl-3": "SPA",
+        ".nav-lbl-4": "Дозвілля",
+        ".nav-lbl-5": "Корисна інфо",
+        ".nav-lbl-6": "Контакти"
     },
     en: {
         // Global Dropdowns
@@ -418,7 +425,14 @@ window.translations = {
         "#books-modal .book-item:nth-child(3) .book-title": "«Legends and tales of the ancient Carpathians»",
         "#books-modal .book-item:nth-child(3) .book-author": "Ethnographical collection",
         "#books-modal .book-item:nth-child(4) .book-title": "«Carpathian hiking trails: traveler's guide»",
-        "#books-modal .book-item:nth-child(4) .book-author": "Tourist edition"
+        "#books-modal .book-item:nth-child(4) .book-author": "Tourist edition",
+
+        ".nav-lbl-1": "Welcome",
+        ".nav-lbl-2": "Restaurant LIS",
+        ".nav-lbl-3": "SPA",
+        ".nav-lbl-4": "Leisure",
+        ".nav-lbl-5": "Useful Info",
+        ".nav-lbl-6": "Contacts"
     },
     ru: {
         // Global Dropdowns
@@ -607,6 +621,13 @@ window.translations = {
         "#books-modal .book-item:nth-child(3) .book-title": "«Легенды и предания древних Карпат»",
         "#books-modal .book-item:nth-child(3) .book-author": "Этнографический сборник",
         "#books-modal .book-item:nth-child(4) .book-title": "«Карпатские пешеходные маршруты: гид для путешественника»",
-        "#books-modal .book-item:nth-child(4) .book-author": "Туристическое издание"
+        "#books-modal .book-item:nth-child(4) .book-author": "Туристическое издание",
+
+        ".nav-lbl-1": "Приветствие",
+        ".nav-lbl-2": "Ресторан LIS",
+        ".nav-lbl-3": "SPA",
+        ".nav-lbl-4": "Досуг",
+        ".nav-lbl-5": "Полезная инфо",
+        ".nav-lbl-6": "Контакты"
     }
 };
