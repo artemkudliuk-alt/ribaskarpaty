@@ -3268,20 +3268,19 @@ body {
 }
 
 .mobile-menu-content {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    margin: 0 auto;
     width: 100%;
     max-width: 480px;
     padding: 110px 24px 50px 24px;
     box-sizing: border-box;
-    display: block;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    height: 100%;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    touch-action: pan-y;
+    overscroll-behavior: contain;
 }
 
 .mobile-menu-content::-webkit-scrollbar {
@@ -3296,7 +3295,6 @@ body {
     display: flex;
     flex-direction: column;
     gap: 14px;
-    margin-bottom: 24px;
 }
 
 .mobile-menu-section.lang-section .lang-selector {
@@ -3409,12 +3407,12 @@ body {
 
     .mobile-menu-content {
         padding-top: 80px;
+        gap: 16px;
     }
 
     .mobile-menu-section {
         padding: 14px;
         gap: 10px;
-        margin-bottom: 16px;
     }
 
     #screen-1 .welcome-container {
