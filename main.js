@@ -631,7 +631,7 @@ function initTransitionTrigger() {
     // native scrolling inside a fixed overlay (passive:false on window freezes
     // all child element scrolling regardless of stopPropagation).
     window.__ribasEnableTouchScroll  = () => window.addEventListener("touchmove", handleScroll, { passive: false });
-    window.__ribasDisableTouchScroll = () => window.removeEventListener("touchmove", handleScroll);
+    window.__ribasDisableTouchScroll = () => window.removeEventListener("touchmove", handleScroll, { passive: false });
 
     // Vertical Navigation Ribbon Controls
     const ribbonItems = document.querySelectorAll(".ribbon-item");
@@ -2591,7 +2591,6 @@ function initMobileMenu() {
         // iOS Safari. Any capture-phase / stopPropagation workaround is
         // insufficient because WebKit blocks the gesture at registration time.
         if (window.__ribasDisableTouchScroll) window.__ribasDisableTouchScroll();
-        document.body.style.overflow = "hidden";
 
         // Premium fade-in slide animation using GSAP
         gsap.fromTo(".mobile-menu-section",
@@ -2603,7 +2602,6 @@ function initMobileMenu() {
     function closeMenu() {
         toggle.classList.remove("is-active");
         overlay.classList.remove("is-open");
-        document.body.style.overflow = "";
 
         // Re-attach the window touchmove listener now that the menu is closed
         if (window.__ribasEnableTouchScroll) window.__ribasEnableTouchScroll();
