@@ -3247,6 +3247,7 @@ body {
     left: 0;
     width: 100vw;
     height: 100vh;
+    height: 100dvh;
     background: rgba(12, 11, 10, 0.97);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
@@ -3255,10 +3256,11 @@ body {
     pointer-events: none;
     transform: translateY(-30px);
     transition: opacity 0.4s cubic-bezier(0.25, 1, 0.5, 1), transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    box-sizing: border-box;
+    display: block;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    overscroll-behavior: contain;
 }
 
 .mobile-menu-overlay.is-open {
@@ -3270,17 +3272,13 @@ body {
 .mobile-menu-content {
     width: 100%;
     max-width: 480px;
+    margin: 0 auto;
     padding: 110px 24px 50px 24px;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     gap: 30px;
-    height: 100%;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    touch-action: pan-y;
-    overscroll-behavior: contain;
+    min-height: 100%;
 }
 
 .mobile-menu-content::-webkit-scrollbar {
