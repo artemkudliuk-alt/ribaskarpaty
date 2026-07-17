@@ -384,7 +384,7 @@ function initPreloader() {
         const vLobby1 = document.getElementById("video-lobby-1");
         if (vLobby1) {
             vLobby1.muted = true;
-            vLobby1.playbackRate = 0.35;
+            vLobby1.playbackRate = 1.0;
             if (vLobby1.paused) {
                 vLobby1.play().catch(e => console.log("Lobby video autoplay blocked in showHeroScreen:", e));
             }
@@ -416,7 +416,7 @@ function initPreloader() {
         // enough to serve on any connection tier. Desktop keeps its webm.
         const heroSrc = isMobileOrTablet
             ? "video_optimized/mob_hero.mp4"
-            : "1 screen.webm";
+            : "1 screen.mp4";
 
         if (isMobileOrTablet) {
             videoLobby1.poster = "video_optimized/mob_hero_poster.jpg";
@@ -457,13 +457,13 @@ function initLobbySeamlessLoop() {
     v2.muted = true;
     v1.load();
     v2.load();
-    v1.playbackRate = 0.35;
-    v2.playbackRate = 0.35;
+    v1.playbackRate = 1.0;
+    v2.playbackRate = 1.0;
 
     // Try playing video 1 immediately
     const startPlay = () => {
         v1.muted = true;
-        v1.playbackRate = 0.35;
+        v1.playbackRate = 1.0;
         v1.play()
             .then(() => {
                 console.log("Lobby Video 1 playing successfully.");
@@ -503,7 +503,7 @@ function initLobbySeamlessLoop() {
                 // Prepare and play the inactive video from the beginning
                 inactiveVideo.currentTime = 0;
                 inactiveVideo.muted = true;
-                inactiveVideo.playbackRate = 0.35;
+                inactiveVideo.playbackRate = 1.0;
                 inactiveVideo.play().then(() => {
                     // Seamless crossfade opacities
                     gsap.to(inactiveVideo, { opacity: 1, duration: 0.4, ease: "none" });
@@ -728,7 +728,7 @@ function initTransitionTrigger() {
         gsap.set(v2, { opacity: 0 });
         v2.pause();
         v1.currentTime = 0;
-        v1.playbackRate = 0.35;
+        v1.playbackRate = 1.0;
         v1.play().catch(() => {});
 
         currentScreen = 1;
@@ -1273,7 +1273,7 @@ function initTransitionTrigger() {
                 v2.pause();
 
                 lobbyVideo.currentTime = 0;
-                lobbyVideo.playbackRate = 0.35;
+                lobbyVideo.playbackRate = 1.0;
 
                 const doCrossfade = () => {
                     gsap.to(sharedVideoBg, {
