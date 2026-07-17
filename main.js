@@ -2574,15 +2574,35 @@ function initMobileMenu() {
         });
     });
 
-    // Stop propagation of touchmove and touchstart inside the overlay to prevent 
-    // iOS Safari from blocking native scrolling of .mobile-menu-content via window-level listeners
-    overlay.addEventListener("touchmove", (e) => {
-        e.stopPropagation();
-    }, { passive: true });
+    // ── iOS Safari scroll fix ──────────────────────────────────────────────
+    // The window-level touchmove listener registered with {passive:false}
+    // calls preventDefault() before the overlay's inner scroller gets a
+    // chance to act — so iOS Safari freezes all scrolling inside the menu.
+    //
+    // The fix: intercept touchmove in the CAPTURE phase on the overlay itself
+    // (fires BEFORE the window bubble listener).  If the touch started inside
+    // .mobile-menu-content we stop propagation so the window handler never
+    // runs, and we do NOT call preventDefault — leaving Safari free to scroll
+    // the inner element natively.
+    const menuContent = overlay.querySelector(".mobile-menu-content");
 
     overlay.addEventListener("touchstart", (e) => {
         e.stopPropagation();
-    }, { passive: true });
+    }, { passive: true, capture: true });
+
+    overlay.addEventListener("touchmove", (e) => {
+        // Always stop propagation to prevent the window handler from running
+        e.stopPropagation();
+
+        // If the touch is inside the scrollable content, do NOT call
+        // preventDefault — let the browser scroll it natively
+        if (menuContent && menuContent.contains(e.target)) {
+            return; // allow native scroll
+        }
+
+        // Outside the scroll pane (e.g. the background tint) — block scroll
+        e.preventDefault();
+    }, { passive: false, capture: true });
 
     function openMenu() {
         toggle.classList.add("is-active");
