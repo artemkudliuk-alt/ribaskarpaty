@@ -1111,6 +1111,23 @@ function initTransitionTrigger() {
             if (toScreen.loopVideo) {
                 gsap.set(toScreen.loopVideo, { opacity: 0 });
             }
+
+            if (immediate) {
+                if (toScreen.transitionVideo) gsap.set(toScreen.transitionVideo, { opacity: 0 });
+                const destLoop = toScreen.loopVideo;
+                if (destLoop) {
+                    destLoop.currentTime = 0;
+                    destLoop.playbackRate = 1.0;
+                    destLoop.play().then(() => {
+                        gsap.set(destLoop, { opacity: 1 });
+                    }).catch(err => console.log("Footer loop play failed:", err));
+                }
+                gsap.set(toScreen.el, { y: 0 });
+                gsap.set(fromScreen.el, { display: "none", opacity: 0 });
+                finalizeTransition();
+                return;
+            }
+
             if (toScreen.transitionVideo) {
                 toScreen.transitionVideo.currentTime = 0;
                 toScreen.transitionVideo.playbackRate = 1.0;
@@ -1140,7 +1157,7 @@ function initTransitionTrigger() {
         }
 
         if (fromScreen.slideTransition) {
-            // ── SLIDE FOOTER DOWN (returning to Screen 5) ──
+            // ── SLIDE FOOTER DOWN (returning to Screen 5 or any other screen) ──
             animateScreenExit(fromScreen.el);
 
             // Hide incoming screen content at start BEFORE setting container display
@@ -1163,16 +1180,27 @@ function initTransitionTrigger() {
 
             scrollingVideo.pause();
             scrollingVideoReverse.pause();
-            safeSeek(scrollingVideo, screenTimestamps[5]);
-            safeSeek(scrollingVideoReverse, screenTimestampsReverse[5]);
-            // Make sure the forward layer (holding the screen-5 frame) is the
-            // visible one — the reverse copy may still sit on top after an
-            // earlier upward transition
+            
+            // Set the correct seek timestamps for the target screen (rather than hardcoded screen 5)
+            const targetScreenIdx = nextScreenIndex < 6 ? nextScreenIndex : 5;
+            safeSeek(scrollingVideo, screenTimestamps[targetScreenIdx]);
+            safeSeek(scrollingVideoReverse, screenTimestampsReverse[targetScreenIdx]);
+            
+            // Make sure the forward layer is the visible one
             scrollingVideo.style.opacity = "1";
             scrollingVideoReverse.style.opacity = "0";
 
             // Let finalizeTransition trigger the entrance on complete
             skipEntranceInFinalize = false;
+
+            if (immediate) {
+                fromScreen.el.style.display = "none";
+                gsap.set(fromScreen.el, { y: "100vh" });
+                if (fromScreen.transitionVideo) gsap.set(fromScreen.transitionVideo, { opacity: 1 });
+                if (fromScreen.loopVideo) gsap.set(fromScreen.loopVideo, { opacity: 0 });
+                finalizeTransition();
+                return;
+            }
 
             gsap.to(fromScreen.el, {
                 y: "100vh",
