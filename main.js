@@ -2588,13 +2588,8 @@ function initMobileMenu() {
         toggle.classList.add("is-active");
         overlay.classList.add("is-open");
 
-        // iOS Safari ignores overflow:hidden on body — it keeps handing the
-        // swipe to the body behind the fixed overlay, so the menu itself
-        // never scrolls. position:fixed is the reliable body lock there
-        // (harmless here: the site never scrolls the body anyway).
+        // Lock scroll on main body
         document.body.style.overflow = "hidden";
-        document.body.style.position = "fixed";
-        document.body.style.width = "100%";
 
         // Premium fade-in slide animation using GSAP
         gsap.fromTo(".mobile-menu-section",
@@ -2607,8 +2602,6 @@ function initMobileMenu() {
         toggle.classList.remove("is-active");
         overlay.classList.remove("is-open");
         document.body.style.overflow = "";
-        document.body.style.position = "";
-        document.body.style.width = "";
     }
 }
 
