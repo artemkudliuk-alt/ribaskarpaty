@@ -917,14 +917,14 @@ function initTransitionTrigger() {
     // (kept for reference; actual timing math uses SCROLL_VIDEO_DURATION above)
     const videoDuration = SCROLL_VIDEO_DURATION;
 
-    function animateVideoTime(nextScreenIndex, onComplete) {
+    function animateVideoTime(nextScreenIndex, onComplete, immediate = false) {
         const targetTime = screenTimestamps[nextScreenIndex];
         const targetTimeReverse = screenTimestampsReverse[nextScreenIndex];
         const currentForwardTime = scrollingVideo.currentTime;
         const isForward = targetTime > currentForwardTime;
         const timeDiff = Math.abs(targetTime - currentForwardTime);
 
-        if (timeDiff < 0.02) {
+        if (immediate || timeDiff < 0.02) {
             scrollingVideo.pause();
             scrollingVideoReverse.pause();
             scrollingVideo.currentTime = targetTime;
@@ -1058,7 +1058,7 @@ function initTransitionTrigger() {
         }
     }
 
-    function transitionTo(nextScreenIndex) {
+    function transitionTo(nextScreenIndex, immediate = false) {
         if (nextScreenIndex === currentScreen || isTransitioning) return;
         isTransitioning = true;
         
@@ -1259,7 +1259,7 @@ function initTransitionTrigger() {
         // setTimeout (not gsap.delayedCall) so a starved rAF ticker can't
         // freeze the transition; the epoch check makes the delayed start a
         // no-op if a teleport-home fired during the hold.
-        const EXIT_HOLD_MS = 500;
+        const EXIT_HOLD_MS = immediate ? 0 : 500;
 
         if (nextScreenIndex === 1) {
             // Transitioning back to screen 1 (Lobby)
@@ -1277,7 +1277,7 @@ function initTransitionTrigger() {
                 const doCrossfade = () => {
                     gsap.to(sharedVideoBg, {
                         opacity: 0,
-                        duration: 0.4,
+                        duration: immediate ? 0 : 0.4,
                         ease: "power1.inOut",
                         onComplete: () => {
                             sharedVideoBg.style.display = "none";
@@ -1285,7 +1285,7 @@ function initTransitionTrigger() {
                     });
                     gsap.to(lobbyVideo, { 
                         opacity: 1, 
-                        duration: 0.4, 
+                        duration: immediate ? 0 : 0.4, 
                         ease: "power1.inOut" 
                     });
                     finalizeTransition();
@@ -1297,7 +1297,7 @@ function initTransitionTrigger() {
                     gsap.set(lobbyVideo, { opacity: 1 });
                     doCrossfade();
                 });
-            });
+            }, immediate);
             }, EXIT_HOLD_MS);
         } else if (currentScreen === 1) {
             // Transitioning from screen 1 to screen 2+
@@ -1333,7 +1333,7 @@ function initTransitionTrigger() {
 
                 gsap.to(lobbyVideo, {
                     opacity: 0,
-                    duration: 0.5,
+                    duration: immediate ? 0 : 0.5,
                     ease: "power1.inOut",
                     onComplete: () => {
                         lobbyVideo.pause();
@@ -1342,7 +1342,7 @@ function initTransitionTrigger() {
 
                 animateVideoTime(nextScreenIndex, () => {
                     finalizeTransition();
-                });
+                }, immediate);
             }, EXIT_HOLD_MS);
         } else {
             // Transitioning between screens 2, 3, 4, 5
@@ -1355,7 +1355,7 @@ function initTransitionTrigger() {
 
                 animateVideoTime(nextScreenIndex, () => {
                     finalizeTransition();
-                });
+                }, immediate);
             }, EXIT_HOLD_MS);
         }
     }
@@ -2864,7 +2864,7 @@ function initMobileMenu() {
         btn.addEventListener("click", () => {
             const target = parseInt(btn.getAttribute("data-target-screen"));
             if (target && !isNaN(target) && typeof window.__ribasTransitionTo === "function") {
-                window.__ribasTransitionTo(target);
+                window.__ribasTransitionTo(target, true);
             }
         });
     });
