@@ -21,7 +21,7 @@
 
     <!-- JS -->
     <script src="translations.js" defer></script>
-    <script src="main.js?v=5" defer></script>
+    <script src="main.js?v=6" defer></script>
 </head>
 <body>
 
@@ -138,90 +138,75 @@
     </header>
 
     <!-- Mobile Navigation Overlay Menu -->
-    <!-- Mobile Navigation Overlay Menu -->
     <div class="mobile-menu-overlay" id="mobile-menu-overlay">
         <div class="mobile-menu-content">
-            <div class="mobile-menu-inner">
-                <div class="mobile-menu-section lang-section">
-                    <div class="mobile-section-title">
-                        <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-                        </svg>
-                        <span>Мова / Language</span>
-                    </div>
-                    <div class="lang-selector">
-                        <button class="lang-btn active">UA</button>
-                        <button class="lang-btn">EN</button>
-                        <button class="lang-btn">RU</button>
-                    </div>
-                </div>
-                
-                <div class="mobile-menu-section wifi-section">
-                    <div class="mobile-section-title">
+            <div class="lang-selector-mini">
+                <button class="lang-btn active">UA</button>
+                <button class="lang-btn">EN</button>
+                <button class="lang-btn">RU</button>
+            </div>
+            
+            <div class="mobile-menu-grid">
+                <!-- Wi-Fi Card -->
+                <div class="menu-grid-card wifi-card-mini mobile-menu-section" style="grid-column: span 2;">
+                    <div class="wifi-info-left">
                         <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M2.5 9.5a15 15 0 0 1 19 0"/>
                             <path d="M5.5 13a10.5 10.5 0 0 1 13 0"/>
                             <path d="M8.5 16.5a5.5 5.5 0 0 1 7 0"/>
                             <path d="M12 20h.01"/>
                         </svg>
-                        <span>Wi-Fi в готелі</span>
+                        <div class="wifi-details-text">
+                            <div><strong>Wi-Fi:</strong> Karpaty_Guest</div>
+                            <div>Пароль: <span id="mobile-wifi-password">bukovel2026</span></div>
+                        </div>
                     </div>
-                    <div class="mobile-wifi-fields">
-                        <div class="mobile-field"><strong>Мережа:</strong> <span>Karpaty_Guest</span></div>
-                        <div class="mobile-field"><strong>Пароль:</strong> <span id="mobile-wifi-password">bukovel2026</span></div>
-                    </div>
-                    <button class="bento-btn gold-btn small-btn" id="mobile-copy-wifi-btn"><span class="btn-text">Скопіювати пароль</span></button>
+                    <button class="bento-btn gold-btn mini-btn" id="mobile-copy-wifi-btn">Копіювати</button>
                 </div>
                 
-                <div class="mobile-menu-section reception-section">
-                    <div class="mobile-section-title">
-                        <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>
-                        </svg>
-                        <span>Рецепція</span>
-                    </div>
-                    <p class="mobile-section-desc">Швидкий дзвінок з мобільного або внутрішнього телефону.</p>
-                    <a href="tel:+380674278677" class="bento-btn outline-btn small-btn">Подзвонити на рецепцію</a>
-                </div>
+                <!-- Call Reception Card -->
+                <a href="tel:+380674278677" class="menu-grid-card action-card mobile-menu-section">
+                    <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>
+                    </svg>
+                    <span class="card-title">Рецепція</span>
+                    <span class="card-subtitle">Дзвінок</span>
+                </a>
                 
-                <div class="mobile-menu-section chat-section">
-                    <div class="mobile-section-title">
+                <!-- Chat Card -->
+                <div class="menu-grid-card chat-card-mini mobile-menu-section">
+                    <div class="card-icon-title">
                         <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5c-1.5 0-3-.4-4.2-1.1L3 20l1.1-5.3A8.5 8.5 0 1 1 21 11.5z"/>
                         </svg>
-                        <span>Написати нам</span>
+                        <span class="chat-title">Написати нам</span>
                     </div>
-                    <div class="mobile-socials-grid">
-                        <a href="https://t.me/ribaskarpaty" target="_blank" class="social-btn telegram">Telegram</a>
-                        <a href="viber://chat?number=%2B380000000000" target="_blank" class="social-btn viber">Viber</a>
+                    <div class="chat-buttons-grid">
+                        <a href="https://t.me/ribaskarpaty" target="_blank" class="chat-mini-btn tg">Telegram</a>
+                        <a href="viber://chat?number=%2B380000000000" target="_blank" class="chat-mini-btn viber">Viber</a>
                     </div>
                 </div>
 
-                <div class="mobile-menu-section menu-section">
-                    <div class="mobile-section-title">
-                        <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M3 2v7a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V2"/>
-                            <path d="M7 2v20"/>
-                            <path d="M21 15V2a5 5 0 0 0-5 5v6a2 2 0 0 0 2 2h3zm0 0v7"/>
-                        </svg>
-                        <span>Ресторан</span>
-                    </div>
-                    <button data-pdf="https://menu.justo.com.ua/?v=n9XsmwdWcanodGYTEvVdQYlMCNI1nug-jzM37-cQqjQsX6KGKqgCtva0BZ4BUeqfXss62HyCWg_kXB3YjQIvxHY%3D&utm_source=ig&utm_medium=social&utm_content=link_in_bio&fbclid=PAdGRleATEd61wZG9mAmV4dG4DYWVtAjExAHNydGMGYXBwX2lkDzEyNDAyNDU3NDI4NzQxNAABp-7Yxa5AB2bI7RcD9eCuTBo3kh2wxroJhXL2bUG7lG6b0_bLctWEzJwwvspL_aem_YeNbTK4rlIg9yV4dA406DA" data-pdf-title="Меню ресторану" class="bento-btn gold-btn small-btn" id="mobile-view-menu-btn">Переглянути меню</button>
-                </div>
+                <!-- Restaurant Menu Card -->
+                <button data-pdf="https://menu.justo.com.ua/?v=n9XsmwdWcanodGYTEvVdQYlMCNI1nug-jzM37-cQqjQsX6KGKqgCtva0BZ4BUeqfXss62HyCWg_kXB3YjQIvxHY%3D&utm_source=ig&utm_medium=social&utm_content=link_in_bio&fbclid=PAdGRleATEd61wZG9mAmV4dG4DYWVtAjExAHNydGMGYXBwX2lkDzEyNDAyNDU3NDI4NzQxNAABp-7Yxa5AB2bI7RcD9eCuTBo3kh2wxroJhXL2bUG7lG6b0_bLctWEzJwwvspL_aem_YeNbTK4rlIg9yV4dA406DA" data-pdf-title="Меню ресторану" class="menu-grid-card action-card mobile-menu-section" id="mobile-view-menu-btn">
+                    <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 2v7a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V2"/>
+                        <path d="M7 2v20"/>
+                        <path d="M21 15V2a5 5 0 0 0-5 5v6a2 2 0 0 0 2 2h3zm0 0v7"/>
+                    </svg>
+                    <span class="card-title">Ресторан</span>
+                    <span class="card-subtitle">Меню LIS</span>
+                </button>
 
-                <div class="mobile-menu-section pillow-section">
-                    <div class="mobile-section-title">
-                        <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="2" y="4" width="20" height="16" rx="3"/>
-                            <path d="M6 8c2.5 0 2.5 8 0 8m12-8c-2.5 0-2.5 8 0 8"/>
-                        </svg>
-                        <span>Меню подушок</span>
-                    </div>
-                    <p class="mobile-section-desc">Оберіть подушку зі спеціального меню — доставимо її у ваш номер.</p>
-                    <button data-pdf="/files/Меню подушок.pdf" data-pdf-title="Меню подушок" class="bento-btn gold-btn small-btn" id="mobile-pillow-menu-btn">Обрати подушку</button>
-                </div>
-                <!-- Spacer to bypass iOS Safari flexbox padding-bottom scrollHeight collapse bug -->
-                <div class="mobile-menu-spacer" style="height: 120px; flex-shrink: 0; pointer-events: none;"></div>
+                <!-- Pillow Menu Card -->
+                <button data-pdf="/files/Меню подушок.pdf" data-pdf-title="Меню подушок" class="menu-grid-card action-card mobile-menu-section" id="mobile-pillow-menu-btn">
+                    <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="4" width="20" height="16" rx="3"/>
+                        <path d="M6 8c2.5 0 2.5 8 0 8m12-8c-2.5 0-2.5 8 0 8"/>
+                    </svg>
+                    <span class="card-title">Подушки</span>
+                    <span class="card-subtitle">Меню</span>
+                </button>
             </div>
         </div>
     </div>
