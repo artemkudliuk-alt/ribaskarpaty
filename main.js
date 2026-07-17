@@ -626,6 +626,13 @@ function initTransitionTrigger() {
     window.addEventListener("wheel", handleScroll, { passive: false });
     window.addEventListener("touchmove", handleScroll, { passive: false });
 
+    // Expose add/remove helpers so the mobile menu can pause scroll capture
+    // while it is open — this is the ONLY reliable way to unblock iOS Safari
+    // native scrolling inside a fixed overlay (passive:false on window freezes
+    // all child element scrolling regardless of stopPropagation).
+    window.__ribasEnableTouchScroll  = () => window.addEventListener("touchmove", handleScroll, { passive: false });
+    window.__ribasDisableTouchScroll = () => window.removeEventListener("touchmove", handleScroll);
+
     // Vertical Navigation Ribbon Controls
     const ribbonItems = document.querySelectorAll(".ribbon-item");
     const ribbonProgress = document.querySelector(".ribbon-line-progress");
@@ -2574,41 +2581,16 @@ function initMobileMenu() {
         });
     });
 
-    // ── iOS Safari scroll fix ──────────────────────────────────────────────
-    // The window-level touchmove listener registered with {passive:false}
-    // calls preventDefault() before the overlay's inner scroller gets a
-    // chance to act — so iOS Safari freezes all scrolling inside the menu.
-    //
-    // The fix: intercept touchmove in the CAPTURE phase on the overlay itself
-    // (fires BEFORE the window bubble listener).  If the touch started inside
-    // .mobile-menu-content we stop propagation so the window handler never
-    // runs, and we do NOT call preventDefault — leaving Safari free to scroll
-    // the inner element natively.
-    const menuContent = overlay.querySelector(".mobile-menu-content");
-
-    overlay.addEventListener("touchstart", (e) => {
-        e.stopPropagation();
-    }, { passive: true, capture: true });
-
-    overlay.addEventListener("touchmove", (e) => {
-        // Always stop propagation to prevent the window handler from running
-        e.stopPropagation();
-
-        // If the touch is inside the scrollable content, do NOT call
-        // preventDefault — let the browser scroll it natively
-        if (menuContent && menuContent.contains(e.target)) {
-            return; // allow native scroll
-        }
-
-        // Outside the scroll pane (e.g. the background tint) — block scroll
-        e.preventDefault();
-    }, { passive: false, capture: true });
-
     function openMenu() {
         toggle.classList.add("is-active");
         overlay.classList.add("is-open");
 
-        // Lock scroll on main body
+        // ── iOS Safari fix ──
+        // Removing the passive:false window touchmove listener is the ONLY
+        // reliable way to unblock native scrolling inside a fixed overlay on
+        // iOS Safari. Any capture-phase / stopPropagation workaround is
+        // insufficient because WebKit blocks the gesture at registration time.
+        if (window.__ribasDisableTouchScroll) window.__ribasDisableTouchScroll();
         document.body.style.overflow = "hidden";
 
         // Premium fade-in slide animation using GSAP
@@ -2622,6 +2604,9 @@ function initMobileMenu() {
         toggle.classList.remove("is-active");
         overlay.classList.remove("is-open");
         document.body.style.overflow = "";
+
+        // Re-attach the window touchmove listener now that the menu is closed
+        if (window.__ribasEnableTouchScroll) window.__ribasEnableTouchScroll();
     }
 }
 
