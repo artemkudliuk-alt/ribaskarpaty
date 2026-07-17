@@ -413,8 +413,8 @@ function initPreloader() {
 
         // Hero video: full quality on normal connections, compressed low on 2G/3G/saveData
         const heroSrc = isMobileOrTablet
-            ? (isSlowConnection ? "video_optimized/mob_hero_low.mp4" : "video_optimized/mob_hero_v2.mp4")
-            : (isSlowConnection ? "video_optimized/desktop_hero_low.mp4" : "1 screen.mp4");
+            ? (isSlowConnection ? "video_optimized/mob_hero_low.mp4" : "video_optimized/mob_hero_v3.mp4")
+            : (isSlowConnection ? "video_optimized/desktop_hero_low.mp4" : "1_screen_v2.mp4");
 
         if (isMobileOrTablet) {
             videoLobby1.poster = "video_optimized/mob_hero_poster.jpg";
