@@ -3083,15 +3083,16 @@ body {
 .sound-ico {
     width: 17px;
     height: 17px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
-.sound-ico .sound-wave,
-.sound-ico .sound-mute-line {
-    transition: opacity 0.2s ease;
-}
-
-.sound-ico .sound-mute-line {
+.sound-toggle .icon-sound-off {
     opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
 }
 
 .sound-toggle.is-muted {
@@ -3099,12 +3100,14 @@ body {
     border-color: rgba(247, 117, 186, 0.3);
 }
 
-.sound-toggle.is-muted .sound-wave {
+.sound-toggle.is-muted .icon-sound-on {
     opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
 }
 
-.sound-toggle.is-muted .sound-mute-line {
+.sound-toggle.is-muted .icon-sound-off {
     opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
 }
 
 /* Map / excursion buttons living directly in the bento grid */
@@ -3126,67 +3129,8 @@ body {
 
 
 /* =========================================================================
-   SOUND TOGGLE (under the language switcher) + LEISURE ACCORDION + GRID BTNS
+   LEISURE ACCORDION + GRID BTNS
    ========================================================================= */
-
-.header-right {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 10px;
-}
-
-.sound-toggle {
-    width: 34px;
-    height: 34px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(247, 117, 186, 0.3);
-    border-radius: 50%;
-    color: var(--color-gold);
-    cursor: pointer;
-    padding: 0;
-    transition: border-color 0.25s ease, color 0.25s ease, transform 0.16s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-@media (hover: hover) and (pointer: fine) {
-    .sound-toggle:hover {
-        border-color: rgba(247, 117, 186, 0.6);
-    }
-}
-
-.sound-toggle:active {
-    transform: scale(0.92);
-}
-
-.sound-ico {
-    width: 17px;
-    height: 17px;
-}
-
-.sound-ico .sound-wave,
-.sound-ico .sound-mute-line {
-    transition: opacity 0.2s ease;
-}
-
-.sound-ico .sound-mute-line {
-    opacity: 0;
-}
-
-.sound-toggle.is-muted {
-    color: rgba(245, 239, 230, 0.55);
-    border-color: rgba(247, 117, 186, 0.3);
-}
-
-.sound-toggle.is-muted .sound-wave {
-    opacity: 0;
-}
-
-.sound-toggle.is-muted .sound-mute-line {
-    opacity: 1;
-}
 
 /* Map / excursion buttons living directly in the bento grid */
 .grid-btn {

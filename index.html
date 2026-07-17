@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
     
     <!-- CSS -->
-    <link rel="stylesheet" href="style.css?v=5">
+    <link rel="stylesheet" href="style.css?v=6">
     
     <!-- GSAP: self-hosted, not loaded from a 3rd-party CDN. On weak/roaming
          mobile connections a CDN hiccup used to throw a ReferenceError on the
@@ -188,11 +188,15 @@
                 <button class="lang-btn">RU</button>
             </div>
             <button id="sound-toggle" class="sound-toggle" aria-label="Фонова музика: увімкнути / вимкнути">
-                <svg class="sound-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <svg class="sound-ico icon-sound-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M11 5 6.5 8.5H3v7h3.5L11 19V5z"/>
                     <path class="sound-wave" d="M15 9.5a4 4 0 0 1 0 5"/>
                     <path class="sound-wave" d="M17.5 7a8 8 0 0 1 0 10"/>
-                    <line class="sound-mute-line" x1="4" y1="4" x2="20" y2="20"/>
+                </svg>
+                <svg class="sound-ico icon-sound-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 5 6.5 8.5H3v7h3.5L11 19V5z"/>
+                    <line x1="22" y1="9" x2="16" y2="15"/>
+                    <line x1="16" y1="9" x2="22" y2="15"/>
                 </svg>
             </button>
             <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-label="Відкрити меню">
