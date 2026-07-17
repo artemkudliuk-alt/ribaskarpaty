@@ -2200,6 +2200,36 @@ function initPdfModal() {
             downloadBtn.download = src.split("/").pop();
         }
         
+        // --- Dynamic Pillow Menu additions ---
+        const isPillowMenu = src.includes("Меню подушок.pdf") || src.includes("pillow");
+        const descEl = document.getElementById("pdf-modal-description");
+        const footerEl = document.getElementById("pdf-modal-footer");
+        
+        if (isPillowMenu) {
+            descEl.style.display = "block";
+            footerEl.style.display = "flex";
+            
+            const descTexts = {
+                ua: "Міцний сон — важлива частина відпочинку. Ви можете обрати подушку зі спеціального меню: ортопедичну, з ефектом памʼяті або лавандову для релаксу. <br><br>Просто повідомте адміністратора на рецепції або оформіть заявку нижче — і ми доставимо її у ваш номер.",
+                en: "A sound sleep is key to relaxation. You can select a pillow from our special menu: orthopedic, memory-foam, or lavender for deep relaxation. <br><br>Just let the receptionist know or place an order below, and we will deliver it to your room.",
+                ru: "Крепкий сон — важная часть отдыха. Вы можете выбрать подушку из специального меню: ортопедическую, с эффектом памяти или лавандовую для релакса. <br><br>Просто сообщите администратору на рецепции или оформите заявку ниже — и мы доставим ее в ваш номер."
+            };
+            descEl.innerHTML = descTexts[currentLanguage || "ua"];
+            
+            const btnTexts = {
+                ua: "Замовити подушку",
+                en: "Order a Pillow",
+                ru: "Заказать подушку"
+            };
+            const orderBtn = document.getElementById("pillow-order-trigger-btn");
+            if (orderBtn) {
+                orderBtn.querySelector("span").textContent = btnTexts[currentLanguage || "ua"];
+            }
+        } else {
+            descEl.style.display = "none";
+            footerEl.style.display = "none";
+        }
+        
         modal.classList.add("is-open");
         document.body.style.overflow = "hidden";
     }
@@ -2208,7 +2238,11 @@ function initPdfModal() {
         modal.classList.remove("is-open");
         document.body.style.overflow = "";
         // Short delay before clearing src to avoid flash
-        setTimeout(() => { iframe.src = ""; }, 350);
+        setTimeout(() => { 
+            iframe.src = ""; 
+            document.getElementById("pdf-modal-description").style.display = "none";
+            document.getElementById("pdf-modal-footer").style.display = "none";
+        }, 350);
     }
 
     // Close controls
@@ -2256,7 +2290,206 @@ function initPdfModal() {
     });
 }
 
-document.addEventListener("DOMContentLoaded", initPdfModal);
+function initPillowOrderForm() {
+    const triggerBtn = document.getElementById("pillow-order-trigger-btn");
+    const orderModal = document.getElementById("pillow-order-modal");
+    const orderBackdrop = document.getElementById("pillow-order-backdrop");
+    const orderClose = document.getElementById("pillow-order-close");
+    const orderForm = document.getElementById("pillow-order-form");
+    const orderSuccess = document.getElementById("pillow-order-success");
+    const pillowSelect = document.getElementById("pillow-select");
+    const qtyInput = document.getElementById("pillow-quantity");
+    const qtyMinus = document.querySelector(".quantity-selector .qty-btn.minus");
+    const qtyPlus = document.querySelector(".quantity-selector .qty-btn.plus");
+
+    if (!orderModal || !orderForm || !pillowSelect) return;
+
+    // Pillow lists per language
+    const pillowOptions = {
+        ua: [
+            "«Як в хмарі» — пухова подушка",
+            "«Теплий затишок» — подушка на овчині",
+            "«Розумна підтримка» — Memory-подушка",
+            "«Турбота для майбутньої мами» — П-подібна подушка",
+            "«Релакс і спокій» — фіто-подушка",
+            "«Коли втомилась шия» — подушка-валик",
+            "«Маленький сон» — дитяча подушка",
+            "«Щоб не було самотньо» — подушка для обіймів (120×40)"
+        ],
+        en: [
+            "“Sleeping on a Cloud” — Down Pillow",
+            "“Warm Comfort” — Sheepskin Pillow",
+            "“Smart Support” — Memory Foam Pillow",
+            "“Caring Support for Expectant Mothers” — U-Shaped Pillow",
+            "“Relax & Calm” — Herbal Pillow",
+            "“Neck Relief” — Neck Roll Pillow",
+            "“Little Dream” — Children’s Pillow",
+            "“For Cozy Hugs” — Hugging Pillow (120×40)"
+        ],
+        ru: [
+            "«Как в облаке» — пуховая подушка",
+            "«Теплый уют» — подушка на овчине",
+            "«Умная поддержка» — Memory-подушка",
+            "«Забота для будущей мамы» — П-образная подушка",
+            "«Релакс и покой» — фито-подушка",
+            "«Когда устала шея» — подушка-валик",
+            "«Маленький сон» — детская подушка",
+            "«Чтобы не было одиноко» — подушка для объятий (120×40)"
+        ]
+    };
+
+    const formLabels = {
+        ua: {
+            title: "Замовлення подушки",
+            room: "Номер кімнати",
+            select: "Оберіть подушку",
+            quantity: "Кількість",
+            comment: "Коментар (необов'язково)",
+            comment_placeholder: "Наприклад: доставити о 21:00",
+            submit: "Надіслати замовлення",
+            success_title: "Дякуємо!",
+            success_msg: "Вашу заявку прийнято. Подушку буде доставлено найближчим часом.",
+            close: "Закрити"
+        },
+        en: {
+            title: "Pillow Request",
+            room: "Room number",
+            select: "Select pillow type",
+            quantity: "Quantity",
+            comment: "Special requests (optional)",
+            comment_placeholder: "e.g. deliver at 9:00 PM",
+            submit: "Submit Request",
+            success_title: "Thank you!",
+            success_msg: "Your request has been received. The pillow will be delivered shortly.",
+            close: "Close"
+        },
+        ru: {
+            title: "Заказ подушки",
+            room: "Номер комнаты",
+            select: "Выберите подушку",
+            quantity: "Количество",
+            comment: "Комментарий (необязательно)",
+            comment_placeholder: "Например: доставить в 21:00",
+            submit: "Отправить заказ",
+            success_title: "Спасибо!",
+            success_msg: "Ваша заявка принята. Подушка будет доставлена в ближайшее время.",
+            close: "Закрыть"
+        }
+    };
+
+    function populatePillowSelect() {
+        const lang = currentLanguage || "ua";
+        const options = pillowOptions[lang] || pillowOptions.ua;
+        pillowSelect.innerHTML = "";
+        
+        // Add default empty option
+        const defOpt = document.createElement("option");
+        defOpt.value = "";
+        defOpt.disabled = true;
+        defOpt.selected = true;
+        defOpt.textContent = lang === "en" ? "Select a pillow..." : (lang === "ru" ? "Выберите подушку..." : "Оберіть подушку...");
+        pillowSelect.appendChild(defOpt);
+
+        options.forEach(opt => {
+            const el = document.createElement("option");
+            el.value = opt;
+            el.textContent = opt;
+            pillowSelect.appendChild(el);
+        });
+    }
+
+    function translateForm() {
+        const lang = currentLanguage || "ua";
+        const labels = formLabels[lang] || formLabels.ua;
+        
+        document.getElementById("pillow-order-title").textContent = labels.title;
+        document.getElementById("label-pillow-room").textContent = labels.room;
+        document.getElementById("label-pillow-select").textContent = labels.select;
+        document.getElementById("label-pillow-quantity").textContent = labels.quantity;
+        document.getElementById("label-pillow-comment").textContent = labels.comment;
+        document.getElementById("pillow-comment").placeholder = labels.comment_placeholder;
+        document.getElementById("pillow-order-submit").querySelector("span").textContent = labels.submit;
+        document.getElementById("pillow-success-title").textContent = labels.success_title;
+        document.getElementById("pillow-success-msg").textContent = labels.success_msg;
+        document.getElementById("pillow-success-close-text").textContent = labels.close;
+    }
+
+    function openOrderModal() {
+        populatePillowSelect();
+        translateForm();
+        
+        // Reset form state
+        orderForm.reset();
+        qtyInput.value = "1";
+        orderForm.style.display = "block";
+        orderSuccess.style.display = "none";
+        
+        orderModal.classList.add("is-open");
+    }
+
+    function closeOrderModal() {
+        orderModal.classList.remove("is-open");
+    }
+
+    // Trigger open from the main PDF modal button
+    triggerBtn.addEventListener("click", () => {
+        openOrderModal();
+    });
+
+    // Close controls
+    orderClose.addEventListener("click", closeOrderModal);
+    orderBackdrop.addEventListener("click", closeOrderModal);
+    document.getElementById("pillow-order-success-close").addEventListener("click", closeOrderModal);
+
+    // Quantity selectors logic
+    qtyMinus.addEventListener("click", () => {
+        let val = parseInt(qtyInput.value) || 1;
+        if (val > 1) qtyInput.value = (val - 1).toString();
+    });
+
+    qtyPlus.addEventListener("click", () => {
+        let val = parseInt(qtyInput.value) || 1;
+        if (val < 5) qtyInput.value = (val + 1).toString();
+    });
+
+    // Form submission
+    orderForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        
+        // Animate out the form, show success checkmark
+        gsap.to(orderForm, {
+            opacity: 0,
+            duration: 0.25,
+            onComplete: () => {
+                orderForm.style.display = "none";
+                orderForm.style.opacity = 1;
+                
+                orderSuccess.style.display = "block";
+                orderSuccess.style.opacity = 0;
+                gsap.to(orderSuccess, { opacity: 1, duration: 0.3 });
+                
+                // Trigger checkmark redraw animation
+                const path = document.querySelector(".success-checkmark-svg .checkmark-path");
+                if (path) {
+                    path.style.animation = "none";
+                    path.offsetHeight; // trigger reflow
+                    path.style.animation = null;
+                }
+            }
+        });
+    });
+
+    // Expose language change binding
+    window.__ribasUpdatePillowFormLanguage = () => {
+        populatePillowSelect();
+        translateForm();
+    };
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    initPdfModal();
+    initPillowOrderForm();
+});
 
 /* =========================================================================
    LOCALIZATION / TRANSLATIONS (UA, EN, RU)
@@ -2283,6 +2516,9 @@ function initLanguageSelector() {
             }
         });
         applyTranslations(currentLanguage);
+        if (window.__ribasUpdatePillowFormLanguage) {
+            window.__ribasUpdatePillowFormLanguage();
+        }
     }
 
     langButtons.forEach(btn => {
@@ -2315,6 +2551,9 @@ function initLanguageSelector() {
             
             tl.call(() => {
                 applyTranslations(currentLanguage);
+                if (window.__ribasUpdatePillowFormLanguage) {
+                    window.__ribasUpdatePillowFormLanguage();
+                }
             });
 
             tl.call(() => {

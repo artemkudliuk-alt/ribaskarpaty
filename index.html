@@ -21,7 +21,7 @@
 
     <!-- JS -->
     <script src="translations.js" defer></script>
-    <script src="main.js?v=7" defer></script>
+    <script src="main.js?v=8" defer></script>
 </head>
 <body>
 
@@ -47,8 +47,76 @@
                     </button>
                 </div>
             </div>
+            <!-- Dynamic description above PDF -->
+            <div id="pdf-modal-description" class="pdf-modal-description" style="display: none;"></div>
             <div class="pdf-modal-body">
                 <iframe id="pdf-modal-iframe" src="" title="PDF документ" allowfullscreen></iframe>
+            </div>
+            <!-- Dynamic footer with Order Pillow button below PDF -->
+            <div id="pdf-modal-footer" class="pdf-modal-footer" style="display: none;">
+                <button class="bento-btn gold-btn pillow-order-btn-main" id="pillow-order-trigger-btn" style="height: 48px; width: calc(100% - 40px); margin: 12px 20px;">
+                    <span>Замовити подушку / Order a Pillow</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pillow Order Modal Form -->
+    <div id="pillow-order-modal" class="pdf-modal" role="dialog" aria-modal="true" aria-label="Замовлення подушки">
+        <div class="pdf-modal-backdrop" id="pillow-order-backdrop"></div>
+        <div class="pdf-modal-container pillow-order-container" style="width: min(92vw, 480px); height: auto; max-height: 90vh;">
+            <div class="pdf-modal-header">
+                <span class="pdf-modal-title" id="pillow-order-title">Замовлення подушки</span>
+                <button id="pillow-order-close" class="pdf-modal-close-btn" aria-label="Закрити">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="pillow-order-body" style="padding: 24px; overflow-y: auto;">
+                <form id="pillow-order-form" class="pillow-order-form">
+                    <div class="form-group">
+                        <label for="pillow-room" class="form-label" id="label-pillow-room">Номер кімнати / Room number</label>
+                        <input type="text" id="pillow-room" name="room" required placeholder="104" class="form-input">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="pillow-select" class="form-label" id="label-pillow-select">Оберіть подушку / Select pillow</label>
+                        <select id="pillow-select" name="pillow_type" required class="form-select">
+                            <!-- Options filled dynamically in main.js based on language -->
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="pillow-quantity" class="form-label" id="label-pillow-quantity">Кількість / Quantity</label>
+                        <div class="quantity-selector">
+                            <button type="button" class="qty-btn minus">-</button>
+                            <input type="number" id="pillow-quantity" name="quantity" value="1" min="1" max="5" readonly class="qty-input">
+                            <button type="button" class="qty-btn plus">+</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pillow-comment" class="form-label" id="label-pillow-comment">Коментар / Special requests (optional)</label>
+                        <textarea id="pillow-comment" name="comment" rows="2" placeholder="Наприклад: доставити о 21:00" class="form-textarea"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="bento-btn gold-btn form-submit-btn" id="pillow-order-submit" style="width: 100%; margin-top: 15px; height: 48px;">
+                        <span>Надіслати замовлення</span>
+                    </button>
+                </form>
+                
+                <div id="pillow-order-success" class="pillow-order-success" style="display: none; text-align: center; padding: 20px 10px;">
+                    <div class="success-icon-wrap" style="margin-bottom: 20px;">
+                        <svg viewBox="0 0 52 52" class="success-checkmark-svg" style="width: 64px; height: 64px; margin: 0 auto; color: var(--color-gold);">
+                            <circle cx="26" cy="26" r="25" fill="none" stroke="currentColor" stroke-width="2"/>
+                            <path fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M14 27l8 8 16-16" class="checkmark-path"/>
+                        </svg>
+                    </div>
+                    <h3 class="success-title" id="pillow-success-title" style="color: var(--color-text-primary); font-size: 1.2rem; margin-bottom: 10px;">Дякуємо!</h3>
+                    <p class="success-message" id="pillow-success-msg" style="color: rgba(240, 235, 225, 0.7); font-size: 0.9rem; line-height: 1.5; margin: 0;">Вашу заявку прийнято. Подушку буде доставлено найближчим часом.</p>
+                    <button id="pillow-order-success-close" class="bento-btn outline-btn" style="margin-top: 24px; width: 100%; height: 44px;">
+                        <span id="pillow-success-close-text">Закрити</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
