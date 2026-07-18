@@ -2338,6 +2338,18 @@ function initPdfModal() {
             src = isMobile ? "/files/MemoGames mob.pdf" : "/files/memo-games.pdf";
         }
 
+        // iOS Safari renders an <iframe>-embedded PDF as a single static
+        // page with no scrolling — a WebKit limitation, not a bug on our
+        // side. On phones/tablets, open actual PDF files in a new tab so
+        // the native viewer (scrollable, zoomable) takes over. External
+        // HTML pages (Bukovel map, Justo menu) keep using the modal.
+        const isPdfFile = /\.pdf(\?|#|$)/i.test(src);
+        const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        if (isPdfFile && isMobileDevice) {
+            window.open(encodeURI(src), "_blank", "noopener");
+            return;
+        }
+
         // Dynamic translated title extraction (falls back to data-pdf-title)
         let label = "";
         const textSpan = trigger.querySelector(".btn-text, span");

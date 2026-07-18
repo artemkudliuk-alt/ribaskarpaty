@@ -1720,7 +1720,13 @@ body {
 @media (max-width: 1024px) {
     .scroll-indicator-mobile {
         position: absolute;
+        /* iOS Safari: the 100vh screen extends UNDER the browser's bottom
+           toolbar, so plain bottom:35px sat hidden behind it. 100vh-100dvh
+           equals the toolbar height while it's visible, lifting the badge
+           into the actually-visible area; browsers without dvh fall back
+           to the plain 35px line above. */
         bottom: 35px;
+        bottom: calc(100vh - 100dvh + 35px);
         left: 50%;
         transform: translateX(-50%);
         display: flex;
@@ -2488,6 +2494,8 @@ body {
         display: none !important;
     }
 
+    /* Desktop mouse indicator hidden on mobile — the dedicated
+       #scroll-indicator-mobile ("Свайпніть вгору") takes its place */
     .scroll-indicator-mouse {
         display: none !important;
     }
@@ -2832,9 +2840,7 @@ body {
         margin-top: 36px;
     }
 
-    .scroll-indicator-mouse {
-        display: none;
-    }
+    /* (kept visible on mobile — see the 1024px block) */
 
     .footer-social-links {
         flex-direction: column;
