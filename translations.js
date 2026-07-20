@@ -236,7 +236,8 @@ window.translations = {
         ".nav-lbl-3": "SPA",
         ".nav-lbl-4": "Дозвілля",
         ".nav-lbl-5": "Корисна інфо",
-        ".nav-lbl-6": "Контакти"
+        ".nav-lbl-6": "Контакти",
+        ".footer-ribas-network-label": "Мережа Ribas"
     },
     en: {
         // Global Dropdowns
@@ -432,7 +433,8 @@ window.translations = {
         ".nav-lbl-3": "SPA",
         ".nav-lbl-4": "Leisure",
         ".nav-lbl-5": "Useful Info",
-        ".nav-lbl-6": "Contacts"
+        ".nav-lbl-6": "Contacts",
+        ".footer-ribas-network-label": "Ribas Network"
     },
     ru: {
         // Global Dropdowns
@@ -628,6 +630,7 @@ window.translations = {
         ".nav-lbl-3": "SPA",
         ".nav-lbl-4": "Досуг",
         ".nav-lbl-5": "Полезная инфо",
-        ".nav-lbl-6": "Контакты"
+        ".nav-lbl-6": "Контакты",
+        ".footer-ribas-network-label": "Сеть Ribas"
     }
 };
